@@ -29,7 +29,7 @@ type Config struct {
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
 	Sciond   env.SCIONDClient `toml:"sciond_connection,omitempty"`
-	Ms       MsConf           `toml:"sig,omitempty"`
+	Ms       MsConf           `toml:"ms,omitempty"`
 }
 
 func (cfg *Config) InitDefaults() {

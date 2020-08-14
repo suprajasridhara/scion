@@ -14,30 +14,8 @@
 
 package config
 
-const idSample = "sig4"
+const idSample = "ms1"
 
-const sigSample = `
-# ID of the SIG. (required)
-id = "%s"
-
-# The SIG config json file. (required)
-sig_config = "/etc/scion/sig/sig.json"
-
-# The local ISD-AS. (required)
-isd_as = "1-ff00:0:113"
-
-# The bind IP address. (required)
-ip = "192.0.2.100"
-
-# Control data port, e.g. keepalives. (default 30256)
-ctrl_port = 30256
-
-# Encapsulation data port. (default 30056)
-encap_port = 30056
-
-# Name of TUN device to create. (default DefaultTunName)
-tun = "sig"
-
-# Id of the routing table. (default 11)
-tun_routing_table_id = 11
+const msSample = `
+TODO_MS: later
 `
