@@ -16,7 +16,6 @@
 package sigcmn
 
 import (
-	"context"
 	"net"
 	"time"
 
@@ -67,13 +66,13 @@ func Init(cfg sigconfig.SigConf, sdCfg env.SCIONDClient, features env.Features) 
 	if err != nil {
 		return common.NewBasicError("Error creating local SCION Network context", err)
 	}
-	conn, err := network.Listen(context.Background(), "udp",
-		&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcSIG)
-	if err != nil {
-		return common.NewBasicError("Error creating ctrl socket", err)
-	}
+	// conn, err := network.Listen(context.Background(), "udp",
+	// 	&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcSIG)
+	// if err != nil {
+	// 	return common.NewBasicError("Error creating ctrl socket", err)
+	// }
 
-	CtrlConn = conn
+	// CtrlConn = conn
 	Network = network
 	PathMgr = resolver
 
