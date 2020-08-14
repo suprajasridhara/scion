@@ -37,7 +37,13 @@ func Init(tunIO io.ReadWriteCloser) {
 }
 
 func ReloadConfig(cfg *sigjson.Cfg) bool {
+	/***
+	TODO_SIG:(supraja) pull from MS here to get the mapping.
+	In the new infrastructure the MS replies with (IP,AS) pairs so change the way the mapping is
+	handled here
+	***/
 	res := asmap.Map.ReloadConfig(cfg)
+
 	log.Info("Config reloaded")
 	return res
 }
