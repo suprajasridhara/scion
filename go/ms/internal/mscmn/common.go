@@ -40,13 +40,13 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		return common.NewBasicError("Error creating local SCION Network context", err)
 	}
 
-	conn, err := network.Listen(context.Background(), "udp",
-		&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcMS)
-	if err != nil {
-		return common.NewBasicError("Error creating ctrl socket", err)
-	}
+	// conn, err := network.Listen(context.Background(), "udp",
+	// 	&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcMS)
+	// if err != nil {
+	// 	return common.NewBasicError("Error creating ctrl socket", err)
+	// }
 
-	CtrlConn = conn
+	// CtrlConn = conn
 	Network = network
 	PathMgr = resolver
 
@@ -115,6 +115,7 @@ func initNetworkWithRealSCIOND(cfg msconfig.MsConf,
 	deadline := time.Now().Add(sdCfg.InitialConnectPeriod.Duration)
 	var retErr error
 	for tries := 0; time.Now().Before(deadline); tries++ {
+		print(sdCfg.Address)
 		resolver, err := ResolverFromSD(sdCfg.Address, sdCfg.PathCount)
 
 		if err == nil {

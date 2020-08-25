@@ -15,6 +15,7 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"net"
 
@@ -53,6 +54,7 @@ func (cfg *Config) Validate() error {
 }
 
 func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
+	print(path)
 	config.WriteSample(dst, path, config.CtxMap{config.ID: idSample},
 		&cfg.Features,
 		&cfg.Logging,
@@ -67,12 +69,12 @@ var _ config.Config = (*MsConf)(nil)
 type MsConf struct {
 	//TODO_MS:(supraja) create the config definition to start the MS instance
 	//sciond config, IP, PLN config
-	ID               string
-	DispatcherBypass string
-	IP               net.IP
-	CtrlPort         uint16
-	DataPort         uint16
-	IA               addr.IA
+	ID               string  `toml:"id,omitempty"`
+	DispatcherBypass string  `toml:"disaptcher_bypass,omitempty"`
+	IP               net.IP  `toml:"ip,omitempty"`
+	CtrlPort         uint16  `toml:"ctrl_port,omitempty"`
+	DataPort         uint16  `toml:"data_port,omitempty"`
+	IA               addr.IA `toml:"isd_as,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
@@ -88,6 +90,6 @@ func (cfg *MsConf) ConfigName() string {
 	return "ms"
 }
 
-func (cfg *MsConf) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
-	//TODO_MS:(supraja) return config sample
+func (cfg *MsConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
+	config.WriteString(dst, fmt.Sprintf(msSample, ctx[config.ID]))
 }
