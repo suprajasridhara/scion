@@ -30,11 +30,12 @@ type Server struct {
 // Server constructs a API server. The caller is responsible for starting and
 // shutting it down.
 func HandleAndServe(addr string, cfg ServerCfg) *Server {
-	handlers := servers.HandlerMap{
+	handlers := HandlerMap{
 		proto.MSMsg_Which_fullMapRec: &FullMapRequestHandler{},
 		proto.MSMsg_Which_asIDRec:    &ASIDRequestHandler{},
 	}
 	return NewServer("tcp", addr, handlers)
+
 }
 
 // NewServer initializes a new server at address on the specified network. The

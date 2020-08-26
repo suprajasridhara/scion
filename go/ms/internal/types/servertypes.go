@@ -1,11 +1,11 @@
-package ms
+package types
 
 import "github.com/scionproto/scion/go/proto"
 
-type SignedMap struct{
+type SignedMap struct {
 	//TODO: replace string with correct types if there are any
-	sign string
-	map IPASMap
+	sign    string
+	ipASMap IPASMap
 }
 type IPASMap struct {
 	entries []*Entry
@@ -19,7 +19,8 @@ type Entry struct {
 }
 
 type Pld struct {
-	Which   proto.SCIONDMsg_Which
+	Which   proto.MSMsg_Which
 	FullMap *IPASMap
 	ASID    *Entry
+	TraceId []byte
 }

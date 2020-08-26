@@ -16,11 +16,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"time"
 
 	"github.com/BurntSushi/toml"
 
@@ -32,11 +34,16 @@ import (
 	"github.com/scionproto/scion/go/pkg/service"
 
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
+	"github.com/scionproto/scion/go/ms/internal/msserver"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
 var (
 	cfg msconfig.Config
+)
+
+const (
+	shutdownWaitTimeout = 5 * time.Second
 )
 
 func init() {
@@ -86,6 +93,19 @@ func realMain() int {
 		return 1
 	}
 
+	srv := msserver.HandleAndServe(cfg.Ms.Address, msserver.ServerCfg{})
+
+	go func() {
+		defer log.HandlePanic()
+		if err := srv.ListenAndServe(); err != nil {
+			fatal.Fatal(serrors.WrapStr("serving API", err, "addr", cfg.Ms.Address))
+		}
+	}()
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownWaitTimeout)
+		defer cancel()
+		srv.Shutdown(ctx)
+	}()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),

@@ -75,6 +75,7 @@ type MsConf struct {
 	CtrlPort         uint16  `toml:"ctrl_port,omitempty"`
 	DataPort         uint16  `toml:"data_port,omitempty"`
 	IA               addr.IA `toml:"isd_as,omitempty"`
+	Address          string  `toml:"address,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
