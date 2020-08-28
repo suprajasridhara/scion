@@ -7,7 +7,6 @@ import (
 
 	"github.com/scionproto/scion/go/dispatcher/dispatcher"
 	"github.com/scionproto/scion/go/lib/addr"
-	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
@@ -17,7 +16,6 @@ import (
 	"github.com/scionproto/scion/go/lib/pathmgr"
 	"github.com/scionproto/scion/go/lib/sciond"
 	"github.com/scionproto/scion/go/lib/sciond/fake"
-	"github.com/scionproto/scion/go/lib/scrypto/cppki"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/sock/reliable"
@@ -85,13 +83,6 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
-	addr := &snet.SVCAddr{IA: cfg.IA, SVC: addr.SvcCS}
-	encTRC, err := Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
-	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
-	if err != nil {
-		return serrors.WrapStr("Unable to fetch TRC", err)
-	}
-	print(trc.TRC.CoreASes)
 
 	return nil
 }

@@ -16,19 +16,15 @@
 package egress
 
 import (
-	"context"
-	"fmt"
 	"io"
 
 	"github.com/scionproto/scion/go/lib/fatal"
 	"github.com/scionproto/scion/go/lib/log"
-	"github.com/scionproto/scion/go/lib/sciond"
 	"github.com/scionproto/scion/go/lib/sigjson"
-	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/sig/egress/asmap"
 	"github.com/scionproto/scion/go/sig/egress/iface"
 	"github.com/scionproto/scion/go/sig/egress/reader"
-	"github.com/scionproto/scion/go/sig/internal/sigcmn"
+	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
 )
 
 func Init(tunIO io.ReadWriteCloser) {
@@ -47,17 +43,10 @@ func ReloadConfig(cfg *sigjson.Cfg) bool {
 	In the new infrastructure the MS replies with (IP,AS) pairs so change the way the mapping is
 	handled here
 	***/
-	//paths, err := sdConn.Paths(context.Background(), remote.IA, local.IA, sd.PathReqFlags{})
 
-	//TODO (supraja): get core AS here
-	dst, _ := snet.ParseUDPAddr("2-ff00:0:221,[127.0.0.133]:30755")
+	cfgmgmt.LoadCfg()
 
-	pathSet := sigcmn.PathMgr.Query(context.Background(), sigcmn.Network.LocalIA, dst.IA, sciond.PathReqFlags{})
-	path := pathSet.GetAppPath(snet.PathFingerprint(""))
-	fmt.Printf("Using path:\n  %s\n", fmt.Sprintf("%s", path))
-
-	//TODO (supraja): depending on communication mechanism cpnproto/grpc add code here
-
+	//TODO (supraja): change this to be used as white or blacklist
 	res := asmap.Map.ReloadConfig(cfg)
 
 	log.Info("Config reloaded")
