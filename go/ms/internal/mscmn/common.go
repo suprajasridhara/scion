@@ -39,27 +39,6 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	CtrlAddr = cfg.IP
 	CtrlPort = int(cfg.CtrlPort)
 
-	// network, resolver, err := initNetwork(cfg, sdCfg, features)
-	// if err != nil {
-	// 	return common.NewBasicError("Error creating local SCION Network context", err)
-	// }
-
-	// // conn, err := network.Listen(context.Background(), "udp",
-	// // 	&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcMS)
-	// // if err != nil {
-	// // 	return common.NewBasicError("Error creating ctrl socket", err)
-	// // }
-
-	// // CtrlConn = conn
-	// Network = network
-	// PathMgr = resolver
-
-	//intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
-	// itopo.Init(&itopo.Config{}
-	// 	ID:  cfg.Address,
-	// 	Svc: proto.ServiceType_cs,
-	// })
-
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch router", err)
@@ -72,8 +51,8 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		QUIC: infraenv.QUIC{
 			//TODO (supraja): read all of this from config
 			Address:  "127.0.0.133:30755",
-			CertFile: "/gen-certs/tls.pem",
-			KeyFile:  "/gen-certs/tls.key",
+			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
+			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
 		},
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
@@ -83,6 +62,8 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
+
+	Msgr.AddHandler(infra.MSFullMapRequest, FullMapReqHandler{})
 
 	return nil
 }

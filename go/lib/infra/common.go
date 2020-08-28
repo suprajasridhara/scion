@@ -144,6 +144,8 @@ const (
 	HPSegReply
 	HPCfgRequest
 	HPCfgReply
+	MSFullMapRequest
+	MSFullMapReply
 )
 
 func (mt MessageType) String() string {
@@ -190,6 +192,10 @@ func (mt MessageType) String() string {
 		return "HPCfgRequest"
 	case HPCfgReply:
 		return "HPCfgReply"
+	case MSFullMapRequest:
+		return "MSFullMapRequest"
+	case MSFullMapReply:
+		return "MSFullMapReply"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -241,6 +247,10 @@ func (mt MessageType) MetricLabel() string {
 		return "hp_cfg_req"
 	case HPCfgReply:
 		return "hp_cfg_push"
+	case MSFullMapRequest:
+		return "ms_full_map_req"
+	case MSFullMapReply:
+		return "ms_full_map_push"
 	default:
 		return "unknown_mt"
 	}
