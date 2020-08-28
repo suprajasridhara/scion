@@ -31,11 +31,13 @@ import (
 	libconfig "github.com/scionproto/scion/go/lib/config"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/sigdisp"
 	"github.com/scionproto/scion/go/lib/sigjson"
+	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/pkg/service"
 	sigconfig "github.com/scionproto/scion/go/pkg/sig/config"
 	"github.com/scionproto/scion/go/sig/egress"
@@ -76,16 +78,25 @@ func realMain() int {
 		log.Error("Configuration validation failed", "err", err)
 		return 1
 	}
-	// Setup tun early so that we can drop capabilities before interacting with network etc.
+	//Setup tun early so that we can drop capabilities before interacting with network etc.
 	tunIO, err := setupTun()
 	if err != nil {
 		log.Error("TUN device initialization failed", "err", err)
 		return 1
 	}
+
+	setupTopo()
+	if err := sigcmn.SetupMessenger(cfg); err != nil {
+		log.Error("Messenger initialization failed", "err", err)
+		return 1
+	}
+
 	if err := sigcmn.Init(cfg.Sig, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("SIG common initialization failed", "err", err)
 		return 1
 	}
+	sigdisp.Init(sigcmn.CtrlConn, false)
+
 	env.SetupEnv(
 		func() {
 			success := loadConfig(cfg.Sig.SIGConfig)
@@ -93,7 +104,7 @@ func realMain() int {
 			log.Info("reloadOnSIGHUP: reload done", "success", success)
 		},
 	)
-	sigdisp.Init(sigcmn.CtrlConn, false)
+
 	// Parse sig config
 	if loadConfig(cfg.Sig.SIGConfig) != true {
 		log.Error("SIG configuration loading failed")
@@ -211,10 +222,25 @@ func loadConfig(path string) bool {
 		log.Error("loadConfig: Failed", "err", err)
 		return false
 	}
+
 	ok := egress.ReloadConfig(cfg)
 	if !ok {
 		return false
 	}
 	atomic.StoreUint64(&metrics.ConfigVersion, cfg.ConfigVersion)
 	return true
+}
+
+func setupTopo() error {
+	itopo.Init(&itopo.Config{})
+
+	topo, err := topology.FromJSONFile(cfg.General.Topology())
+	if err != nil {
+		return serrors.WrapStr("loading topology", err)
+	}
+	if err := itopo.Update(topo); err != nil {
+		return serrors.WrapStr("unable to set initial static topology", err)
+	}
+	log.Info("Topo setup: done")
+	return nil
 }

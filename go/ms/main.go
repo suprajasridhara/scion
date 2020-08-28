@@ -16,7 +16,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -28,13 +27,14 @@ import (
 
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/pkg/service"
 
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
-	"github.com/scionproto/scion/go/ms/internal/msserver"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
@@ -88,24 +88,26 @@ func realMain() int {
 		return 1
 	}
 
+	setupTopo()
+
 	if err := mscmn.Init(cfg.Ms, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("MS common initialization failed", "err", err)
 		return 1
 	}
 
-	srv := msserver.HandleAndServe(cfg.Ms.Address, msserver.ServerCfg{})
+	// srv := msserver.HandleAndServe(cfg.Ms.Address, msserver.ServerCfg{})
 
-	go func() {
-		defer log.HandlePanic()
-		if err := srv.ListenAndServe(); err != nil {
-			fatal.Fatal(serrors.WrapStr("serving API", err, "addr", cfg.Ms.Address))
-		}
-	}()
-	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), shutdownWaitTimeout)
-		defer cancel()
-		srv.Shutdown(ctx)
-	}()
+	// go func() {
+	// 	defer log.HandlePanic()
+	// 	if err := srv.ListenAndServe(); err != nil {
+	// 		fatal.Fatal(serrors.WrapStr("serving API", err, "addr", cfg.Ms.Address))
+	// 	}
+	// }()
+	// defer func() {
+	// 	ctx, cancel := context.WithTimeout(context.Background(), shutdownWaitTimeout)
+	// 	defer cancel()
+	// 	srv.Shutdown(ctx)
+	// }()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),
@@ -123,6 +125,19 @@ func realMain() int {
 	case <-fatal.FatalChan():
 		return 1
 	}
+}
+
+func setupTopo() error {
+	itopo.Init(&itopo.Config{})
+
+	topo, err := topology.FromJSONFile(cfg.General.Topology())
+	if err != nil {
+		return serrors.WrapStr("loading topology", err)
+	}
+	if err := itopo.Update(topo); err != nil {
+		return serrors.WrapStr("unable to set initial static topology", err)
+	}
+	return nil
 }
 
 // setupBasic loads the config from file and initializes logging.

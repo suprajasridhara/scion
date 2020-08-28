@@ -52,7 +52,7 @@ func NewServer(network string, address string, handlers HandlerMap) *Server {
 }
 
 // ListenAndServe starts listening on srv's address, and repeatedly accepts
-// connections from clients. For each accepted connection, a SCIONDMsg server
+// connections from clients. For each accepted connection, a MSMsg server
 // is started as a separate goroutine; the server will manage the connection
 // until it is closed by the client.
 func (srv *Server) ListenAndServe() error {
@@ -93,7 +93,7 @@ func (srv *Server) ListenAndServe() error {
 }
 
 // Close makes the Server stop listening for new connections, and immediately
-// closes all running SCIONDMsg servers that have been launched by this server.
+// closes all running MSMsg servers that have been launched by this server.
 func (srv *Server) Close() error {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
@@ -103,12 +103,10 @@ func (srv *Server) Close() error {
 	}
 	srv.closeCalled = true
 	return srv.listener.Close()
-	// FIXME(scrye): shut down running servers once we actually implement the
-	// handlers.
 }
 
 // Shutdown makes the Server stop listening for new connections, and cleanly
-// shuts down all running SCIONDMsg servers that have been launched by this
+// shuts down all running MSMsg servers that have been launched by this
 // server.
 func (srv *Server) Shutdown(ctx context.Context) error {
 	// Ignore context during close as it should rarely block for non-negligible
@@ -117,6 +115,6 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 		return err
 	}
 
-	// FIXME(scrye): cleanly close running SCIONDMsg servers here.
+	// FIXME(scrye): cleanly close running MSMsg servers here.
 	return nil
 }

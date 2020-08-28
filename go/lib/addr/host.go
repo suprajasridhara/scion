@@ -76,8 +76,7 @@ const (
 	SvcPCN      HostSVC = 0x0008
 	SvcWildcard HostSVC = 0x0010
 	SvcNone     HostSVC = 0xffff
-
-	SVCMcast HostSVC = 0x8000
+	SVCMcast    HostSVC = 0x8000
 )
 
 type HostAddr interface {

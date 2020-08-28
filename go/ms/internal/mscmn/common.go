@@ -7,12 +7,17 @@ import (
 
 	"github.com/scionproto/scion/go/dispatcher/dispatcher"
 	"github.com/scionproto/scion/go/lib/addr"
-	"github.com/scionproto/scion/go/lib/common"
+	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
+	"github.com/scionproto/scion/go/lib/infra/infraenv"
+	"github.com/scionproto/scion/go/lib/infra/messenger"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/pathmgr"
 	"github.com/scionproto/scion/go/lib/sciond"
 	"github.com/scionproto/scion/go/lib/sciond/fake"
+	"github.com/scionproto/scion/go/lib/scrypto/cppki"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/sock/reliable"
@@ -29,26 +34,64 @@ var (
 	DataAddr   net.IP
 	DataPort   int
 	CtrlConn   *snet.Conn
+	Msgr       infra.Messenger
 )
 
 func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) error {
 	CtrlAddr = cfg.IP
 	CtrlPort = int(cfg.CtrlPort)
 
-	network, resolver, err := initNetwork(cfg, sdCfg, features)
-	if err != nil {
-		return common.NewBasicError("Error creating local SCION Network context", err)
-	}
-
-	// conn, err := network.Listen(context.Background(), "udp",
-	// 	&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcMS)
+	// network, resolver, err := initNetwork(cfg, sdCfg, features)
 	// if err != nil {
-	// 	return common.NewBasicError("Error creating ctrl socket", err)
+	// 	return common.NewBasicError("Error creating local SCION Network context", err)
 	// }
 
-	// CtrlConn = conn
-	Network = network
-	PathMgr = resolver
+	// // conn, err := network.Listen(context.Background(), "udp",
+	// // 	&net.UDPAddr{IP: CtrlAddr, Port: CtrlPort}, addr.SvcMS)
+	// // if err != nil {
+	// // 	return common.NewBasicError("Error creating ctrl socket", err)
+	// // }
+
+	// // CtrlConn = conn
+	// Network = network
+	// PathMgr = resolver
+
+	//intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
+	// itopo.Init(&itopo.Config{}
+	// 	ID:  cfg.Address,
+	// 	Svc: proto.ServiceType_cs,
+	// })
+
+	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch router", err)
+	}
+	nc := infraenv.NetworkConfig{
+		IA:                    cfg.IA,
+		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
+		SVC:                   addr.SvcWildcard,
+		ReconnectToDispatcher: true, //TODO (supraja): see later
+		QUIC: infraenv.QUIC{
+			//TODO (supraja): read all of this from config
+			Address:  "127.0.0.133:30755",
+			CertFile: "/gen-certs/tls.pem",
+			KeyFile:  "/gen-certs/tls.key",
+		},
+		Router:    router,
+		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
+	}
+
+	Msgr, err = nc.Messenger()
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch Messenger", err)
+	}
+	addr := &snet.SVCAddr{IA: cfg.IA, SVC: addr.SvcCS}
+	encTRC, err := Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
+	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch TRC", err)
+	}
+	print(trc.TRC.CoreASes)
 
 	return nil
 }

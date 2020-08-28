@@ -26,6 +26,7 @@ import (
 )
 
 type Config struct {
+	General  env.General `toml:"general,omitempty"`
 	Features env.Features
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`

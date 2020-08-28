@@ -7,7 +7,6 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/types"
 )
 
-//Handler is an interface ... TODO:
 type Handler interface {
 	Handle(ctx context.Context, conn net.Conn, src net.Addr, pld *types.Pld)
 }
