@@ -241,15 +241,15 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
 }
 
-func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.FullMapReq, a net.Addr, id uint64) error {
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
 		"msg_id", id, "request", nil, "peer", a)
-	replyCtrlPld, err := m.getFallbackRequester(infra.TRCRequest).Request(ctx, pld, a, false)
+	replyCtrlPld, err := m.getFallbackRequester(infra.MSFullMapRequest).Request(ctx, pld, a, false)
 	if err != nil {
 		return common.NewBasicError("[Messenger] Request error", err,
-			"req_type", infra.TRCRequest)
+			"req_type", infra.MSFullMapRequest)
 	}
 	_, replyMsg, err := Validate(replyCtrlPld)
 	if err != nil {
@@ -1034,6 +1034,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		}
 	case proto.CtrlPld_Which_ack:
 		return infra.Ack, pld.Ack, nil
+	case proto.CtrlPld_Which_ms:
+		return infra.MSFullMapRequest, pld.Ms, nil
 	default:
 		return infra.None, nil, common.NewBasicError("Unsupported SignedPld.Pld.Xxx message type",
 			nil, "capnp_which", pld.Which)

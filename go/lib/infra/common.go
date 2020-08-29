@@ -334,7 +334,7 @@ type Messenger interface {
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
-	GetFullMap(ctx context.Context, msg *ms_mgmt.FullMapReq, a net.Addr, id uint64) error
+	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
 
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)

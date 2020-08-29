@@ -46,7 +46,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.IA,
 		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
-		SVC:                   addr.SvcWildcard,
+		SVC:                   addr.SvcMS,
 		ReconnectToDispatcher: true, //TODO (supraja): see later
 		QUIC: infraenv.QUIC{
 			//TODO (supraja): read all of this from config

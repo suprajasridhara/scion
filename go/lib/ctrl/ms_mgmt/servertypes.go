@@ -41,10 +41,10 @@ type union struct {
 }
 
 type FullMap struct {
-	Addr int
+	Addr uint8
 }
 
-func newFullMap(a int) *FullMap {
+func newFullMap(a uint8) *FullMap {
 	return &FullMap{Addr: a}
 }
 
@@ -64,7 +64,7 @@ type FullMapReq struct {
 	*FullMap
 }
 
-func NewFullMapReq(a int) *FullMapReq {
+func NewFullMapReq(a uint8) *FullMapReq {
 	return &FullMapReq{newFullMap(a)}
 }
 
@@ -72,7 +72,7 @@ type FullMapRep struct {
 	*FullMap
 }
 
-func NewFullMapRep(a int) *FullMapRep {
+func NewFullMapRep(a uint8) *FullMapRep {
 	return &FullMapRep{newFullMap(a)}
 }
 

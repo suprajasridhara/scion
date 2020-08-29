@@ -26,10 +26,11 @@ func GetCoreASs() ([]addr.AS, error) {
 
 func GetFullMap(ia addr.IA) error {
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
+	pld, err := ms_mgmt.NewPld(1, ms_mgmt.NewFullMapReq(1))
 	//TODO (supraja): read from config
-	err := sigcmn.Msgr.GetFullMap(context.Background(), ms_mgmt.NewFullMapReq(1), addr, 1)
+	err = sigcmn.Msgr.GetFullMap(context.Background(), pld, addr, 1)
 	if err != nil {
-		return serrors.WrapStr("Unable to fetch TRC", err)
+		return serrors.WrapStr("Unable to fetch full map", err)
 	}
 	return nil
 }
