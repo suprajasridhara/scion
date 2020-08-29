@@ -50,7 +50,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		ReconnectToDispatcher: true, //TODO (supraja): see later
 		QUIC: infraenv.QUIC{
 			//TODO (supraja): read all of this from config
-			Address:  "127.0.0.133:30755",
+			Address:  "127.0.0.12:30755",
 			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
 			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
 		},

@@ -21,6 +21,7 @@ go_library(
         "sciond.capnp.go",
         "sibra.capnp.go",
         "sig.capnp.go",
+         "ms.capnp.go",
         "sign.capnp.go",
         "sign.go",
         "structs.gen.go",

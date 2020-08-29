@@ -26,6 +26,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ack"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
@@ -333,6 +334,8 @@ type Messenger interface {
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
+	GetFullMap(ctx context.Context, msg *ms_mgmt.FullMapReq, a net.Addr, id uint64) error
+
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)

@@ -1,4 +1,4 @@
-package types
+package ms_mgmt
 
 import "github.com/scionproto/scion/go/proto"
 

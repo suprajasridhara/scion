@@ -25,14 +25,18 @@ import (
 
 	"github.com/BurntSushi/toml"
 
+	"github.com/scionproto/scion/go/cs/ifstate"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
+	"github.com/scionproto/scion/go/lib/infra"
+	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/pkg/service"
+	"github.com/scionproto/scion/go/proto"
 
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
@@ -87,27 +91,29 @@ func realMain() int {
 		log.Error("MS configuration loading failed")
 		return 1
 	}
-
-	setupTopo()
-
+	cfg.Metrics.StartPrometheus()
+	intfs, err := setupTopo()
+	if err != nil {
+		log.Error("MS setupTopo failed", "err", err)
+		return 1
+	}
 	if err := mscmn.Init(cfg.Ms, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("MS common initialization failed", "err", err)
 		return 1
 	}
+	// Keepalive mechanism is deprecated and will be removed with change to
+	// header v2. Disable with https://github.com/Anapaya/scion/issues/3337.
+	if !cfg.Features.HeaderV2 || true {
+		mscmn.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
+		//TODO (supraja): fix this with a handler that works if needed
+		mscmn.Msgr.AddHandler(infra.IfId, mscmn.IdIdHandler{})
+	}
 
-	// srv := msserver.HandleAndServe(cfg.Ms.Address, msserver.ServerCfg{})
-
-	// go func() {
-	// 	defer log.HandlePanic()
-	// 	if err := srv.ListenAndServe(); err != nil {
-	// 		fatal.Fatal(serrors.WrapStr("serving API", err, "addr", cfg.Ms.Address))
-	// 	}
-	// }()
-	// defer func() {
-	// 	ctx, cancel := context.WithTimeout(context.Background(), shutdownWaitTimeout)
-	// 	defer cancel()
-	// 	srv.Shutdown(ctx)
-	// }()
+	go func() {
+		defer log.HandlePanic()
+		mscmn.Msgr.ListenAndServe()
+	}()
+	defer mscmn.Msgr.CloseServer()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),
@@ -117,7 +123,6 @@ func realMain() int {
 		log.Error("registering status pages", "err", err)
 		return 1
 	}
-	cfg.Metrics.StartPrometheus()
 
 	select {
 	case <-fatal.ShutdownChan():
@@ -127,17 +132,31 @@ func realMain() int {
 	}
 }
 
-func setupTopo() error {
-	itopo.Init(&itopo.Config{})
+func setupTopo() (*ifstate.Interfaces, error) {
+	//itopo.Init(&itopo.Config{})
 
 	topo, err := topology.FromJSONFile(cfg.General.Topology())
 	if err != nil {
-		return serrors.WrapStr("loading topology", err)
+		return nil, serrors.WrapStr("loading topology", err)
 	}
+
+	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
+	//prometheus.MustRegister(ifstate.NewCollector(intfs))
+	itopo.Init(&itopo.Config{
+		ID:  cfg.General.ID,
+		Svc: proto.ServiceType_ms,
+		Callbacks: itopo.Callbacks{
+			OnUpdate: func() {
+				intfs.Update(itopo.Get().IFInfoMap())
+			},
+		},
+	})
+
 	if err := itopo.Update(topo); err != nil {
-		return serrors.WrapStr("unable to set initial static topology", err)
+		return nil, serrors.WrapStr("setting initial static topology", err)
 	}
-	return nil
+	infraenv.InitInfraEnvironment(cfg.General.Topology())
+	return intfs, nil
 }
 
 // setupBasic loads the config from file and initializes logging.

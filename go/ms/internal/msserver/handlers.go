@@ -1,26 +1,26 @@
 package msserver
 
-import (
-	"context"
-	"net"
+// import (
+// 	"context"
+// 	"net"
 
-	"github.com/scionproto/scion/go/ms/internal/types"
-)
+// 	"github.com/scionproto/scion/go/ms/internal/mstypes"
+// )
 
-type Handler interface {
-	Handle(ctx context.Context, conn net.Conn, src net.Addr, pld *types.Pld)
-}
+// type Handler interface {
+// 	Handle(ctx context.Context, conn net.Conn, src net.Addr, pld *mstypes.Pld)
+// }
 
-type FullMapRequestHandler struct {
-}
+// type FullMapRequestHandler struct {
+// }
 
-func (h *FullMapRequestHandler) Handle(ctx context.Context, conn net.Conn, src net.Addr,
-	pld *types.Pld) {
-}
+// func (h *FullMapRequestHandler) Handle(ctx context.Context, conn net.Conn, src net.Addr,
+// 	pld *mstypes.Pld) {
+// }
 
-type ASIDRequestHandler struct {
-}
+// type ASIDRequestHandler struct {
+// }
 
-func (h *ASIDRequestHandler) Handle(ctx context.Context, conn net.Conn, src net.Addr,
-	pld *types.Pld) {
-}
+// func (h *ASIDRequestHandler) Handle(ctx context.Context, conn net.Conn, src net.Addr,
+// 	pld *mstypes.Pld) {
+// }

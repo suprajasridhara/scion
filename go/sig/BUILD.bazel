@@ -16,6 +16,10 @@ go_library(
         "//go/lib/serrors:go_default_library",
         "//go/lib/sigdisp:go_default_library",
         "//go/lib/sigjson:go_default_library",
+        "//go/lib/infra:go_default_library",
+        "//go/lib/infra/infraenv:go_default_library",
+        "//go/lib/infra/messenger:go_default_library",
+        "//go/lib/infra/modules/itopo:go_default_library",
         "//go/pkg/service:go_default_library",
         "//go/pkg/sig/config:go_default_library",
         "//go/sig/egress:go_default_library",
@@ -24,6 +28,7 @@ go_library(
         "//go/sig/internal/metrics:go_default_library",
         "//go/sig/internal/sigcmn:go_default_library",
         "//go/sig/internal/xnet:go_default_library",
+        "//go/lib/topology:go_default_library",
         "@com_github_syndtr_gocapability//capability:go_default_library",
     ],
 )

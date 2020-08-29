@@ -185,16 +185,15 @@ func SetupMessenger(cfg sigconfig.Config) error {
 		return serrors.WrapStr("Unable to fetch router", err)
 	}
 	nc := infraenv.NetworkConfig{
-		//TODO (supraja): see later
 		IA:                    cfg.Sig.IA,
-		Public:                &net.UDPAddr{IP: cfg.Sig.IP, Port: 30655},
+		Public:                &net.UDPAddr{IP: cfg.Sig.IP, Port: 30955},
 		SVC:                   addr.SvcWildcard,
 		ReconnectToDispatcher: true, //TODO (supraja): see later
 		QUIC: infraenv.QUIC{
 			//TODO (supraja): read all of this from config
-			Address:  "127.0.0.133:30755",
-			CertFile: "/gen-certs/tls.pem",
-			KeyFile:  "/gen-certs/tls.key",
+			Address:  "127.0.0.19:20655",
+			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
+			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
 		},
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),

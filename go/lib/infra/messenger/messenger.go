@@ -88,6 +88,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ctrl_msg"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -238,6 +239,24 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	logger := log.FromCtx(ctx)
 	logger.Debug("[Messenger] Sending Ack", "to", a, "id", id)
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
+}
+
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.FullMapReq, a net.Addr, id uint64) error {
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.TRCRequest).Request(ctx, pld, a, false)
+	if err != nil {
+		return common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.TRCRequest)
+	}
+	_, replyMsg, err := Validate(replyCtrlPld)
+	if err != nil {
+		return common.NewBasicError("[Messenger] Reply validation failed", err)
+	}
+	log.Info(replyMsg.String())
+	return nil
 }
 
 func (m *Messenger) GetTRC(ctx context.Context, msg *cert_mgmt.TRCReq,
