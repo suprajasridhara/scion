@@ -19,6 +19,7 @@ import (
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/sock/reliable"
+	"github.com/scionproto/scion/go/ms/sigreq"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
@@ -63,7 +64,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 
-	Msgr.AddHandler(infra.MSFullMapRequest, FullMapReqHandler{})
+	Msgr.AddHandler(infra.MSFullMapRequest, sigreq.FullMapReqHandler{})
 
 	return nil
 }
