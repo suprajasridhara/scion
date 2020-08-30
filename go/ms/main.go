@@ -39,6 +39,7 @@ import (
 	"github.com/scionproto/scion/go/proto"
 
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
+	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
@@ -113,6 +114,9 @@ func realMain() int {
 		defer log.HandlePanic()
 		mscmn.Msgr.ListenAndServe()
 	}()
+
+	setupDb()
+
 	defer mscmn.Msgr.CloseServer()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
@@ -130,6 +134,12 @@ func realMain() int {
 	case <-fatal.FatalChan():
 		return 1
 	}
+}
+
+func setupDb() {
+	//TODO (supraja): read this from config
+	sqlite3.NewDb("./ms.db")
+	sqlite3.Init()
 }
 
 func setupTopo() (*ifstate.Interfaces, error) {
