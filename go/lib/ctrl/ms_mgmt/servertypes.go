@@ -41,11 +41,13 @@ type union struct {
 }
 
 type FullMap struct {
-	Addr uint8
+	Id uint8
+	Ip string
+	Ia string
 }
 
-func newFullMap(a uint8) *FullMap {
-	return &FullMap{Addr: a}
+func NewFullMap(id uint8, ip string, ia string) *FullMap {
+	return &FullMap{Id: id, Ip: ip, Ia: ia}
 }
 
 func (p *FullMap) ProtoId() proto.ProtoIdType {
@@ -57,23 +59,43 @@ func (p *FullMap) Write(b common.RawBytes) (int, error) {
 }
 
 func (p *FullMap) String() string {
-	return fmt.Sprintf("%d", p.Addr)
+	return fmt.Sprintf("%d %s %s", p.Id, p.Ip, p.Ia)
 }
 
 type FullMapReq struct {
-	*FullMap
+	Id uint8 `capnp:"id"`
 }
 
-func NewFullMapReq(a uint8) *FullMapReq {
-	return &FullMapReq{newFullMap(a)}
+func NewFullMapReq(id uint8) *FullMapReq {
+	return &FullMapReq{Id: id}
+}
+
+func (p *FullMapReq) ProtoId() proto.ProtoIdType {
+	return proto.MS_TypeID
+}
+
+func (p *FullMapReq) String() string {
+	return fmt.Sprintf("%d", p.Id)
 }
 
 type FullMapRep struct {
-	*FullMap
+	Fm []FullMap `capnp:"fm"`
 }
 
-func NewFullMapRep(a uint8) *FullMapRep {
-	return &FullMapRep{newFullMap(a)}
+func (p *FullMapRep) String() string {
+	var s []string
+	for _, fm := range p.Fm {
+		s = append(s, fm.String())
+	}
+	return fmt.Sprintf("%v", s)
+}
+
+func NewFullMapRep(fm []FullMap) *FullMapRep {
+	return &FullMapRep{Fm: fm}
+}
+
+func (p *FullMapRep) ProtoId() proto.ProtoIdType {
+	return proto.MS_TypeID
 }
 
 func (u *union) set(c proto.Cerealizable) error {

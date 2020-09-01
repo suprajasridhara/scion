@@ -39,6 +39,7 @@ import (
 	"github.com/scionproto/scion/go/proto"
 
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
+	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
@@ -105,19 +106,19 @@ func realMain() int {
 	// Keepalive mechanism is deprecated and will be removed with change to
 	// header v2. Disable with https://github.com/Anapaya/scion/issues/3337.
 	if !cfg.Features.HeaderV2 || true {
-		mscmn.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
+		msmsgr.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
 		//TODO (supraja): fix this with a handler that works if needed
-		mscmn.Msgr.AddHandler(infra.IfId, mscmn.IdIdHandler{})
+		msmsgr.Msgr.AddHandler(infra.IfId, mscmn.IdIdHandler{})
 	}
 
 	go func() {
 		defer log.HandlePanic()
-		mscmn.Msgr.ListenAndServe()
+		msmsgr.Msgr.ListenAndServe()
 	}()
 
 	setupDb()
 
-	defer mscmn.Msgr.CloseServer()
+	defer msmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),
@@ -136,10 +137,13 @@ func realMain() int {
 	}
 }
 
-func setupDb() {
+func setupDb() error {
 	//TODO (supraja): read this from config
-	sqlite3.NewDb("./ms.db")
-	sqlite3.Init()
+	err := sqlite3.New("./ms.db", 1)
+	if err != nil {
+		return serrors.WrapStr("setting up database", err)
+	}
+	return nil
 }
 
 func setupTopo() (*ifstate.Interfaces, error) {

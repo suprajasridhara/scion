@@ -231,6 +231,13 @@ func New(config *Config) *Messenger {
 	}
 }
 
+func (m *Messenger) SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.MSFullMapReply,
+		"msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.MSFullMapReply)
+}
+
 func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id uint64) error {
 	pld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: id})
 	if err != nil {
@@ -241,22 +248,30 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
 }
 
-func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
+	//TODO (supraja): change 1234
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
 		"msg_id", id, "request", nil, "peer", a)
 	replyCtrlPld, err := m.getFallbackRequester(infra.MSFullMapRequest).Request(ctx, pld, a, false)
 	if err != nil {
-		return common.NewBasicError("[Messenger] Request error", err,
+		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.MSFullMapRequest)
 	}
 	_, replyMsg, err := Validate(replyCtrlPld)
 	if err != nil {
-		return common.NewBasicError("[Messenger] Reply validation failed", err)
+		return nil, common.NewBasicError("[Messenger] Reply validation failed", err)
 	}
-	log.Info(replyMsg.String())
-	return nil
+	//print(replyMsg.(type))
+	switch reply := replyMsg.(type) {
+	case *ms_mgmt.Pld:
+		logger.Debug("[Messenger] Received reply", "req_id", id, "reply", reply)
+		return reply.FullMapRep, nil
+	default:
+		err := newTypeAssertErr("*ms_mgmt.Pld", replyMsg)
+		return nil, common.NewBasicError("[Messenger] Type assertion failed", err)
+	}
 }
 
 func (m *Messenger) GetTRC(ctx context.Context, msg *cert_mgmt.TRCReq,

@@ -19,6 +19,7 @@ import (
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/sock/reliable"
+	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/sigreq"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
@@ -33,7 +34,6 @@ var (
 	DataAddr   net.IP
 	DataPort   int
 	CtrlConn   *snet.Conn
-	Msgr       infra.Messenger
 )
 
 func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -59,12 +59,12 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
 	}
 
-	Msgr, err = nc.Messenger()
+	msmsgr.Msgr, err = nc.Messenger()
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 
-	Msgr.AddHandler(infra.MSFullMapRequest, sigreq.FullMapReqHandler{})
+	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigreq.FullMapReqHandler{})
 
 	return nil
 }

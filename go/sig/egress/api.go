@@ -44,7 +44,7 @@ func ReloadConfig(cfg *sigjson.Cfg) bool {
 	handled here
 	***/
 
-	cfgmgmt.LoadCfg()
+	cfgmgmt.LoadCfg(cfg)
 
 	//TODO (supraja): change this to be used as white or blacklist
 	res := asmap.Map.ReloadConfig(cfg)
