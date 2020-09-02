@@ -16,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -42,6 +43,7 @@ import (
 	sigconfig "github.com/scionproto/scion/go/pkg/sig/config"
 	"github.com/scionproto/scion/go/sig/egress"
 	"github.com/scionproto/scion/go/sig/internal/base"
+	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
 	"github.com/scionproto/scion/go/sig/internal/metrics"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
 	"github.com/scionproto/scion/go/sig/internal/xnet"
@@ -85,6 +87,7 @@ func realMain() int {
 	// }
 
 	setupTopo()
+
 	if err := sigcmn.SetupMessenger(cfg); err != nil {
 		log.Error("Messenger initialization failed", "err", err)
 		return 1
@@ -95,6 +98,7 @@ func realMain() int {
 		return 1
 	}
 	sigdisp.Init(sigcmn.CtrlConn, false)
+	cfgmgmt.Init(context.Background(), cfg.General.ConfigDir)
 
 	env.SetupEnv(
 		func() {

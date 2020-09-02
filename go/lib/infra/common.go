@@ -147,6 +147,8 @@ const (
 	HPCfgReply
 	MSFullMapRequest
 	MSFullMapReply
+	ASActionRequest
+	ASActionReply
 )
 
 func (mt MessageType) String() string {
@@ -197,6 +199,10 @@ func (mt MessageType) String() string {
 		return "MSFullMapRequest"
 	case MSFullMapReply:
 		return "MSFullMapReply"
+	case ASActionRequest:
+		return "ASActionRequest"
+	case ASActionReply:
+		return "ASActionReply"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -252,6 +258,10 @@ func (mt MessageType) MetricLabel() string {
 		return "ms_full_map_req"
 	case MSFullMapReply:
 		return "ms_full_map_push"
+	case ASActionRequest:
+		return "ms_as_action_req"
+	case ASActionReply:
+		return "ms_as_action_push"
 	default:
 		return "unknown_mt"
 	}
@@ -336,6 +346,8 @@ type Messenger interface {
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
 	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error)
 	SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
+	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.MSRepToken, error)
+	SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)

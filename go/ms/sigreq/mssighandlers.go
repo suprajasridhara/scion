@@ -37,3 +37,12 @@ func (f FullMapReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	return nil
 }
+
+type ASActionHandler struct {
+}
+
+func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	log.Info("Entering: ASActionHandler.Handle")
+
+	return nil
+}

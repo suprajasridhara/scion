@@ -65,6 +65,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	}
 
 	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigreq.FullMapReqHandler{})
+	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigreq.ASActionHandler{})
 
 	return nil
 }

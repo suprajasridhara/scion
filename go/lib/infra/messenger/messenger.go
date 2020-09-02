@@ -248,6 +248,25 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
 }
 
+func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.MSRepToken, error) {
+	//TODO (supraja): change 1234
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	_, err := m.getFallbackRequester(infra.ASActionRequest).Request(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.ASActionRequest)
+	}
+	return &ms_mgmt.MSRepToken{}, nil
+
+}
+
+func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
+	return nil
+}
+
 func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
 	//TODO (supraja): change 1234
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})

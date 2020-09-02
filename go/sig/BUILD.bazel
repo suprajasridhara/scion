@@ -29,6 +29,8 @@ go_library(
         "//go/sig/internal/sigcmn:go_default_library",
         "//go/sig/internal/xnet:go_default_library",
         "//go/lib/topology:go_default_library",
+
+        "//go/sig/internal/cfgmgmt:go_default_library",
         "@com_github_syndtr_gocapability//capability:go_default_library",
     ],
 )

@@ -2,7 +2,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["cfg.go"],
+    srcs = ["cfg.go",
+    "key_loader.go"],
     importpath = "github.com/scionproto/scion/go/sig/internal/cfgmgmt",
     visibility = ["//visibility:public"],
     deps = [
@@ -14,6 +15,9 @@ go_library(
 	"//go/sig/internal/sigcmn:go_default_library",
     "//go/lib/log:go_default_library",
     "//go/lib/ctrl/ms_mgmt:go_default_library",
-
+    "//go/lib/common:go_default_library",
+    "//go/lib/infra:go_default_library",
+    "//go/lib/sigjson:go_default_library",
+    "//go/pkg/trust:go_default_library",
     ],
 )

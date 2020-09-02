@@ -9,7 +9,21 @@ struct MS {
         unset @1 :Void;
         fullMapReq @2 :FullMapReq;
         fullMapRep @3 :FullMapRep;
+        asActionReq @4 :ASMapEntry;
+        asActionRep @5 :MSRepToken;
     }
+}
+
+struct ASMapEntry{
+    ia @0 :Text;
+    ip @1 :List(Text);
+    timestamp @2 :UInt64;
+    action @3 :Text;
+}
+
+struct MSRepToken{
+    asMapEntry @0 :ASMapEntry;
+    timestamp @1 :UInt64; #MS promises to add ASMapEntry before timestamp 
 }
 
 struct FullMapReq{
