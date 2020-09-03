@@ -29,10 +29,11 @@ import (
 //This is a copy of SignerGen in signer_gen.go with DB replaced with SignedTRC and Chains
 // SignerGenNoDB generates signers from the keys available in key dir. It does not require a DB connection instead takes in SignedTRC assumed to be active and Chains
 type SignerGenNoDB struct {
-	IA         addr.IA
-	KeyRing    KeyRing
-	SignedTRCs []cppki.SignedTRC
-	Chains     map[crypto.Signer][][]*x509.Certificate
+	IA          addr.IA
+	KeyRing     KeyRing
+	PrivateKeys []crypto.Signer
+	SignedTRCs  []cppki.SignedTRC
+	Chains      map[crypto.Signer][][]*x509.Certificate
 	// DB      DB // FIXME(roosd): Eventually this should use a crypto provider
 
 }
@@ -43,11 +44,12 @@ type SignerGenNoDB struct {
 // with the highest expiration time.
 func (s SignerGenNoDB) Generate(ctx context.Context) (Signer, error) {
 	l := metrics.SignerLabels{}
-	keys, err := s.KeyRing.PrivateKeys(ctx)
-	if err != nil {
-		metrics.Signer.Generate(l.WithResult(metrics.ErrKey)).Inc()
-		return Signer{}, err
-	}
+	//keys, err := s.KeyRing.PrivateKeys(ctx)
+	keys := s.PrivateKeys
+	// if err != nil {
+	// 	metrics.Signer.Generate(l.WithResult(metrics.ErrKey)).Inc()
+	// 	return Signer{}, err
+	// }
 	if len(keys) == 0 {
 		metrics.Signer.Generate(l.WithResult(metrics.ErrKey)).Inc()
 		return Signer{}, serrors.New("no private key found")

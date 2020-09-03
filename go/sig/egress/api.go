@@ -16,6 +16,7 @@
 package egress
 
 import (
+	"context"
 	"io"
 
 	"github.com/scionproto/scion/go/lib/fatal"
@@ -43,12 +44,15 @@ func ReloadConfig(cfg *sigjson.Cfg) bool {
 	In the new infrastructure the MS replies with (IP,AS) pairs so change the way the mapping is
 	handled here
 	***/
+	cfgmgmt.AddASMap(context.Background(), "12.23.42.0/23")
 
 	cfgmgmt.LoadCfg(cfg)
 
+	//cfgmgmt.LoadCfg(cfg)
+
 	//TODO (supraja): change this to be used as white or blacklist
 	res := asmap.Map.ReloadConfig(cfg)
-
 	log.Info("Config reloaded")
+
 	return res
 }

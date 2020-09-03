@@ -30,12 +30,12 @@ import (
 
 type ASMapEntry struct {
 	Ia        string
-	Ip        string
+	Ip        []string
 	Timestamp uint64
 	Action    string
 }
 
-func NewASMapEntry(ip string, ia string, timestamp uint64, action string) *ASMapEntry {
+func NewASMapEntry(ip []string, ia string, timestamp uint64, action string) *ASMapEntry {
 	return &ASMapEntry{Ip: ip, Ia: ia, Timestamp: timestamp, Action: action}
 }
 

@@ -49,7 +49,7 @@ func Init(ctx context.Context, cfgDir string) {
 	for _, key := range keys {
 		c[key], _ = getChains(ctx, key)
 	}
-
+	SignerGen.PrivateKeys = keys
 	SignerGen.Chains = c
 
 }
@@ -103,10 +103,14 @@ func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
 }
 
 func AddASMap(ctx context.Context, ip string) error {
-	addr := &snet.SVCAddr{IA: sigcmn.IA, SVC: addr.SvcMS}
+	ia := addr.IA{
+		I: sigcmn.IA.I,
+		A: GetCoreASs()[0],
+	}
+	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
 	//TODO (supraja): replace hardcoded Ids
 	timestamp := uint64(time.Now().UnixNano())
-	asEntry := ms_mgmt.NewASMapEntry(ip, sigcmn.IA.String(), timestamp, ADD_AS_ENTRY)
+	asEntry := ms_mgmt.NewASMapEntry([]string{ip}, sigcmn.IA.String(), timestamp, ADD_AS_ENTRY)
 	signer, err := SignerGen.Generate(ctx)
 	if err != nil {
 		return serrors.WrapStr("Unable to create signer to AddASMap", err)
