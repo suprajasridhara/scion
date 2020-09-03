@@ -44,7 +44,7 @@ func ReloadConfig(cfg *sigjson.Cfg) bool {
 	In the new infrastructure the MS replies with (IP,AS) pairs so change the way the mapping is
 	handled here
 	***/
-	cfgmgmt.AddASMap(context.Background(), "12.23.42.0/23")
+	cfgmgmt.AddASMap(context.Background(), "10.71.57.0/26")
 
 	cfgmgmt.LoadCfg(cfg)
 

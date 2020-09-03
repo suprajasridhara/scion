@@ -191,7 +191,7 @@ func SetupMessenger(cfg sigconfig.Config) error {
 		ReconnectToDispatcher: true, //TODO (supraja): see later
 		QUIC: infraenv.QUIC{
 			//TODO (supraja): read all of this from config
-			Address:  "127.0.0.19:20655",
+			Address:  "127.0.0.11:20655",
 			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
 			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
 		},

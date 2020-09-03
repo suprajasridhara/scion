@@ -2,6 +2,8 @@ package sigreq
 
 import (
 	"context"
+	"fmt"
+	"os/exec"
 
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
@@ -67,6 +69,30 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	//Source IA is the IA in the asMap as well. Now validate the AS-IP mapping using an rpkivalidator
+	//TODO (supraja): Is this ok to Assume the AS is a BGP style AS?
 
+	//Do RPKI validation with a shell script for now
+
+	//TODO (supraja): read this correctly from config file. The validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
+	cmdStr := "/home/ssridhara/go/src/github.com/scionproto/scion/go/ms/sigreq/validator.sh" + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
+	cmd := exec.Command("/bin/sh", "-c", cmdStr)
+
+	if err != nil {
+		log.Error(err.Error())
+	}
+	op, err := cmd.Output()
+	if err != nil {
+		log.Error(err.Error())
+		x := err.Error()
+		fmt.Println(x)
+	}
+	//TODO (supraja): replace valid with a constant
+	if string(op) != "valid" {
+		//TODO (supraja): return correct error here
+		log.Error("Not valid mapping")
+		return nil
+	}
+
+	//RPKI validation passed. Add entry to database to be read later
 	return nil
 }
