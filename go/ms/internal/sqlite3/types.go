@@ -8,3 +8,7 @@ type FullMapRow struct {
 	IP sql.NullString `TbField:"ip"`
 	IA sql.NullString `TbField:"ia"`
 }
+
+type NewEntry struct {
+	entry *[]byte `TbField:"entry"`
+}

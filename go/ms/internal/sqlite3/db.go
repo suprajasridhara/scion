@@ -6,8 +6,10 @@ import (
 	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var Db *DB
@@ -75,5 +77,38 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 		}
 		got = append(got, r)
 	}
+	return got, nil
+}
+
+func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+
+	// strings.Replace(InsertNewEntry, "$1", entry, -1)
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld, error) {
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, NewEntryById, id)
+	if err != nil {
+		return &ctrl.SignedPld{}, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := &ctrl.SignedPld{}
+	for rows.Next() {
+		var r NewEntry
+		err = rows.Scan(&r.entry)
+		if err != nil {
+			return &ctrl.SignedPld{}, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		proto.ParseFromRaw(got, *r.entry)
+	}
+
 	return got, nil
 }

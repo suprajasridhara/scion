@@ -8,5 +8,10 @@ const (
 		ia DATA NOT NULL,
 		PRIMARY KEY (id)
 	);
+
+	CREATE TABLE IF NOT EXISTS new_entries(
+		id INTEGER PRIMARY KEY,
+		entry BLOB
+	);
 	`
 )

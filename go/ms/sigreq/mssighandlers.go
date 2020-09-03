@@ -1,9 +1,11 @@
 package sigreq
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
@@ -14,6 +16,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/msprovider"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	"github.com/scionproto/scion/go/pkg/trust"
+	"github.com/scionproto/scion/go/proto"
 )
 
 type FullMapReqHandler struct {
@@ -73,7 +76,9 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	//Do RPKI validation with a shell script for now
 
-	//TODO (supraja): read this correctly from config file. The validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
+	//TODO (supraja): read this correctly from config file.
+	//Fot now, the validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
+	//TODO (supraja): find a better way to do this
 	cmdStr := "/home/ssridhara/go/src/github.com/scionproto/scion/go/ms/sigreq/validator.sh" + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
 	cmd := exec.Command("/bin/sh", "-c", cmdStr)
 
@@ -87,12 +92,34 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		fmt.Println(x)
 	}
 	//TODO (supraja): replace valid with a constant
-	if string(op) != "valid" {
+
+	if strings.TrimSpace(string(op)) != "valid" {
 		//TODO (supraja): return correct error here
 		log.Error("Not valid mapping")
 		return nil
 	}
 
 	//RPKI validation passed. Add entry to database to be read later
+
+	packed, err := proto.PackRoot(m)
+
+	x := &ctrl.SignedPld{}
+	proto.ParseFromRaw(x, packed)
+
+	if err != nil {
+		//TODO (supraja): hanlde error correctly here
+		log.Error("Unable to pack")
+	}
+	_, err = sqlite3.Db.InsertNewEntry(context.Background(), packed)
+	if err != nil {
+		//TODO (supraja): hanlde error correctly here
+		log.Error("Error while inserting new entry")
+	}
+
+	pld, df := sqlite3.Db.GetNewEntryById(context.Background(), 1)
+	print(pld)
+	print(df)
+	y := bytes.Equal(pld.Blob, m.Blob)
+	print(y)
 	return nil
 }

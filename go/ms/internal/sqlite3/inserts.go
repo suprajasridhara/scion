@@ -11,4 +11,8 @@ const (
 		2,"10.17.32.0/24","2-ff00:0:110"
 	)
 	`
+
+	InsertNewEntry = `
+	INSERT INTO new_entries(entry) VALUES (?)
+	`
 )
