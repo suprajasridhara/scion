@@ -60,6 +60,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	}
 
 	msmsgr.Msgr, err = nc.Messenger()
+	msmsgr.IA = cfg.IA
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}

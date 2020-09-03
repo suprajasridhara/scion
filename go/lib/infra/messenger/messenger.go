@@ -250,15 +250,16 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.MSRepToken, error) {
 	//TODO (supraja): change 1234
-	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
 		"msg_id", id, "request", nil, "peer", a)
-	_, err := m.getFallbackRequester(infra.ASActionRequest).Request(ctx, pld, a, false)
+	rep, err := m.getFallbackRequester(infra.ASActionRequest).Request(ctx, pld, a, false)
 	if err != nil {
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.ASActionRequest)
 	}
+	print(rep.Ms.ProtoId())
 	return &ms_mgmt.MSRepToken{}, nil
 
 }
@@ -1069,7 +1070,17 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 	case proto.CtrlPld_Which_ack:
 		return infra.Ack, pld.Ack, nil
 	case proto.CtrlPld_Which_ms:
-		return infra.MSFullMapRequest, pld.Ms, nil
+		switch pld.Ms.Which {
+		case proto.MS_Which_fullMapReq:
+			return infra.MSFullMapRequest, pld.Ms.FullMapReq, nil
+		case proto.MS_Which_asActionReq:
+			return infra.ASActionRequest, pld.Ms.AsActionReq, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",
+					nil, "capnp_which", pld.Ms.Which)
+		}
+
 	default:
 		return infra.None, nil, common.NewBasicError("Unsupported SignedPld.Pld.Xxx message type",
 			nil, "capnp_which", pld.Which)
