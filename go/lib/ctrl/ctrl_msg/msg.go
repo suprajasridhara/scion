@@ -61,6 +61,28 @@ func (r *Requester) Request(ctx context.Context, pld *ctrl.Pld,
 	return rpld, rspld.Sign, nil
 }
 
+func (r *Requester) RequestWithSign(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*ctrl.SignedPld, error) {
+	spld, err := pld.SignedPld(ctx, r.signer)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := r.d.Request(ctx, spld, a)
+	if err != nil {
+		return nil, err
+	}
+	rspld, ok := reply.(*ctrl.SignedPld)
+	if !ok {
+		return nil, common.NewBasicError("ctrl_msg: reply is not a ctrl.SignedPld", nil,
+			"type", common.TypeOf(reply), "reply", reply)
+	}
+	_, err = rspld.GetVerifiedPld(ctx, r.sigv)
+	if err != nil {
+		return nil, err
+	}
+	return rspld, nil
+}
+
 func (r *Requester) Notify(ctx context.Context, pld *ctrl.Pld, a net.Addr) error {
 	return r.notify(ctx, pld, a, r.d.Notify)
 }

@@ -346,7 +346,7 @@ type Messenger interface {
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
 	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error)
 	SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
-	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.MSRepToken, error)
+	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
 	SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)

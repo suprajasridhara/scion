@@ -46,6 +46,7 @@ import (
 	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
 	"github.com/scionproto/scion/go/sig/internal/metrics"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
+	"github.com/scionproto/scion/go/sig/internal/sqlite"
 	"github.com/scionproto/scion/go/sig/internal/xnet"
 )
 
@@ -85,7 +86,7 @@ func realMain() int {
 	// 	log.Error("TUN device initialization failed", "err", err)
 	// 	return 1
 	// }
-
+	setupDb()
 	setupTopo()
 
 	if err := sigcmn.SetupMessenger(cfg); err != nil {
@@ -98,7 +99,8 @@ func realMain() int {
 		return 1
 	}
 	sigdisp.Init(sigcmn.CtrlConn, false)
-	cfgmgmt.Init(context.Background(), cfg.General.ConfigDir)
+	//TODO (supraja): read from config file
+	cfgmgmt.Init(context.Background(), "/home/ssridhara/go/src/github.com/scionproto/scion/gen/ISD1/AS1234")
 
 	env.SetupEnv(
 		func() {
@@ -245,5 +247,14 @@ func setupTopo() error {
 		return serrors.WrapStr("unable to set initial static topology", err)
 	}
 	log.Info("Topo setup: done")
+	return nil
+}
+
+func setupDb() error {
+	//TODO (supraja): read this from config
+	err := sqlite.New("./sig.db", 1)
+	if err != nil {
+		return serrors.WrapStr("setting up database", err)
+	}
 	return nil
 }

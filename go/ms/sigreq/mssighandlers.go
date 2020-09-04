@@ -81,7 +81,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	//Do RPKI validation with a shell script for now
 
 	//TODO (supraja): read this correctly from config file.
-	//Fot now, the validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
+	//For now, the validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
 	//TODO (supraja): find a better way to do this
 	cmdStr := "/home/ssridhara/go/src/github.com/scionproto/scion/go/ms/sigreq/validator.sh" + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
 	cmd := exec.Command("/bin/sh", "-c", cmdStr)

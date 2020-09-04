@@ -19,7 +19,10 @@ import (
 	"github.com/scionproto/scion/go/lib/sigjson"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pkg/trust"
+	"github.com/scionproto/scion/go/proto"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
+	"github.com/scionproto/scion/go/sig/internal/sigcrypto"
+	"github.com/scionproto/scion/go/sig/internal/sqlite"
 )
 
 const (
@@ -82,13 +85,7 @@ func getTRC() (cppki.SignedTRC, error) {
 }
 
 func GetCoreASs() []addr.AS {
-	// addr := &snet.SVCAddr{IA: sigcmn.IA, SVC: addr.SvcCS}
-	// //TODO (supraja): read from config
-	// encTRC, err := sigcmn.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
-	// trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
-	// if err != nil {
-	// 	return nil, serrors.WrapStr("Unable to fetch Core as", err)
-	// }
+
 	return signedTRC.TRC.CoreASes
 }
 
@@ -116,9 +113,32 @@ func AddASMap(ctx context.Context, ip string) error {
 		return serrors.WrapStr("Unable to create signer to AddASMap", err)
 	}
 	sigcmn.Msgr.UpdateSigner(signer, []infra.MessageType{infra.ASActionRequest})
-
 	pld, err := ms_mgmt.NewPld(1, asEntry)
-	sigcmn.Msgr.SendASAction(ctx, pld, addr, 1)
+	rep, err := sigcmn.Msgr.SendASAction(ctx, pld, addr, 1)
+	if err != nil {
+		//TODO (supraja): handler error correctly here
+		print(err)
+
+	}
+	//verify signatures here
+	//TODO (supraja): Should we use the messenger verifier. It is currently tightly coupled with control plane messages that have a trust store
+
+	e := sigcrypto.SIGEngine{Msgr: sigcmn.Msgr, IA: sigcmn.IA}
+	verifier := trust.Verifier{BoundIA: ia, Engine: e}
+	err = verifier.Verify(context.Background(), rep.Blob, rep.Sign)
+
+	if err != nil {
+		//TODO (supraja): handle errors correctly
+		return serrors.WrapStr("Invalid signature", err)
+	}
+
+	//The signature is validated. store the MSToken for future use
+	packed, err := proto.PackRoot(rep)
+	_, err = sqlite.Db.InsertNewMSToken(context.Background(), packed)
+	if err != nil {
+		//TODO (supraja): hanlde error correctly here
+		log.Error("Error while inserting new entry")
+	}
 	return nil
 }
 
