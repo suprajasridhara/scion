@@ -99,8 +99,11 @@ func realMain() int {
 		return 1
 	}
 	sigdisp.Init(sigcmn.CtrlConn, false)
-	//TODO (supraja): read from config file
-	cfgmgmt.Init(context.Background(), "/home/ssridhara/go/src/github.com/scionproto/scion/gen/ISD1/AS1234")
+
+	if err := cfgmgmt.Init(context.Background(), cfg.Sig.CfgDir); err != nil {
+		log.Error("", "Sig configuration initialization failed", err)
+		return 1
+	}
 
 	env.SetupEnv(
 		func() {
@@ -251,8 +254,7 @@ func setupTopo() error {
 }
 
 func setupDb() error {
-	//TODO (supraja): read this from config
-	err := sqlite.New("./sig.db", 1)
+	err := sqlite.New(cfg.Sig.Db, 1)
 	if err != nil {
 		return serrors.WrapStr("setting up database", err)
 	}

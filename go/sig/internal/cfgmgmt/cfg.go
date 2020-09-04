@@ -34,10 +34,11 @@ var (
 	signedTRC cppki.SignedTRC
 )
 
-func Init(ctx context.Context, cfgDir string) {
-	//TODO (supraja): handle error
-	signedTRC, _ = getTRC()
-
+func Init(ctx context.Context, cfgDir string) error {
+	signedTRC, err := getTRC()
+	if err != nil {
+		return err
+	}
 	s := make([]cppki.SignedTRC, 1)
 	s[0] = signedTRC
 	SignerGen = trust.SignerGenNoDB{
@@ -54,6 +55,7 @@ func Init(ctx context.Context, cfgDir string) {
 	}
 	SignerGen.PrivateKeys = keys
 	SignerGen.Chains = c
+	return nil
 
 }
 
@@ -63,11 +65,10 @@ func getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, e
 	skid, _ := cppki.SubjectKeyID(key.Public())
 
 	req := &cert_mgmt.ChainReq{RawIA: sigcmn.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
-	//TODO (supraja): fix id
+	//TODO_Q (supraja): random id?
 	rawChains, err := sigcmn.Msgr.GetCertChain(ctx, req, addr, 1234)
 	if err != nil {
-		//TODO (supraja): handle error properly
-		log.Error(err.Error())
+		return nil, serrors.WrapStr("Error getting cert chains", err)
 	}
 
 	return rawChains.Chains()
@@ -75,8 +76,8 @@ func getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, e
 }
 func getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: sigcmn.IA, SVC: addr.SvcCS}
-	//TODO (supraja): read from config
-	encTRC, err := sigcmn.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
+	//TODO_Q (supraja): Where do we get Base and Serial from?
+	encTRC, err := sigcmn.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: sigcmn.IA.I, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)
@@ -91,7 +92,7 @@ func GetCoreASs() []addr.AS {
 
 func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
-	//TODO (supraja): replace hardcoded Ids
+	//TODO_Q (supraja): random values for id?
 	pld, err := ms_mgmt.NewPld(1, ms_mgmt.NewFullMapReq(1))
 	if err != nil {
 		return nil, serrors.WrapStr("Unable to create payload", err)
@@ -105,7 +106,7 @@ func AddASMap(ctx context.Context, ip string) error {
 		A: GetCoreASs()[0],
 	}
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
-	//TODO (supraja): replace hardcoded Ids
+	//TODO_Q (supraja): random ids?
 	timestamp := uint64(time.Now().UnixNano())
 	asEntry := ms_mgmt.NewASMapEntry([]string{ip}, sigcmn.IA.String(), timestamp, ADD_AS_ENTRY)
 	signer, err := SignerGen.Generate(ctx)
@@ -116,19 +117,17 @@ func AddASMap(ctx context.Context, ip string) error {
 	pld, err := ms_mgmt.NewPld(1, asEntry)
 	rep, err := sigcmn.Msgr.SendASAction(ctx, pld, addr, 1)
 	if err != nil {
-		//TODO (supraja): handler error correctly here
-		print(err)
+		return serrors.WrapStr("Error sending AS Action", err)
 
 	}
 	//verify signatures here
-	//TODO (supraja): Should we use the messenger verifier. It is currently tightly coupled with control plane messages that have a trust store
+	//TODO_Q (supraja): Should we use the messenger verifier. It is currently tightly coupled with control plane messages that have a trust store
 
 	e := sigcrypto.SIGEngine{Msgr: sigcmn.Msgr, IA: sigcmn.IA}
 	verifier := trust.Verifier{BoundIA: ia, Engine: e}
 	err = verifier.Verify(context.Background(), rep.Blob, rep.Sign)
 
 	if err != nil {
-		//TODO (supraja): handle errors correctly
 		return serrors.WrapStr("Invalid signature", err)
 	}
 
@@ -136,8 +135,7 @@ func AddASMap(ctx context.Context, ip string) error {
 	packed, err := proto.PackRoot(rep)
 	_, err = sqlite.Db.InsertNewMSToken(context.Background(), packed)
 	if err != nil {
-		//TODO (supraja): hanlde error correctly here
-		log.Error("Error while inserting new entry")
+		return serrors.WrapStr("Error storing MS token into db", err)
 	}
 	return nil
 }
@@ -161,8 +159,10 @@ func LoadCfg(cfg *sigjson.Cfg) error {
 
 	//TODO (supraja): based on file as whitelist or blacklist handle original cfg values here
 	for _, f := range fm.Fm {
-		//TODO (supraja): handle error
-		ia, _ := addr.IAFromString(f.Ia)
+		ia, err := addr.IAFromString(f.Ia)
+		if err != nil {
+			return common.NewBasicError("Unable to get IA from string", err, "raw", f.Ia)
+		}
 		ip, ipnet, err := net.ParseCIDR(f.Ip)
 		if err != nil {
 			return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)

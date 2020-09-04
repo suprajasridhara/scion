@@ -186,14 +186,13 @@ func SetupMessenger(cfg sigconfig.Config) error {
 	}
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.Sig.IA,
-		Public:                &net.UDPAddr{IP: cfg.Sig.IP, Port: 30955},
+		Public:                &net.UDPAddr{IP: cfg.Sig.IP, Port: int(cfg.Sig.UDPPort)},
 		SVC:                   addr.SvcWildcard,
-		ReconnectToDispatcher: true, //TODO (supraja): see later
+		ReconnectToDispatcher: true,
 		QUIC: infraenv.QUIC{
-			//TODO (supraja): read all of this from config
-			Address:  "127.0.0.11:20655",
-			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
-			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
+			Address:  cfg.Sig.QUICAddr,
+			CertFile: cfg.Sig.CertFile,
+			KeyFile:  cfg.Sig.KeyFile,
 		},
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),

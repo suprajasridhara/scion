@@ -100,6 +100,24 @@ type SigConf struct {
 	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
 	// instead.
 	DispatcherBypass string `toml:"disaptcher_bypass,omitempty"`
+
+	//config directory to read crypto keys from
+	CfgDir string `toml:"cfg_dir,omitempty"`
+
+	//db to store sig cfg data (default ./sig.db will be created or read from)
+	Db string `toml:"db,omitempty"`
+
+	//UDP port to open a messenger connection on
+	UDPPort uint16 `toml:"udp_port,omitempty"`
+
+	//QUIC IP:Port
+	QUICAddr string `toml:"quic_addr,omitempty"`
+
+	//CertFile for QUIC socket
+	CertFile string `toml:"cert_file,omitempty"`
+
+	//KeyFile for QUIC socket
+	KeyFile string `toml:"key_file,omitempty"`
 }
 
 // InitDefaults sets the default values to unset values.
@@ -123,6 +141,9 @@ func (cfg *SigConf) Validate() error {
 	if cfg.IP.IsUnspecified() {
 		return serrors.New("ip must be set")
 	}
+	if cfg.CfgDir == "" {
+		return serrors.New("sig cfg_dir should be set")
+	}
 	if cfg.CtrlPort == 0 {
 		cfg.CtrlPort = DefaultCtrlPort
 	}
@@ -134,6 +155,9 @@ func (cfg *SigConf) Validate() error {
 	}
 	if cfg.TunRTableId == 0 {
 		cfg.TunRTableId = DefaultTunRTableId
+	}
+	if cfg.Db == "" {
+		cfg.Db = "/sig.db"
 	}
 	return nil
 }
