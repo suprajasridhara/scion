@@ -265,7 +265,10 @@ func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Ad
 }
 
 func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
-	return nil
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.ASActionReply,
+		"msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.ASActionReply)
 }
 
 func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {

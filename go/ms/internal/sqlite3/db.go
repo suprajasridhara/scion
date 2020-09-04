@@ -3,6 +3,7 @@ package sqlite3
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -97,18 +98,53 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 	defer e.RUnlock()
 	rows, err := e.db.QueryContext(ctx, NewEntryById, id)
 	if err != nil {
-		return &ctrl.SignedPld{}, serrors.Wrap(db.ErrReadFailed, err)
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
 	}
 	defer rows.Close()
-	got := &ctrl.SignedPld{}
-	for rows.Next() {
-		var r NewEntry
-		err = rows.Scan(&r.entry)
-		if err != nil {
-			return &ctrl.SignedPld{}, serrors.Wrap(db.ErrDataInvalid, err)
-		}
-		proto.ParseFromRaw(got, *r.entry)
+
+	cols, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Failed to get columns", err)
+		return nil, err
 	}
 
+	rawResult := make([][]byte, len(cols))
+	//result := make([]string, len(cols))
+
+	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
+	for i, _ := range rawResult {
+		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
+	}
+
+	for rows.Next() {
+		err = rows.Scan(dest...)
+		if err != nil {
+			fmt.Println("Failed to scan row", err)
+			return nil, err
+		}
+
+		// for i, raw := range rawResult {
+		// 	if raw == nil {
+		// 		result[i] = "\\N"
+		// 	} else {
+		// 		result[i] = string(raw)
+		// 	}
+		// }
+
+		//fmt.Printf("%#v\n", result)
+	}
+
+	got := &ctrl.SignedPld{}
+	// r := make([]byte, 1000)
+	// for rows.Next() {
+
+	// 	err = rows.Scan(&r)
+	// 	if err != nil {
+	// 		return nil, serrors.Wrap(db.ErrDataInvalid, err)
+	// 	}
+	// 	//
+	// }
+
+	proto.ParseFromRaw(got, rawResult[0])
 	return got, nil
 }

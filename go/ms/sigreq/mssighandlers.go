@@ -1,22 +1,26 @@
 package sigreq
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/snet"
+	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
-	"github.com/scionproto/scion/go/ms/internal/msprovider"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
+)
+
+const (
+	max_ms_as_add_time = 10 //time is in minutes. TODO (supraja): this should be configurable and related to other timestamp values to be added later. See doc
 )
 
 type FullMapReqHandler struct {
@@ -54,7 +58,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: ASActionHandler.Handle")
 	requester := r.Peer.(*snet.UDPAddr)
 	m := r.FullMessage.(*ctrl.SignedPld)
-	e := msprovider.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
+	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
 	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
 	// msmsgr.Msgr.UpdateVerifier(verifier)
 	err := verifier.Verify(context.Background(), m.Blob, m.Sign)
@@ -116,10 +120,31 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		log.Error("Error while inserting new entry")
 	}
 
-	pld, df := sqlite3.Db.GetNewEntryById(context.Background(), 1)
-	print(pld)
-	print(df)
-	y := bytes.Equal(pld.Blob, m.Blob)
-	print(y)
+	// pld, err := sqlite3.Db.GetNewEntryById(context.Background(), 1)
+	// print(pld)
+	// if err != nil {
+	// 	print(err.Error())
+	// }
+	// y := bytes.Equal(pld.Blob, m.Blob)
+	// print(y)
+
+	//Done inserting token. Now send back token with message and signature
+
+	mscrypt := &mscrypto.MSSigner{}
+	//TODO (supraja): read the config dir from cfg file
+	mscrypt.Init(context.Background(), msmsgr.Msgr, msmsgr.IA, "/home/ssridhara/go/src/github.com/scionproto/scion/gen/ISD1/ASff00_0_110")
+	signer, err := mscrypt.SignerGen.Generate(context.Background())
+	if err != nil {
+		//TODO (supraja): handle error correctly
+		log.Error("error getting signer")
+	}
+
+	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.ASActionReply})
+
+	timestamp := time.Now().Add(time.Minute * time.Duration(max_ms_as_add_time))
+	//TODO (supraja): handle int64 to uint64 conversion correctly
+	rep := ms_mgmt.NewMSRepToken(packed, uint64(timestamp.Unix()))
+	pld, err := ms_mgmt.NewPld(1, rep)
+	msmsgr.Msgr.SendASMSRepToken(context.Background(), pld, r.Peer, r.ID)
 	return nil
 }

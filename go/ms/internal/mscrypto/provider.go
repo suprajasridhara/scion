@@ -1,4 +1,4 @@
-package msprovider
+package mscrypto
 
 import (
 	"context"

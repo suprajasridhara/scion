@@ -52,12 +52,12 @@ func (p *ASMapEntry) String() string {
 }
 
 type MSRepToken struct {
-	ASEntry   ASMapEntry
-	Timestamp uint64
+	SignedASEntry []byte
+	Timestamp     uint64
 }
 
-func NewMSRepToken(asEntry ASMapEntry, timestamp uint64) *MSRepToken {
-	return &MSRepToken{ASEntry: asEntry, Timestamp: timestamp}
+func NewMSRepToken(signedASEntry []byte, timestamp uint64) *MSRepToken {
+	return &MSRepToken{SignedASEntry: signedASEntry, Timestamp: timestamp}
 }
 
 func (p *MSRepToken) ProtoId() proto.ProtoIdType {
@@ -69,5 +69,6 @@ func (p *MSRepToken) Write(b common.RawBytes) (int, error) {
 }
 
 func (p *MSRepToken) String() string {
-	return fmt.Sprintf("%s %d", p.ASEntry.String(), p.Timestamp)
+	//TODO (supraja): handle printing the signed as entry better
+	return fmt.Sprintf("%s %d", string(p.SignedASEntry), p.Timestamp)
 }

@@ -22,7 +22,7 @@ struct ASMapEntry{
 }
 
 struct MSRepToken{
-    asMapEntry @0 :ASMapEntry;
+    signedASEntry @0 :Data;
     timestamp @1 :UInt64; #MS promises to add ASMapEntry before timestamp 
 }
 
