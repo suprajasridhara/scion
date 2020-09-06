@@ -17,5 +17,5 @@ package config
 const idSample = "ms1"
 
 const msSample = `
-TODO_MS: later
+TODO (supraja): later
 `

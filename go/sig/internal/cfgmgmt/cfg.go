@@ -31,11 +31,12 @@ const (
 
 var (
 	SignerGen trust.SignerGenNoDB
-	signedTRC cppki.SignedTRC
+	CoreASes  []addr.AS
 )
 
 func Init(ctx context.Context, cfgDir string) error {
 	signedTRC, err := getTRC()
+	CoreASes = signedTRC.TRC.CoreASes
 	if err != nil {
 		return err
 	}
@@ -85,10 +86,10 @@ func getTRC() (cppki.SignedTRC, error) {
 	return trc, nil
 }
 
-func GetCoreASs() []addr.AS {
+// func GetCoreASs() []addr.AS {
 
-	return signedTRC.TRC.CoreASes
-}
+// 	return signedTRC.TRC.CoreASes
+// }
 
 func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
@@ -103,7 +104,7 @@ func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
 func AddASMap(ctx context.Context, ip string) error {
 	ia := addr.IA{
 		I: sigcmn.IA.I,
-		A: GetCoreASs()[0],
+		A: CoreASes[0],
 	}
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
 	//TODO_Q (supraja): random ids?
@@ -142,7 +143,7 @@ func AddASMap(ctx context.Context, ip string) error {
 
 func LoadCfg(cfg *sigjson.Cfg) error {
 	log.Info("LodCfg: entering")
-	asList := GetCoreASs()
+	asList := CoreASes
 
 	//TODO (supraja): impelemnt wait mechanism after timeout from each core AS. For now contact one Core AS assuming the TRC had atleast one Core AS
 	ia := addr.IA{

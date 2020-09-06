@@ -10,7 +10,6 @@ import (
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
-	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/scrypto/cppki"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
@@ -24,11 +23,14 @@ type MSSigner struct {
 	signedTRC cppki.SignedTRC
 }
 
-func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) {
-	//TODO (supraja): handle error
+func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) error {
 	m.Msgr = Msgr
 	m.IA = IA
-	m.signedTRC, _ = m.getTRC()
+	t, err := m.getTRC()
+	if err != nil {
+		return serrors.WrapStr("Error in init mscrypto", err)
+	}
+	m.signedTRC = t
 	s := make([]cppki.SignedTRC, 1)
 	s[0] = m.signedTRC
 	m.SignerGen = trust.SignerGenNoDB{
@@ -39,13 +41,19 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, c
 		SignedTRCs: s,
 	}
 	c := make(map[crypto.Signer][][]*x509.Certificate)
-	keys, _ := m.SignerGen.KeyRing.PrivateKeys(ctx)
+	keys, err := m.SignerGen.KeyRing.PrivateKeys(ctx)
+	if err != nil {
+		return serrors.WrapStr("Error in init mscrypto", err)
+	}
 	for _, key := range keys {
-		c[key], _ = m.getChains(ctx, key)
+		c[key], err = m.getChains(ctx, key)
+		if err != nil {
+			return serrors.WrapStr("Error in init mscrypto", err)
+		}
 	}
 	m.SignerGen.PrivateKeys = keys
 	m.SignerGen.Chains = c
-
+	return nil
 }
 
 func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
@@ -54,11 +62,10 @@ func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.
 	skid, _ := cppki.SubjectKeyID(key.Public())
 
 	req := &cert_mgmt.ChainReq{RawIA: m.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
-	//TODO (supraja): fix id
+	//TODO_Q (supraja): generate id randomly?
 	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 1234)
 	if err != nil {
-		//TODO (supraja): handle error properly
-		log.Error(err.Error())
+		return nil, serrors.WrapStr("Error in getChains", err)
 	}
 
 	return rawChains.Chains()
@@ -66,7 +73,8 @@ func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.
 }
 func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
-	//TODO (supraja): read from config
+	//TODO_Q (supraja): generate id randomly?
+
 	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {

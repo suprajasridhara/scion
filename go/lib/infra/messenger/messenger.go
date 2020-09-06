@@ -249,7 +249,7 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 }
 
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
-	//TODO (supraja): change 1234
+	//TODO_Q (supraja): generate random ReqId ?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
@@ -284,7 +284,7 @@ func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a ne
 }
 
 func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
-	//TODO (supraja): change 1234
+	//TODO_Q (supraja): Generate random ReqId?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,

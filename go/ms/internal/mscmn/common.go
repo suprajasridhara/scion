@@ -19,7 +19,9 @@ import (
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/sock/reliable"
+	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
+	"github.com/scionproto/scion/go/ms/internal/validator"
 	"github.com/scionproto/scion/go/ms/sigreq"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
@@ -42,18 +44,17 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
-		return serrors.WrapStr("Unable to fetch router", err)
+		return serrors.WrapStr("Error in Init mscmn", err)
 	}
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.IA,
 		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
 		SVC:                   addr.SvcMS,
-		ReconnectToDispatcher: true, //TODO (supraja): see later
+		ReconnectToDispatcher: true,
 		QUIC: infraenv.QUIC{
-			//TODO (supraja): read all of this from config
-			Address:  "127.0.0.20:30755",
-			CertFile: "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.pem",
-			KeyFile:  "/home/ssridhara/go/src/github.com/scionproto/scion/gen-certs/tls.key",
+			Address:  cfg.QUICAddr,
+			CertFile: cfg.CertFile,
+			KeyFile:  cfg.KeyFile,
 		},
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
@@ -61,6 +62,10 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 
 	msmsgr.Msgr, err = nc.Messenger()
 	msmsgr.IA = cfg.IA
+	mscrypto.CfgDir = cfg.CfgDir
+	validator.Path = cfg.RPKIValidator
+	validator.EntryValid = cfg.RPKIValidString
+
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}

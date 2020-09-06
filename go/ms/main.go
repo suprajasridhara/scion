@@ -138,8 +138,7 @@ func realMain() int {
 }
 
 func setupDb() error {
-	//TODO (supraja): read this from config
-	err := sqlite3.New("./ms.db", 1)
+	err := sqlite3.New(cfg.Ms.Db, 1)
 	if err != nil {
 		return serrors.WrapStr("setting up database", err)
 	}

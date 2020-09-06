@@ -23,6 +23,7 @@ import (
 	"github.com/scionproto/scion/go/lib/config"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/log"
+	"github.com/scionproto/scion/go/lib/serrors"
 )
 
 type Config struct {
@@ -77,6 +78,30 @@ type MsConf struct {
 	DataPort         uint16  `toml:"data_port,omitempty"`
 	IA               addr.IA `toml:"isd_as,omitempty"`
 	Address          string  `toml:"address,omitempty"`
+
+	//config directory to read crypto keys from
+	CfgDir string `toml:"cfg_dir,omitempty"`
+
+	//db to store ms cfg data (default ./ms.db will be created or read from)
+	Db string `toml:"db,omitempty"`
+
+	//UDP port to open a messenger connection on
+	UDPPort uint16 `toml:"udp_port,omitempty"`
+
+	//QUIC IP:Port
+	QUICAddr string `toml:"quic_addr,omitempty"`
+
+	//CertFile for QUIC socket
+	CertFile string `toml:"cert_file,omitempty"`
+
+	//KeyFile for QUIC socket
+	KeyFile string `toml:"key_file,omitempty"`
+
+	//RPKIValidator is the path to the shell scripts that takes 2 arguments, ASID and the prefix to validate
+	RPKIValidator string `toml:"rpki_validator,omitempty"`
+
+	//RPKIValidString is the response of the validator script if the ASID and prefix are valid
+	RPKIValidString string `toml:"rpki_entry_valid,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
@@ -84,7 +109,32 @@ func (cfg *MsConf) InitDefaults() {
 
 }
 func (cfg *MsConf) Validate() error {
-	//TODO_MS:(supraja)
+
+	if cfg.ID == "" {
+		return serrors.New("id must be set!")
+	}
+	if cfg.IA.IsZero() {
+		return serrors.New("isd_as must be set")
+	}
+	if cfg.IA.IsWildcard() {
+		return serrors.New("Wildcard isd_as not allowed")
+	}
+	if cfg.IP.IsUnspecified() {
+		return serrors.New("ip must be set")
+	}
+	if cfg.CfgDir == "" {
+		return serrors.New("ms cfg_dir should be set")
+	}
+	if cfg.RPKIValidator == "" {
+		return serrors.New("rpki_validator should be set")
+	}
+
+	if cfg.RPKIValidString == "" {
+		return serrors.New("rpki_entry_valid should be set")
+	}
+	if cfg.Db == "" {
+		cfg.Db = "/ms.db"
+	}
 	return nil
 }
 
