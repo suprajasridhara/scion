@@ -1,4 +1,4 @@
-package sigreq
+package sigcomm
 
 import (
 	"context"

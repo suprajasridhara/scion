@@ -22,7 +22,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/validator"
-	"github.com/scionproto/scion/go/ms/sigreq"
+	"github.com/scionproto/scion/go/ms/sigcomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
@@ -70,8 +70,8 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 
-	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigreq.FullMapReqHandler{})
-	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigreq.ASActionHandler{})
+	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
+	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
 
 	return nil
 }
