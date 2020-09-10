@@ -1,10 +1,12 @@
 package cfgmgmt
 
 import (
+	"bufio"
 	"context"
 	"crypto"
 	"crypto/x509"
 	"net"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -30,11 +32,12 @@ const (
 )
 
 var (
-	SignerGen trust.SignerGenNoDB
-	CoreASes  []addr.AS
+	SignerGen  trust.SignerGenNoDB
+	CoreASes   []addr.AS
+	prefixFile string
 )
 
-func Init(ctx context.Context, cfgDir string) error {
+func Init(ctx context.Context, cfgDir string, prefixFilePath string, prefixPushInterval time.Duration) error {
 	signedTRC, err := getTRC()
 	CoreASes = signedTRC.TRC.CoreASes
 	if err != nil {
@@ -56,8 +59,63 @@ func Init(ctx context.Context, cfgDir string) error {
 	}
 	SignerGen.PrivateKeys = keys
 	SignerGen.Chains = c
+
+	//push prefixes
+	prefixFile = prefixFilePath
+	go pushPrefixes(ctx, prefixPushInterval)
 	return nil
 
+}
+func pushPrefixes(ctx context.Context, interval time.Duration) {
+	addPrefixes(ctx)
+	pushTicker := time.NewTicker(interval * time.Second)
+	for {
+		select {
+		case <-pushTicker.C:
+			addPrefixes(ctx)
+		}
+	}
+
+}
+
+func addPrefixes(ctx context.Context) {
+	pushed, _ := sqlite.Db.GetPushedPrefixes(ctx)
+	read, _ := readPrefixes(prefixFile)
+	newPrefixes := listDiff(read, pushed) //performs read - pushed
+	for _, p := range newPrefixes {
+		//TODO (supraja): handle error
+		AddASMap(ctx, p)
+	}
+}
+
+func listDiff(l1 []string, l2 []string) []string {
+	res := []string{}
+	for _, one := range l1 {
+		exists := false
+		for _, two := range l2 {
+			if one == two {
+				exists = true
+			}
+		}
+		if !exists {
+			res = append(res, one)
+		}
+	}
+	return res
+}
+func readPrefixes(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
 
 func getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
@@ -138,9 +196,20 @@ func AddASMap(ctx context.Context, ip string) error {
 	if err != nil {
 		return serrors.WrapStr("Error storing MS token into db", err)
 	}
+
+	//add the pushed prefix into the database
+	err = insertIntoDB(ip)
+	if err != nil {
+		return serrors.WrapStr("Error storing pushed prefix into db", err)
+	}
+
 	return nil
 }
 
+func insertIntoDB(prefix string) error {
+	_, err := sqlite.Db.InsertNewPushedPrefix(context.Background(), prefix)
+	return err
+}
 func LoadCfg(cfg *sigjson.Cfg) error {
 	log.Info("LodCfg: entering")
 	asList := CoreASes

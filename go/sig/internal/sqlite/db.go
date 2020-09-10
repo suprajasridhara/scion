@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"sync"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
+	"github.com/scionproto/scion/go/lib/serrors"
 )
 
 var Db *DB
@@ -50,4 +52,34 @@ func (e *executor) InsertNewMSToken(ctx context.Context, entry []byte) (sql.Resu
 		return nil, err
 	}
 	return res, nil
+}
+
+func (e *executor) InsertNewPushedPrefix(ctx context.Context, prefix string) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, InsertNewPushedPrefix, prefix)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (e *executor) GetPushedPrefixes(ctx context.Context) ([]string, error) {
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, PushedPrefixes)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []string{}
+	for rows.Next() {
+		var r string
+		err = rows.Scan(&r)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
 }

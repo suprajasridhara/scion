@@ -1,3 +1,7 @@
 package sqlite
 
-const ()
+const (
+	PushedPrefixes = `
+	SELECT prefix FROM pushed_prefixes
+	`
+)
