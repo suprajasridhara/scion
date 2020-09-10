@@ -21,7 +21,7 @@ import (
 	plnconfig "github.com/scionproto/scion/go/pkg/pln/config"
 	"github.com/scionproto/scion/go/pkg/service"
 	"github.com/scionproto/scion/go/pln/internal/plncmn"
-	"github.com/scionproto/scion/go/pln/plnmsgr"
+	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/proto"
 )
 

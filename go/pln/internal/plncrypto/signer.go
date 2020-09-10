@@ -1,4 +1,4 @@
-package mscrypto
+package plncrypto
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust"
 )
 
-type MSSigner struct {
+type PLNSigner struct {
 	Msgr      infra.Messenger
 	IA        addr.IA
 	SignerGen trust.SignerGenNoDB
 	signedTRC cppki.SignedTRC
 }
 
-func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) error {
+func (m *PLNSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) error {
 	m.Msgr = Msgr
 	m.IA = IA
 	t, err := m.getTRC()
 	if err != nil {
-		return serrors.WrapStr("Error in init mscrypto", err)
+		return serrors.WrapStr("Error in init plncrypto", err)
 	}
 	m.signedTRC = t
 	s := make([]cppki.SignedTRC, 1)
@@ -43,12 +43,12 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, c
 	c := make(map[crypto.Signer][][]*x509.Certificate)
 	keys, err := m.SignerGen.KeyRing.PrivateKeys(ctx)
 	if err != nil {
-		return serrors.WrapStr("Error in init mscrypto", err)
+		return serrors.WrapStr("Error in init plncrypto", err)
 	}
 	for _, key := range keys {
 		c[key], err = m.getChains(ctx, key)
 		if err != nil {
-			return serrors.WrapStr("Error in init mscrypto", err)
+			return serrors.WrapStr("Error in init plncrypto", err)
 		}
 	}
 	m.SignerGen.PrivateKeys = keys
@@ -56,7 +56,7 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, c
 	return nil
 }
 
-func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
+func (m *PLNSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid, _ := cppki.SubjectKeyID(key.Public())
@@ -71,10 +71,10 @@ func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.
 	return rawChains.Chains()
 
 }
-func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
+func (m *PLNSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
-	//TODO (supraja): replace hardcoded id
+	//TODO (supraja): replace hard coded Ids
 	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {

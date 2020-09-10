@@ -5,12 +5,15 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
 	plnconfig "github.com/scionproto/scion/go/pkg/pln/config"
-	"github.com/scionproto/scion/go/pln/plnmsgr"
+	"github.com/scionproto/scion/go/pln/internal/plncrypto"
+	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
+	"github.com/scionproto/scion/go/pln/mscomm"
 )
 
 var (
@@ -42,12 +45,12 @@ func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 	plnmsgr.Msgr, err = nc.Messenger()
 	plnmsgr.IA = cfg.IA
-	// plncrypto.CfgDir = cfg.CfgDir
+	plncrypto.CfgDir = cfg.CfgDir
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 
-	// plnmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
+	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, mscomm.PlnListHandler{})
 	// plnmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
 
 	return nil
