@@ -62,7 +62,10 @@ func Init(ctx context.Context, cfgDir string, prefixFilePath string, prefixPushI
 
 	//push prefixes
 	prefixFile = prefixFilePath
-	go pushPrefixes(ctx, prefixPushInterval)
+	go func(ctx context.Context, prefixPushInterval time.Duration) {
+		defer log.HandlePanic()
+		pushPrefixes(ctx, prefixPushInterval)
+	}(ctx, prefixPushInterval)
 	return nil
 
 }

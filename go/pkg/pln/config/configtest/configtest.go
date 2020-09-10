@@ -7,5 +7,5 @@ import (
 )
 
 func CheckTestMS(t *testing.T, cfg *config.MsConf, id string) {
-	//TODO_MS: (supraja) add later
+	//TODO: (supraja) add later
 }

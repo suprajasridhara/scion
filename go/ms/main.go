@@ -79,20 +79,6 @@ func realMain() int {
 		return 1
 	}
 
-	//TODO_MS:(supraja) init MS here
-	env.SetupEnv(
-		func() {
-			success := loadConfig("nil") //TODO_MS:(supraja) remove if we dont need this
-			// Errors already logged in loadConfig
-			log.Info("reloadOnSIGHUP: reload done", "success", success)
-		},
-	)
-
-	//TODO_MS:(supraja) remove if we dont need this
-	if loadConfig("") != true {
-		log.Error("MS configuration loading failed")
-		return 1
-	}
 	cfg.Metrics.StartPrometheus()
 	intfs, err := setupTopo()
 	if err != nil {
