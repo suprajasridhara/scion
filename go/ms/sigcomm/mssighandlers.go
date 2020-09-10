@@ -79,7 +79,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	asMapEntry := r.Message.(*ms_mgmt.ASMapEntry)
 	if requester.IA.String() != asMapEntry.Ia {
 		log.Error("Invalid AS in map")
-		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		sendAck(proto.Ack_ErrCode_reject, "Invalid AS in map")
 		return nil
 	}
 
@@ -94,9 +94,6 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	cmdStr := validator.Path + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
 	cmd := exec.Command("/bin/sh", "-c", cmdStr)
 
-	if err != nil {
-		log.Error(err.Error())
-	}
 	op, err := cmd.Output()
 	if err != nil {
 		log.Error(err.Error())

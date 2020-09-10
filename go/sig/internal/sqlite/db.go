@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"sync"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
 )
 

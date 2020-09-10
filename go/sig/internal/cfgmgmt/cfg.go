@@ -144,39 +144,53 @@ func AddASMap(ctx context.Context, ip string) error {
 func LoadCfg(cfg *sigjson.Cfg) error {
 	log.Info("LodCfg: entering")
 	asList := CoreASes
-
+	success := false
 	//TODO (supraja): impelemnt wait mechanism after timeout from each core AS. For now contact one Core AS assuming the TRC had atleast one Core AS
-	ia := addr.IA{
-		I: sigcmn.IA.I,
-		A: asList[0],
-	}
+	//TODO_Q (supraja): on debugging I see that an scmp packet is returned when the service doesnt exist, but the dispatcher has no handler, so the error is just logged and the dispatcher returns false and continues. Messenger waits for reply on channels that are never returned to.
+	//error logged:  scmp packet received, but no handler found scmp.Hdr="Class=ROUTING(1) Type=UNREACH_HOST(1) TotalLen=64B Checksum=89bb Timestamp=2020-09-10 07:55:33.827096 +0000 UTC" src="{1-ff00:0:112 fd00:f00d:cafe::7f00:9}
+	for _, as := range asList {
+		ia := addr.IA{
+			I: sigcmn.IA.I,
+			A: as,
+		}
 
-	fm, err := GetFullMap(ia)
+		//ia, _ := addr.IAFromString("1-ff00:0:112")
 
-	if err != nil {
-		print(err.Error())
-		return serrors.WrapStr("Unable to get full map", err)
-	}
+		fm, err := GetFullMap(ia)
 
-	//TODO (supraja): based on file as whitelist or blacklist handle original cfg values here
-	for _, f := range fm.Fm {
-		ia, err := addr.IAFromString(f.Ia)
 		if err != nil {
-			return common.NewBasicError("Unable to get IA from string", err, "raw", f.Ia)
+			continue //TRY next core AS
+		} else {
+			success = true
 		}
-		ip, ipnet, err := net.ParseCIDR(f.Ip)
-		if err != nil {
-			return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)
+
+		//TODO (supraja): based on file as whitelist or blacklist handle original cfg values here
+		for _, f := range fm.Fm {
+			ia, err := addr.IAFromString(f.Ia)
+			if err != nil {
+				return common.NewBasicError("Unable to get IA from string", err, "raw", f.Ia)
+			}
+			ip, ipnet, err := net.ParseCIDR(f.Ip)
+			if err != nil {
+				return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)
+			}
+			if !ip.Equal(ipnet.IP) {
+				return common.NewBasicError("Network is not canonical (should not be host address).",
+					nil, "raw", f.Ip)
+			}
+			//TODO (supraja): if IA exists, add logic to handle
+			i := sigjson.IPNet(*ipnet)
+			s := make([]*sigjson.IPNet, 1)
+			s[0] = &i
+			cfg.ASes[ia] = &sigjson.ASEntry{Nets: s}
 		}
-		if !ip.Equal(ipnet.IP) {
-			return common.NewBasicError("Network is not canonical (should not be host address).",
-				nil, "raw", f.Ip)
-		}
-		//TODO (supraja): if IA exists, add logic to handle
-		i := sigjson.IPNet(*ipnet)
-		s := make([]*sigjson.IPNet, 1)
-		s[0] = &i
-		cfg.ASes[ia] = &sigjson.ASEntry{Nets: s}
+		// }
 	}
-	return nil
+
+	if success {
+		return nil
+	} else {
+		return common.NewBasicError("Unable to fetch map from core ASs ", nil)
+	}
+
 }

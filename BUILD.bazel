@@ -20,6 +20,7 @@ pkg_tar(
         "//go/tools/pathdb_dump",
         "//go/tools/scmp",
         "//go/tools/showpaths",
+        "//go/ms",
     ],
     mode = "0755",
     package_dir = "",
