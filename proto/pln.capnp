@@ -1,0 +1,28 @@
+@0xde42b02816b2c3bf;
+using Go = import "go.capnp";
+$Go.package("proto");
+$Go.import("github.com/scionproto/scion/go/proto");
+
+struct PLN {
+    id @0 :UInt64;  # Request ID
+    union {
+        unset @1 :Void;
+        msListReq @2 :PlnListReq;
+        msListRep @3 :PlnList;
+    }
+}
+
+struct PlnListReq{
+    action @0 :Text;
+}
+ 
+struct PlnList {
+    l @0 :List(PlnListEntry);
+}
+
+struct PlnListEntry{
+    id @0 :UInt8;
+    i @1 :UInt64;
+    a @2 :UInt64;
+}
+

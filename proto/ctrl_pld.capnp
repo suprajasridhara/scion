@@ -12,6 +12,7 @@ using SIBRA = import "sibra.capnp";
 using DRKeyMgmt = import "drkey_mgmt.capnp";
 using SIG = import "sig.capnp";
 using MS = import "ms.capnp";
+using PLN = import "pln.capnp";
 using CtrlExtn = import "ctrl_extn.capnp";
 using Ack = import "ack.capnp";
 
@@ -33,6 +34,7 @@ struct CtrlPld {
         extn @8 :CtrlExtn.CtrlExtnDataList;
         ack @11 :Ack.Ack;
         ms @12 :MS.MS;
+        pln @13 :PLN.PLN;
     }
     reqId @9 :UInt64;
     traceId @10 :Data;

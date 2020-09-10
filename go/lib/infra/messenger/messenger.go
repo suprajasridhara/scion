@@ -90,6 +90,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/disp"
@@ -281,6 +282,41 @@ func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a ne
 	logger.Info("[Messenger] Sending response", "rep_type", infra.ASActionReply,
 		"msg_id", id, "request", nil, "peer", a)
 	return m.sendMessage(ctx, msg, a, id, infra.ASActionReply)
+}
+
+//GetPlnList fetches the pln list form the PLN and returns the payload with the signature from the destination AS. The caller should verify the signature
+func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+	//TODO_Q (supraja): Generate random ReqId?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.PlnListRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PlnListRequest).RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.PlnListRequest)
+	}
+	// _, replyMsg, err := Validate(replyCtrlPld)
+	// if err != nil {
+	// 	return nil, common.NewBasicError("[Messenger] Reply validation failed", err)
+	// }
+	// //print(replyMsg.(type))
+	// switch reply := replyMsg.(type) {
+	// case *pln_mgmt.PlnList:
+	// 	logger.Debug("[Messenger] Received reply", "req_id", id, "reply", reply)
+	// 	return reply, nil
+	// default:
+	// 	err := newTypeAssertErr("*pln_mgmt.Pld", replyMsg)
+	// 	return nil, common.NewBasicError("[Messenger] Type assertion failed", err)
+	// }
+	return replyCtrlPld, nil
+}
+
+func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.PlnListReply,
+		"msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.PlnListReply)
 }
 
 func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {

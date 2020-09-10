@@ -28,6 +28,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/proto"
@@ -149,6 +150,8 @@ const (
 	MSFullMapReply
 	ASActionRequest
 	ASActionReply
+	PlnListRequest
+	PlnListReply
 )
 
 func (mt MessageType) String() string {
@@ -203,6 +206,10 @@ func (mt MessageType) String() string {
 		return "ASActionRequest"
 	case ASActionReply:
 		return "ASActionReply"
+	case PlnListRequest:
+		return "PlnListRequest"
+	case PlnListReply:
+		return "PlnListReply"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -262,6 +269,10 @@ func (mt MessageType) MetricLabel() string {
 		return "ms_as_action_req"
 	case ASActionReply:
 		return "ms_as_action_push"
+	case PlnListRequest:
+		return "pln_list_req"
+	case PlnListReply:
+		return "pln_list_rep"
 	default:
 		return "unknown_mt"
 	}
@@ -348,6 +359,8 @@ type Messenger interface {
 	SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
 	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
 	SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error
+	GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
+	SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
