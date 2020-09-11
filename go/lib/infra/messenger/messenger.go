@@ -1194,7 +1194,17 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",
 					nil, "capnp_which", pld.Ms.Which)
 		}
-
+	case proto.CtrlPld_Which_pln:
+		switch pld.Pln.Which {
+		case proto.PLN_Which_msListRep:
+			return infra.PlnListReply, pld.Pln.MsListRep, nil
+		case proto.PLN_Which_msListReq:
+			return infra.PlnListRequest, pld.Pln.MsListReq, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pln.Xxx message type",
+					nil, "capnp_which", pld.Pln.Which)
+		}
 	default:
 		return infra.None, nil, common.NewBasicError("Unsupported SignedPld.Pld.Xxx message type",
 			nil, "capnp_which", pld.Which)

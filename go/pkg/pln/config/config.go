@@ -82,7 +82,7 @@ type PlnConf struct {
 }
 
 func (cfg *PlnConf) InitDefaults() {
-	//TODO_MS:(supraja)
+	//TODO (supraja): set this if needed
 
 }
 func (cfg *PlnConf) Validate() error {

@@ -25,7 +25,7 @@ type Pld struct {
 	union
 }
 
-// NewPld creates a new MS ctrl payload, containing the supplied Cerealizable instance.
+// NewPld creates a new PLN ctrl payload, containing the supplied Cerealizable instance.
 func NewPld(id MsgIdType, u proto.Cerealizable) (*Pld, error) {
 	p := &Pld{Id: id}
 	return p, p.union.set(u)
@@ -36,11 +36,11 @@ func (p *Pld) Union() (proto.Cerealizable, error) {
 }
 
 func (p *Pld) ProtoId() proto.ProtoIdType {
-	return proto.MS_TypeID
+	return proto.PLN_TypeID
 }
 
 func (p *Pld) String() string {
-	desc := []string{fmt.Sprintf("MS: Id: %s Union:", p.Id)}
+	desc := []string{fmt.Sprintf("PLN: Id: %s Union:", p.Id)}
 	u, err := p.Union()
 	if err != nil {
 		desc = append(desc, err.Error())

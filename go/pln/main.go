@@ -22,6 +22,7 @@ import (
 	"github.com/scionproto/scion/go/pkg/service"
 	"github.com/scionproto/scion/go/pln/internal/plncmn"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
+	"github.com/scionproto/scion/go/pln/internal/sqlite"
 	"github.com/scionproto/scion/go/proto"
 )
 
@@ -82,7 +83,7 @@ func realMain() int {
 		plnmsgr.Msgr.ListenAndServe()
 	}()
 
-	// setupDb()
+	setupDb()
 
 	defer plnmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.
@@ -102,6 +103,14 @@ func realMain() int {
 		return 1
 	}
 
+}
+
+func setupDb() error {
+	err := sqlite.New(cfg.Pln.Db, 1)
+	if err != nil {
+		return serrors.WrapStr("setting up database", err)
+	}
+	return nil
 }
 
 // setupBasic loads the config from file and initializes logging.
@@ -127,7 +136,7 @@ func validateConfig() error {
 		return err
 	}
 	if cfg.Metrics.Prometheus == "" {
-		cfg.Metrics.Prometheus = "127.0.0.1:1281"
+		cfg.Metrics.Prometheus = "127.0.0.1:1282"
 	}
 	return nil
 }
@@ -144,7 +153,7 @@ func setupTopo() (*ifstate.Interfaces, error) {
 	//prometheus.MustRegister(ifstate.NewCollector(intfs))
 	itopo.Init(&itopo.Config{
 		ID:  cfg.General.ID,
-		Svc: proto.ServiceType_ms,
+		Svc: proto.ServiceType_pln,
 		Callbacks: itopo.Callbacks{
 			OnUpdate: func() {
 				intfs.Update(itopo.Get().IFInfoMap())

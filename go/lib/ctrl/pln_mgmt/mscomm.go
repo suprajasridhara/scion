@@ -38,7 +38,7 @@ func NewPlnListEntry(id uint8, i uint64, a uint64) *PlnListEntry {
 }
 
 func (p *PlnListEntry) ProtoId() proto.ProtoIdType {
-	return proto.MS_TypeID
+	return proto.PLN_TypeID
 }
 
 func (p *PlnListEntry) Write(b common.RawBytes) (int, error) {

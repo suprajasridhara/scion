@@ -33,7 +33,7 @@ func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) 
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.IA,
 		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
-		SVC:                   addr.SvcMS,
+		SVC:                   addr.SvcPLN,
 		ReconnectToDispatcher: true,
 		QUIC: infraenv.QUIC{
 			Address:  cfg.QUICAddr,
