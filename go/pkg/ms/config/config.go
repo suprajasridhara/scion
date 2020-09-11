@@ -88,6 +88,8 @@ type MsConf struct {
 
 	//RPKIValidString is the response of the validator script if the ASID and prefix are valid
 	RPKIValidString string `toml:"rpki_entry_valid,omitempty"`
+
+	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
