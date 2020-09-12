@@ -63,7 +63,7 @@ func (m *PLNSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509
 
 	req := &cert_mgmt.ChainReq{RawIA: m.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): generate id randomly?
-	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 1234)
+	rawChains, err := m.Msgr.GetCertChain(context.Background(), req, addr, 1234)
 	if err != nil {
 		return nil, serrors.WrapStr("Error in getChains", err)
 	}
