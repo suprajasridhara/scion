@@ -23,6 +23,7 @@ go_library(
         "sig.capnp.go",
         "ms.capnp.go",
         "pln.capnp.go",
+        "pcn.capnp.go",
         "sign.capnp.go",
         "sign.go",
         "structs.gen.go",
