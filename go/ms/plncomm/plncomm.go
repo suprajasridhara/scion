@@ -14,6 +14,9 @@ import (
 
 var PLNAddr addr.IA
 
+type PCNAddrs struct {
+}
+
 func GetPlnList(ctx context.Context) error {
 	addr := &snet.SVCAddr{IA: PLNAddr, SVC: addr.SvcPLN}
 

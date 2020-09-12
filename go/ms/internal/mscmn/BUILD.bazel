@@ -27,5 +27,6 @@ go_library(
 	"//go/ms/internal/msmsgr:go_default_library",
 	"//go/ms/internal/validator:go_default_library",
 	"//go/ms/sigcomm:go_default_library",
+	"//go/ms/plncomm:go_default_library",
     ],
 )
