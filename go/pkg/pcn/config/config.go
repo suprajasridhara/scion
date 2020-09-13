@@ -79,6 +79,8 @@ type PcnConf struct {
 
 	//KeyFile for QUIC socket
 	KeyFile string `toml:"key_file,omitempty"`
+
+	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 }
 
 func (cfg *PcnConf) InitDefaults() {
@@ -104,6 +106,9 @@ func (cfg *PcnConf) Validate() error {
 	}
 	if cfg.Db == "" {
 		cfg.Db = "/pcn.db"
+	}
+	if cfg.PLNIA.IsZero() {
+		return serrors.New("pln_isd_as must be set")
 	}
 	return nil
 }

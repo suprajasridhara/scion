@@ -90,6 +90,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -247,6 +248,20 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	logger := log.FromCtx(ctx)
 	logger.Debug("[Messenger] Sending Ack", "to", a, "id", id)
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
+}
+
+func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr, id uint64) error {
+	//TODO_Q (supraja): generate random ReqId ?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.AddPLNEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	_, err := m.getFallbackRequester(infra.AddPLNEntryRequest).Request(ctx, pld, a, false)
+	if err != nil {
+		return common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.AddPLNEntryRequest)
+	}
+	return nil
 }
 
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {

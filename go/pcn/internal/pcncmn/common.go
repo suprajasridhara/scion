@@ -18,6 +18,7 @@ var (
 	IA       addr.IA
 	CtrlAddr net.IP
 	CtrlPort int
+	PLNIA    addr.IA
 )
 
 func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -41,6 +42,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
 	}
+	PLNIA = cfg.PLNIA
 	pcnmsgr.Msgr, err = nc.Messenger()
 	pcnmsgr.IA = cfg.IA
 	pcncrypto.CfgDir = cfg.CfgDir

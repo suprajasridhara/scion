@@ -14,6 +14,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plncrypto"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/mscomm"
+	"github.com/scionproto/scion/go/pln/pcncomm"
 )
 
 var (
@@ -51,7 +52,7 @@ func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 
 	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, mscomm.PlnListHandler{})
-	// plnmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
+	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pcncomm.AddPLNEntryHandler{})
 
 	return nil
 }

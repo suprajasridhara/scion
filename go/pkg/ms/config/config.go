@@ -116,6 +116,9 @@ func (cfg *MsConf) Validate() error {
 	if cfg.RPKIValidator == "" {
 		return serrors.New("rpki_validator should be set")
 	}
+	if cfg.PLNIA.IsZero() {
+		return serrors.New("pln_isd_as must be set")
+	}
 
 	if cfg.RPKIValidString == "" {
 		return serrors.New("rpki_entry_valid should be set")

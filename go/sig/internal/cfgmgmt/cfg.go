@@ -147,11 +147,6 @@ func getTRC() (cppki.SignedTRC, error) {
 	return trc, nil
 }
 
-// func GetCoreASs() []addr.AS {
-
-// 	return signedTRC.TRC.CoreASes
-// }
-
 func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
 	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
 	//TODO_Q (supraja): random values for id?

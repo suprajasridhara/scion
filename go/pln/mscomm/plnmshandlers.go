@@ -29,7 +29,7 @@ func (a PlnListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	var l []pln_mgmt.PlnListEntry
 	for _, entry := range plnList {
-		l = append(l, *pln_mgmt.NewPlnListEntry(uint8(entry.Id), uint64(entry.I), uint64(entry.A)))
+		l = append(l, *pln_mgmt.NewPlnListEntry(uint8(entry.Id), uint64(entry.IA)))
 	}
 
 	plnL := pln_mgmt.NewPlnList(l)

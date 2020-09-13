@@ -84,8 +84,6 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-
-	// strings.Replace(InsertNewEntry, "$1", entry, -1)
 	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry)
 	if err != nil {
 		return nil, err
@@ -109,7 +107,6 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 	}
 
 	rawResult := make([][]byte, len(cols))
-	//result := make([]string, len(cols))
 
 	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
 	for i, _ := range rawResult {

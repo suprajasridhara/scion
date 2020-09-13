@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/scionproto/scion/go/cs/ifstate"
+	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -21,6 +23,7 @@ import (
 	"github.com/scionproto/scion/go/pcn/internal/pcncmn"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
 	"github.com/scionproto/scion/go/pcn/internal/sqlite"
+	"github.com/scionproto/scion/go/pcn/plncomm"
 	pcnconfig "github.com/scionproto/scion/go/pkg/pcn/config"
 	"github.com/scionproto/scion/go/pkg/service"
 	"github.com/scionproto/scion/go/proto"
@@ -85,6 +88,11 @@ func realMain() int {
 
 	setupDb()
 
+	go func(ctx context.Context, ia addr.IA, plnIA addr.IA) {
+		defer log.HandlePanic()
+		plncomm.AddPCNEntry(ctx, ia, plnIA)
+	}(context.Background(), pcncmn.IA, pcncmn.PLNIA)
+
 	defer pcnmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
@@ -136,7 +144,7 @@ func validateConfig() error {
 		return err
 	}
 	if cfg.Metrics.Prometheus == "" {
-		cfg.Metrics.Prometheus = "127.0.0.1:1282"
+		cfg.Metrics.Prometheus = "127.0.0.1:1283"
 	}
 	return nil
 }

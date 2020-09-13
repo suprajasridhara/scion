@@ -29,12 +29,11 @@ func (p *PlnListReq) String() string {
 
 type PlnListEntry struct {
 	Id uint8
-	I  uint64
-	A  uint64
+	IA uint64
 }
 
-func NewPlnListEntry(id uint8, i uint64, a uint64) *PlnListEntry {
-	return &PlnListEntry{Id: id, I: i, A: a}
+func NewPlnListEntry(id uint8, ia uint64) *PlnListEntry {
+	return &PlnListEntry{Id: id, IA: ia}
 }
 
 func (p *PlnListEntry) ProtoId() proto.ProtoIdType {
@@ -46,7 +45,7 @@ func (p *PlnListEntry) Write(b common.RawBytes) (int, error) {
 }
 
 func (p *PlnListEntry) String() string {
-	return fmt.Sprintf("%d %d %d", p.Id, p.I, p.A)
+	return fmt.Sprintf("%d %d", p.Id, p.IA)
 }
 
 type PlnList struct {

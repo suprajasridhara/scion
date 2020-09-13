@@ -22,7 +22,6 @@ struct PlnList {
 
 struct PlnListEntry{
     id @0 :UInt8;
-    i @1 :UInt64;
-    a @2 :UInt64;
+    ia @1 :UInt64;
 }
 
