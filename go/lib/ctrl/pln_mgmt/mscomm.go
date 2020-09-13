@@ -29,7 +29,7 @@ func (p *PlnListReq) String() string {
 
 type PlnListEntry struct {
 	Id uint8
-	IA uint64
+	IA uint64 `capnp:"ia"`
 }
 
 func NewPlnListEntry(id uint8, ia uint64) *PlnListEntry {

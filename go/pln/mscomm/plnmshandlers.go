@@ -35,7 +35,7 @@ func (a PlnListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	plnL := pln_mgmt.NewPlnList(l)
 
 	plncrypt := &plncrypto.PLNSigner{}
-	plncrypt.Init(ctx, plnmsgr.Msgr, plnmsgr.IA, plncrypto.CfgDir)
+	plncrypt.Init(context.Background(), plnmsgr.Msgr, plnmsgr.IA, plncrypto.CfgDir)
 	signer, err := plncrypt.SignerGen.Generate(context.Background())
 	if err != nil {
 		log.Error("error getting signer")

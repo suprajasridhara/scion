@@ -42,6 +42,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 		Router:    router,
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
 	}
+	IA = cfg.IA
 	PLNIA = cfg.PLNIA
 	pcnmsgr.Msgr, err = nc.Messenger()
 	pcnmsgr.IA = cfg.IA

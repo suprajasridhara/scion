@@ -9,7 +9,7 @@ struct PCN {
     id @0 :UInt64;  # Request ID
     union {
         unset @1 :Void;
-        dummy @2 :Text;
+        addPLNEntryRequest @2 :AddPLNEntryRequest;
     }
 }
 

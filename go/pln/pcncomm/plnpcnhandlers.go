@@ -1,8 +1,10 @@
 package pcncomm
 
 import (
+	"context"
+
 	"github.com/scionproto/scion/go/lib/ctrl"
-	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
@@ -28,14 +30,14 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	m := r.FullMessage.(*ctrl.SignedPld)
 	e := plncrypto.PLNEngine{Msgr: plnmsgr.Msgr, IA: plnmsgr.IA}
 	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
-	err := verifier.Verify(ctx, m.Blob, m.Sign) //TODO_Q (supraja): here, the validation is for the source AS because the signatures are with AS keys. Is it possible to get per entity keys with cpki?
+	err := verifier.Verify(context.Background(), m.Blob, m.Sign) //TODO_Q (supraja): here, the validation is for the source AS because the signatures are with AS keys. Is it possible to get per entity keys with cpki?
 	if err != nil {
 		log.Error("Certificate verification failed!")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
 
-	plnEntry := r.Message.(*pln_mgmt.PlnListEntry)
+	plnEntry := r.Message.(*pcn_mgmt.AddPLNEntryRequest).Entry
 
 	//validate that the IA in plnEntry is valid and equal to the requester IA
 	if plnEntry.IA != uint64(requester.IA.IAInt()) {
