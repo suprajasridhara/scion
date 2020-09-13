@@ -14,7 +14,8 @@ go_library(
 	"//go/ms/internal/mscrypto:go_default_library",
 	"//go/ms/internal/msmsgr:go_default_library",
 	"//go/pkg/trust:go_default_library",
-        
+	"//go/pkg/trust/compat:go_default_library",
+    "//go/lib/log:go_default_library",
     ],
 )
 

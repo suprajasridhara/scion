@@ -29,6 +29,9 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *MSRepToken:
 		u.Which = proto.MS_Which_asActionRep
 		u.AsActionRep = p
+	case *SignedMSList:
+		u.Which = proto.MS_Which_pushMSListReq
+		u.PushMSListReq = p
 	default:
 		return common.NewBasicError("Unsupported MS ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -46,6 +49,8 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.AsActionReq, nil
 	case proto.MS_Which_asActionRep:
 		return u.AsActionRep, nil
+	case proto.MS_Which_pushMSListReq:
+		return u.PushMSListReq, nil
 	}
 	return nil, common.NewBasicError("Unsupported MS ctrl union type (get)", nil,
 		"type", u.Which)

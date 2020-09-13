@@ -48,7 +48,7 @@ struct FullMapRep{
 struct SignedMSList{
     timestamp @0 :UInt64;
     pcnId @1 :Text;
-    asEntry @2 :SignedEntry; #the payload is of type ASMapEntry with signature from the source AS
+    asEntries @2 :List(SignedEntry); #the payload is of type ASMapEntry with signature from the source AS
 }
 
 struct SignedEntry {

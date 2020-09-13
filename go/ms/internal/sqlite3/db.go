@@ -108,6 +108,19 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 
 	rawResult := make([][]byte, len(cols))
 	got := &ctrl.SignedPld{}
+	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
+
+	for i, _ := range rawResult {
+		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
+	}
+
+	for rows.Next() {
+		err = rows.Scan(dest...)
+		if err != nil {
+			fmt.Println("Failed to scan row", err)
+			return nil, err
+		}
+	}
 
 	proto.ParseFromRaw(got, rawResult[0]) //TODO (supraja): add more code to validate that only one id was matches, now 0 because using this only for testing
 	return got, nil
@@ -129,6 +142,20 @@ func (e *executor) GetNewEntries(ctx context.Context) ([]*ctrl.SignedPld, error)
 	}
 
 	rawResult := make([][]byte, len(cols))
+	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
+
+	for i, _ := range rawResult {
+		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
+	}
+
+	for rows.Next() {
+		err = rows.Scan(dest...)
+		if err != nil {
+			fmt.Println("Failed to scan row", err)
+			return nil, err
+		}
+	}
+
 	l := []*ctrl.SignedPld{}
 
 	for _, rawResult := range rawResult {

@@ -46,6 +46,7 @@ func (a PlnListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	plncrypt.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PlnListReply})
 
 	pld, err := pln_mgmt.NewPld(1, plnL)
+	log.Info(plnL.String())
 	err = plnmsgr.Msgr.SendPlnList(ctx, pld, r.Peer, r.ID)
 	if err != nil {
 		sendAck(proto.Ack_ErrCode_reject, err.Error())

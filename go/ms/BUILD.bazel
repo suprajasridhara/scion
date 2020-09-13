@@ -23,6 +23,7 @@ go_library(
 	"//go/ms/internal/msmsgr:go_default_library",
 	"//go/ms/internal/sqlite3:go_default_library",
     "//go/pkg/ms/config:go_default_library",
+	"//go/ms/pcncomm:go_default_library",
     "@com_github_burntsushi_toml//:go_default_library"
         
     ],

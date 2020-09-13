@@ -26,12 +26,12 @@ func (p *SignedAsEntry) String() string {
 
 type SignedMSList struct {
 	Timestamp uint64
-	PCNId     string `capnp:"pcnId"`
-	AsEntry   SignedAsEntry
+	PCNId     string          `capnp:"pcnId"`
+	AsEntries []SignedAsEntry `capnp:"asEntries"`
 }
 
-func NewSignedMSList(timestamp uint64, pcnId string, asEntry SignedAsEntry) *SignedMSList {
-	return &SignedMSList{Timestamp: timestamp, PCNId: pcnId, AsEntry: asEntry}
+func NewSignedMSList(timestamp uint64, pcnId string, asEntry []SignedAsEntry) *SignedMSList {
+	return &SignedMSList{Timestamp: timestamp, PCNId: pcnId, AsEntries: asEntry}
 }
 
 func (p *SignedMSList) ProtoId() proto.ProtoIdType {
@@ -39,5 +39,9 @@ func (p *SignedMSList) ProtoId() proto.ProtoIdType {
 }
 
 func (p *SignedMSList) String() string {
-	return fmt.Sprintf("%d %s %s", p.Timestamp, p.PCNId, p.AsEntry.String())
+	s := ""
+	for _, asEntry := range p.AsEntries {
+		s = s + asEntry.String()
+	}
+	return fmt.Sprintf("%d %s %s", p.Timestamp, p.PCNId, s)
 }

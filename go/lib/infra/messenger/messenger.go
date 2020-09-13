@@ -264,6 +264,19 @@ func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.A
 	return nil
 }
 
+func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.PushMSListRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PushMSListRequest).RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.PushMSListRequest)
+	}
+	return replyCtrlPld, nil
+}
+
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): generate random ReqId ?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
@@ -1204,6 +1217,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.ASActionRequest, pld.Ms.AsActionReq, nil
 		case proto.MS_Which_asActionRep:
 			return infra.ASActionReply, pld.Ms.AsActionRep, nil
+		case proto.MS_Which_pushMSListReq:
+			return infra.PushMSListRequest, pld.Ms.PushMSListReq, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",

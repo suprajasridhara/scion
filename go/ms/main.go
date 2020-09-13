@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -41,6 +42,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
+	"github.com/scionproto/scion/go/ms/pcncomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
 
@@ -115,6 +117,10 @@ func realMain() int {
 		return 1
 	}
 
+	go func() {
+		defer log.HandlePanic()
+		pcncomm.SendSignedList(context.Background(), 1)
+	}()
 	select {
 	case <-fatal.ShutdownChan():
 		return 0
@@ -181,7 +187,7 @@ func validateConfig() error {
 		return err
 	}
 	if cfg.Metrics.Prometheus == "" {
-		cfg.Metrics.Prometheus = "127.0.0.1:1281"
+		cfg.Metrics.Prometheus = "127.0.0.1:1285"
 	}
 	return nil
 }

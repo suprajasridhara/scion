@@ -5,12 +5,14 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/pcn/internal/pcncrypto"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
+	"github.com/scionproto/scion/go/pcn/mscomm"
 	pcnconfig "github.com/scionproto/scion/go/pkg/pcn/config"
 )
 
@@ -32,7 +34,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.IA,
 		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
-		SVC:                   addr.SvcWildcard,
+		SVC:                   addr.SvcPCN,
 		ReconnectToDispatcher: true,
 		QUIC: infraenv.QUIC{
 			Address:  cfg.QUICAddr,
@@ -52,5 +54,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 
 	//Add messenger handlers here
+	pcnmsgr.Msgr.AddHandler(infra.PushMSListRequest, mscomm.MSListHandler{})
+
 	return nil
 }

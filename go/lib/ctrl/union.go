@@ -98,6 +98,10 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.Sig, nil
 	case proto.CtrlPld_Which_ms:
 		return u.Ms, nil
+	case proto.CtrlPld_Which_pln:
+		return u.Pln, nil
+	case proto.CtrlPld_Which_pcn:
+		return u.Pcn, nil
 	case proto.CtrlPld_Which_certMgmt:
 		return u.CertMgmt, nil
 	case proto.CtrlPld_Which_extn:

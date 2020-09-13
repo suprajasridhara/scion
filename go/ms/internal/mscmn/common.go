@@ -73,10 +73,6 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
 	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
 
-	err = plncomm.GetPlnList(context.Background())
-	if err != nil {
-		return serrors.WrapStr("Unable to getPlnList", err)
-	}
 	return nil
 }
 

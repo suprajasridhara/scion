@@ -379,6 +379,7 @@ type Messenger interface {
 	GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
 	SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) error
 	SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr, id uint64) error
+	SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
