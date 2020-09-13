@@ -88,10 +88,10 @@ func realMain() int {
 
 	setupDb()
 
-	go func(ctx context.Context, ia addr.IA, plnIA addr.IA) {
+	go func(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) {
 		defer log.HandlePanic()
-		plncomm.AddPCNEntry(ctx, ia, plnIA)
-	}(context.Background(), pcncmn.IA, pcncmn.PLNIA)
+		plncomm.AddPCNEntry(ctx, pcnId, ia, plnIA)
+	}(context.Background(), cfg.General.ID, pcncmn.IA, pcncmn.PLNIA)
 
 	defer pcnmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.

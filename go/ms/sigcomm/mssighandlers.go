@@ -109,7 +109,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	//RPKI validation passed. Add entry to database to be read later
 
-	packed, err := proto.PackRoot(m)
+	packed, err := proto.PackRoot(m) //Full message from SIG. Contains *ms_mgmt.ASMapEntry along with signature
 
 	x := &ctrl.SignedPld{}
 	proto.ParseFromRaw(x, packed)

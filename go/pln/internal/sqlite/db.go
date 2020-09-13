@@ -55,7 +55,7 @@ func (e *executor) GetPlnList(ctx context.Context) ([]PlnListEntry, error) {
 	got := []PlnListEntry{}
 	for rows.Next() {
 		var r PlnListEntry
-		err = rows.Scan(&r.Id, &r.IA)
+		err = rows.Scan(&r.Id, &r.PcnId, &r.IA)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -64,10 +64,10 @@ func (e *executor) GetPlnList(ctx context.Context) ([]PlnListEntry, error) {
 	return got, nil
 }
 
-func (e *executor) InsertNewPlnEntry(ctx context.Context, entry uint64) (sql.Result, error) {
+func (e *executor) InsertNewPlnEntry(ctx context.Context, pcnId string, entry uint64) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsertPLNEntry, entry)
+	res, err := e.db.ExecContext(ctx, InsertPLNEntry, pcnId, entry)
 	if err != nil {
 		return nil, err
 	}

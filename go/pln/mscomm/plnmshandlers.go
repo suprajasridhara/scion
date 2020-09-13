@@ -20,7 +20,7 @@ func (a PlnListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: PlnListHandler.Handle")
 	ctx := r.Context()
 	//logger := log.FromCtx(ctx)
-	plnList, err := sqlite.Db.GetPlnList(ctx)
+	plnList, err := sqlite.Db.GetPlnList(context.Background())
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
 
@@ -29,7 +29,7 @@ func (a PlnListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	var l []pln_mgmt.PlnListEntry
 	for _, entry := range plnList {
-		l = append(l, *pln_mgmt.NewPlnListEntry(uint8(entry.Id), uint64(entry.IA)))
+		l = append(l, *pln_mgmt.NewPlnListEntry(entry.PcnId, uint64(entry.IA)))
 	}
 
 	plnL := pln_mgmt.NewPlnList(l)

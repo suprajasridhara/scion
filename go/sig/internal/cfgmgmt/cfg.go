@@ -71,7 +71,7 @@ func Init(ctx context.Context, cfgDir string, prefixFilePath string, prefixPushI
 }
 func pushPrefixes(ctx context.Context, interval time.Duration) {
 	addPrefixes(ctx)
-	pushTicker := time.NewTicker(interval * time.Second)
+	pushTicker := time.NewTicker(interval * time.Minute)
 	for {
 		select {
 		case <-pushTicker.C:

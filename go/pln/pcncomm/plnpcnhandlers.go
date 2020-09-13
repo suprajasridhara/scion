@@ -47,7 +47,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	_, err = sqlite.Db.InsertNewPlnEntry(ctx, plnEntry.IA)
+	_, err = sqlite.Db.InsertNewPlnEntry(ctx, plnEntry.PCNId, plnEntry.IA)
 	if err != nil {
 		log.Error("Error while inserting new entry")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())

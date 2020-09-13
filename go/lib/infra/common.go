@@ -154,6 +154,8 @@ const (
 	PlnListRequest
 	PlnListReply
 	AddPLNEntryRequest
+	PushMSListRequest
+	PushMSListReply
 )
 
 func (mt MessageType) String() string {
@@ -214,6 +216,11 @@ func (mt MessageType) String() string {
 		return "PlnListReply"
 	case AddPLNEntryRequest:
 		return "AddPLNEntryRequest"
+	case PushMSListRequest:
+		return "PushMSListRequest"
+	case PushMSListReply:
+		return "PushMSListReply"
+
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -279,6 +286,10 @@ func (mt MessageType) MetricLabel() string {
 		return "pln_list_rep"
 	case AddPLNEntryRequest:
 		return "add_pln_entry_req"
+	case PushMSListRequest:
+		return "push_ms_list_req"
+	case PushMSListReply:
+		return "push_ms_list_rep"
 	default:
 		return "unknown_mt"
 	}

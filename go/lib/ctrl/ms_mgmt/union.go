@@ -7,11 +7,12 @@ import (
 
 // union represents the contents of the unnamed capnp union.
 type union struct {
-	Which       proto.MS_Which
-	FullMapReq  *FullMapReq
-	FullMapRep  *FullMapRep
-	AsActionReq *ASMapEntry
-	AsActionRep *MSRepToken
+	Which         proto.MS_Which
+	FullMapReq    *FullMapReq
+	FullMapRep    *FullMapRep
+	AsActionReq   *ASMapEntry
+	AsActionRep   *MSRepToken
+	PushMSListReq *SignedMSList
 }
 
 func (u *union) set(c proto.Cerealizable) error {

@@ -2,7 +2,6 @@ package plncomm
 
 import (
 	"context"
-	"math/rand"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
@@ -14,10 +13,10 @@ import (
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
 )
 
-func AddPCNEntry(ctx context.Context, ia addr.IA, plnIA addr.IA) error {
+func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) error {
 	addr := &snet.SVCAddr{IA: plnIA, SVC: addr.SvcPLN}
 
-	entry := pln_mgmt.NewPlnListEntry(uint8(rand.Intn(256)), uint64(ia.IAInt()))
+	entry := pln_mgmt.NewPlnListEntry(pcnId, uint64(ia.IAInt()))
 	req := pcn_mgmt.NewAddPLNEntryRequest(*entry)
 
 	pcncrypt := &pcncrypto.PCNSigner{}

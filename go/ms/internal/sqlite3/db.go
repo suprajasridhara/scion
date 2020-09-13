@@ -107,41 +107,34 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 	}
 
 	rawResult := make([][]byte, len(cols))
-
-	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-	for i, _ := range rawResult {
-		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
-	}
-
-	for rows.Next() {
-		err = rows.Scan(dest...)
-		if err != nil {
-			fmt.Println("Failed to scan row", err)
-			return nil, err
-		}
-
-		// for i, raw := range rawResult {
-		// 	if raw == nil {
-		// 		result[i] = "\\N"
-		// 	} else {
-		// 		result[i] = string(raw)
-		// 	}
-		// }
-
-		//fmt.Printf("%#v\n", result)
-	}
-
 	got := &ctrl.SignedPld{}
-	// r := make([]byte, 1000)
-	// for rows.Next() {
 
-	// 	err = rows.Scan(&r)
-	// 	if err != nil {
-	// 		return nil, serrors.Wrap(db.ErrDataInvalid, err)
-	// 	}
-	// 	//
-	// }
-
-	proto.ParseFromRaw(got, rawResult[0])
+	proto.ParseFromRaw(got, rawResult[0]) //TODO (supraja): add more code to validate that only one id was matches, now 0 because using this only for testing
 	return got, nil
+}
+
+func (e *executor) GetNewEntries(ctx context.Context) ([]*ctrl.SignedPld, error) {
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, NewEntries)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Failed to get columns", err)
+		return nil, err
+	}
+
+	rawResult := make([][]byte, len(cols))
+	l := []*ctrl.SignedPld{}
+
+	for _, rawResult := range rawResult {
+		got := &ctrl.SignedPld{}
+		proto.ParseFromRaw(got, rawResult)
+		l = append(l, got)
+	}
+	return l, nil
 }

@@ -25,5 +25,5 @@ func (p *AddPLNEntryRequest) Write(b common.RawBytes) (int, error) {
 }
 
 func (p *AddPLNEntryRequest) String() string {
-	return fmt.Sprintf("%s ", p.Entry.String)
+	return fmt.Sprintf("%s ", p.Entry.String())
 }
