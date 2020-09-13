@@ -3,7 +3,7 @@ using Go = import "go.capnp";
 $Go.package("proto");
 $Go.import("github.com/scionproto/scion/go/proto");
 
-using Ctrl = import "ctrl_pld.capnp";
+using Sign = import "sign.capnp";
 
 struct MS {
     id @0 :UInt64;  # Request ID
@@ -48,5 +48,10 @@ struct FullMapRep{
 struct SignedMSList{
     timestamp @0 :UInt64;
     pcnId @1 :Text;
-    asEntry @2 :Ctrl.SignedCtrlPld; #the payload is of type ASMapEntry with signature from the source AS
+    asEntry @2 :SignedEntry; #the payload is of type ASMapEntry with signature from the source AS
+}
+
+struct SignedEntry {
+    blob @0 :Data; 
+    sign @1 :Sign.Sign;
 }

@@ -14,6 +14,5 @@ go_library(
     deps = [
       "//go/proto:go_default_library",
       "//go/lib/common:go_default_library",
-      "//go/lib/ctrl:go_default_library",
     ],
 )
