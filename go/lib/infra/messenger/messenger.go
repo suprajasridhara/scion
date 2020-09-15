@@ -240,6 +240,15 @@ func (m *Messenger) SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Add
 	return m.sendMessage(ctx, msg, a, id, infra.MSFullMapReply)
 }
 
+func (m *Messenger) SendOkMessage(ctx context.Context, a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.OkMessage,
+		"msg_id", id, "request", nil, "peer", a)
+	msmgmtPld, _ := ms_mgmt.NewPld(1, &ms_mgmt.OkMessage{Ok: "ok"})
+
+	return m.sendMessage(ctx, msmgmtPld, a, id, infra.OkMessage)
+}
+
 func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id uint64) error {
 	pld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: id})
 	if err != nil {
@@ -252,11 +261,13 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 
 func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr, id uint64) error {
 	//TODO_Q (supraja): generate random ReqId ?
-	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12424322})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.AddPLNEntryRequest,
 		"msg_id", id, "request", nil, "peer", a)
 	_, err := m.getFallbackRequester(infra.AddPLNEntryRequest).Request(ctx, pld, a, false)
+	logger.Info("[Messenger] Got response", "req_type", infra.AddPLNEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
 	if err != nil {
 		return common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.AddPLNEntryRequest)
@@ -1219,6 +1230,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.ASActionReply, pld.Ms.AsActionRep, nil
 		case proto.MS_Which_pushMSListReq:
 			return infra.PushMSListRequest, pld.Ms.PushMSListReq, nil
+		case proto.MS_Which_okMessage:
+			return infra.OkMessage, pld.Ms.OkMessage, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",

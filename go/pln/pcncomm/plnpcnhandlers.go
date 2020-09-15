@@ -47,11 +47,21 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	_, err = sqlite.Db.InsertNewPlnEntry(ctx, plnEntry.PCNId, plnEntry.IA)
+	_, err = sqlite.Db.InsertNewPlnEntry(context.Background(), plnEntry.PCNId, plnEntry.IA)
+	log.Info("Insert entry: AddPLNEntryHandler.Handle")
+
 	if err != nil {
 		log.Error("Error while inserting new entry")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 	}
+
+	err = plnmsgr.Msgr.SendOkMessage(context.Background(), r.Peer, r.ID)
+	if err != nil {
+		log.Error("Error: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+	}
+
+	log.Info("Exiting: AddPLNEntryHandler.Handle")
 
 	//TODO_Q (supraja): should this send a response?
 

@@ -156,6 +156,7 @@ const (
 	AddPLNEntryRequest
 	PushMSListRequest
 	PushMSListReply
+	OkMessage
 )
 
 func (mt MessageType) String() string {
@@ -220,6 +221,8 @@ func (mt MessageType) String() string {
 		return "PushMSListRequest"
 	case PushMSListReply:
 		return "PushMSListReply"
+	case OkMessage:
+		return "OkMessage"
 
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
@@ -290,6 +293,8 @@ func (mt MessageType) MetricLabel() string {
 		return "push_ms_list_req"
 	case PushMSListReply:
 		return "push_ms_list_rep"
+	case OkMessage:
+		return "ok_message"
 	default:
 		return "unknown_mt"
 	}
@@ -380,6 +385,7 @@ type Messenger interface {
 	SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) error
 	SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr, id uint64) error
 	SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error)
+	SendOkMessage(ctx context.Context, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)

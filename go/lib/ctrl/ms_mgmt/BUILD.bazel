@@ -8,6 +8,7 @@ go_library(
        "pld.go",
        "union.go",
        "signedlist.go",
+       "common.go",
     ],
     importpath = "github.com/scionproto/scion/go/lib/ctrl/ms_mgmt",
     visibility = ["//visibility:public"],

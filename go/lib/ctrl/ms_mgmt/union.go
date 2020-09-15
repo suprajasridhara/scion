@@ -13,6 +13,7 @@ type union struct {
 	AsActionReq   *ASMapEntry
 	AsActionRep   *MSRepToken
 	PushMSListReq *SignedMSList
+	OkMessage     *OkMessage
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -32,6 +33,9 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *SignedMSList:
 		u.Which = proto.MS_Which_pushMSListReq
 		u.PushMSListReq = p
+	case *OkMessage:
+		u.Which = proto.MS_Which_okMessage
+		u.OkMessage = p
 	default:
 		return common.NewBasicError("Unsupported MS ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -51,6 +55,8 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.AsActionRep, nil
 	case proto.MS_Which_pushMSListReq:
 		return u.PushMSListReq, nil
+	case proto.MS_Which_okMessage:
+		return u.OkMessage, nil
 	}
 	return nil, common.NewBasicError("Unsupported MS ctrl union type (get)", nil,
 		"type", u.Which)

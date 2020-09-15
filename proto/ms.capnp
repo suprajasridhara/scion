@@ -14,6 +14,7 @@ struct MS {
         asActionReq @4 :ASMapEntry;
         asActionRep @5 :MSRepToken;
         pushMSListReq @6 :SignedMSList;
+        okMessage @7 :OkMessage;
     }
 }
 
@@ -54,4 +55,8 @@ struct SignedMSList{
 struct SignedEntry {
     blob @0 :Data; 
     sign @1 :Sign.Sign;
+}
+
+struct OkMessage{
+    ok @0 :Text;
 }
