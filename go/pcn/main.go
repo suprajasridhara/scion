@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+
 	"github.com/scionproto/scion/go/cs/ifstate"
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
@@ -144,7 +145,7 @@ func validateConfig() error {
 		return err
 	}
 	if cfg.Metrics.Prometheus == "" {
-		cfg.Metrics.Prometheus = "127.0.0.1:1283"
+		cfg.Metrics.Prometheus = "127.0.0.1:1289"
 	}
 	return nil
 }

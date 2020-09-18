@@ -19,12 +19,14 @@ type PLNEngine struct {
 	IA   addr.IA
 }
 
-func (m PLNEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID, o ...trust.Option) error {
+func (m PLNEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID,
+	o ...trust.Option) error {
 	//TODO (supraja): implement this
 	return nil
 }
 
-func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery, o ...trust.Option) ([][]*x509.Certificate, error) {
+func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
+	o ...trust.Option) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid := cq.SubjectKeyID
@@ -37,7 +39,8 @@ func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery, o ...trus
 	return rawChains.Chains()
 }
 
-func (m PLNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID, o ...trust.Option) (cppki.SignedTRC, error) {
+func (m PLNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
+	o ...trust.Option) (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
 	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial}, addr, 1)

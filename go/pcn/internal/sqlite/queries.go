@@ -1,3 +1,5 @@
 package sqlite
 
-const ()
+const (
+	Placeholder = "Placeholder"
+)

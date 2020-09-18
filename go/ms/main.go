@@ -36,14 +36,13 @@ import (
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/topology"
-	"github.com/scionproto/scion/go/pkg/service"
-	"github.com/scionproto/scion/go/proto"
-
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	"github.com/scionproto/scion/go/ms/pcncomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
+	"github.com/scionproto/scion/go/pkg/service"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var (

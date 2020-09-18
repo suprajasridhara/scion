@@ -319,7 +319,8 @@ func (t *topologyS) UnderlayAnycast(svc addr.HostSVC) (*net.UDPAddr, error) {
 
 func supportedSVC(svc addr.HostSVC) bool {
 	b := svc.Base()
-	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG || b == addr.SvcMS || b == addr.SvcPLN || b == addr.SvcPCN
+	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG ||
+		b == addr.SvcMS || b == addr.SvcPLN || b == addr.SvcPCN
 }
 
 func (t *topologyS) UnderlayMulticast(svc addr.HostSVC) ([]*net.UDPAddr, error) {

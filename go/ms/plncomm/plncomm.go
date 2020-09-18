@@ -36,7 +36,8 @@ func GetPlnList(ctx context.Context) ([]PCN, error) {
 	// if err != nil {
 	// 	return serrors.WrapStr("Invalid signature", err)
 	// }
-	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(), compat.Verifier{Verifier: verifier})
+	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
+		compat.Verifier{Verifier: verifier})
 	log.Info(verifiedPayload.String())
 
 	plnList := verifiedPayload.Pln.MsListRep

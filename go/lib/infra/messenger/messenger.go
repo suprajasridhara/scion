@@ -233,14 +233,16 @@ func New(config *Config) *Messenger {
 	}
 }
 
-func (m *Messenger) SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
+func (m *Messenger) SendFullMap(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending response", "rep_type", infra.MSFullMapReply,
 		"msg_id", id, "request", nil, "peer", a)
 	return m.sendMessage(ctx, msg, a, id, infra.MSFullMapReply)
 }
 
-func (m *Messenger) SendOkMessage(ctx context.Context, a net.Addr, id uint64) error {
+func (m *Messenger) SendOkMessage(ctx context.Context,
+	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending response", "rep_type", infra.OkMessage,
 		"msg_id", id, "request", nil, "peer", a)
@@ -249,7 +251,8 @@ func (m *Messenger) SendOkMessage(ctx context.Context, a net.Addr, id uint64) er
 	return m.sendMessage(ctx, msmgmtPld, a, id, infra.OkMessage)
 }
 
-func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id uint64) error {
+func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack,
+	a net.Addr, id uint64) error {
 	pld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: id})
 	if err != nil {
 		return err
@@ -259,7 +262,8 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
 }
 
-func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr, id uint64) error {
+func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld,
+	a net.Addr, id uint64) error {
 	//TODO_Q (supraja): generate random ReqId ?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12424322})
 	logger := log.FromCtx(ctx)
@@ -275,12 +279,14 @@ func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.A
 	return nil
 }
 
-func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.PushMSListRequest,
 		"msg_id", id, "request", nil, "peer", a)
-	replyCtrlPld, err := m.getFallbackRequester(infra.PushMSListRequest).RequestWithSign(ctx, pld, a, false)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PushMSListRequest).
+		RequestWithSign(ctx, pld, a, false)
 	if err != nil {
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.PushMSListRequest)
@@ -288,13 +294,15 @@ func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a ne
 	return replyCtrlPld, nil
 }
 
-func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): generate random ReqId ?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
 		"msg_id", id, "request", nil, "peer", a)
-	replyCtrlPld, err := m.getFallbackRequester(infra.ASActionRequest).RequestWithSign(ctx, pld, a, false)
+	replyCtrlPld, err := m.getFallbackRequester(infra.ASActionRequest).
+		RequestWithSign(ctx, pld, a, false)
 	if err != nil {
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.ASActionRequest)
@@ -316,21 +324,24 @@ func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Ad
 
 }
 
-func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) error {
+func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
-	logger.Info("[Messenger] Sending response", "rep_type", infra.ASActionReply,
-		"msg_id", id, "request", nil, "peer", a)
+	logger.Info("[Messenger] Sending response", "rep_type",
+		infra.ASActionReply, "msg_id", id, "request", nil, "peer", a)
 	return m.sendMessage(ctx, msg, a, id, infra.ASActionReply)
 }
 
 //GetPlnList fetches the pln list form the PLN and returns the payload with the signature from the destination AS. The caller should verify the signature
-func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): Generate random ReqId?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.PlnListRequest,
 		"msg_id", id, "request", nil, "peer", a)
-	replyCtrlPld, err := m.getFallbackRequester(infra.PlnListRequest).RequestWithSign(ctx, pld, a, false)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PlnListRequest).
+		RequestWithSign(ctx, pld, a, false)
 	if err != nil {
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.PlnListRequest)
@@ -351,14 +362,16 @@ func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Add
 	return replyCtrlPld, nil
 }
 
-func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr, id uint64) error {
+func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending response", "rep_type", infra.PlnListReply,
 		"msg_id", id, "request", nil, "peer", a)
 	return m.sendMessage(ctx, msg, a, id, infra.PlnListReply)
 }
 
-func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
 	//TODO_Q (supraja): Generate random ReqId?
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
 	logger := log.FromCtx(ctx)
@@ -416,7 +429,8 @@ func (m *Messenger) GetTRC(ctx context.Context, msg *cert_mgmt.TRCReq,
 	}
 }
 
-func (m *Messenger) SendTRC(ctx context.Context, msg *cert_mgmt.TRC, a net.Addr, id uint64) error {
+func (m *Messenger) SendTRC(ctx context.Context, msg *cert_mgmt.TRC,
+	a net.Addr, id uint64) error {
 	pld, err := cert_mgmt.NewPld(msg, nil)
 	if err != nil {
 		return err
@@ -466,7 +480,8 @@ func (m *Messenger) SendCertChain(ctx context.Context, msg *cert_mgmt.Chain, a n
 	return m.sendMessage(ctx, pld, a, id, infra.Chain)
 }
 
-func (m *Messenger) SendIfId(ctx context.Context, msg *ifid.IFID, a net.Addr, id uint64) error {
+func (m *Messenger) SendIfId(ctx context.Context, msg *ifid.IFID,
+	a net.Addr, id uint64) error {
 	return m.sendMessage(ctx, msg, a, id, infra.IfId)
 }
 

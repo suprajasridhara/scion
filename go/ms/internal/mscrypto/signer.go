@@ -23,7 +23,8 @@ type MSSigner struct {
 	signedTRC cppki.SignedTRC
 }
 
-func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) error {
+func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger,
+	IA addr.IA, cfgDir string) error {
 	m.Msgr = Msgr
 	m.IA = IA
 	t, err := m.getTRC()
@@ -56,7 +57,8 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, c
 	return nil
 }
 
-func (m *MSSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
+func (m *MSSigner) getChains(ctx context.Context,
+	key crypto.Signer) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid, _ := cppki.SubjectKeyID(key.Public())
@@ -75,7 +77,8 @@ func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
 	//TODO (supraja): replace hardcoded id
-	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
+	encTRC, err := m.Msgr.GetTRC(context.Background(),
+		&cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
 	"github.com/scionproto/scion/go/lib/serrors"
@@ -110,7 +111,7 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 	got := &ctrl.SignedPld{}
 	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
 
-	for i, _ := range rawResult {
+	for i := range rawResult {
 		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
 	}
 
@@ -122,7 +123,11 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 		}
 	}
 
-	proto.ParseFromRaw(got, rawResult[0]) //TODO (supraja): add more code to validate that only one id was matches, now 0 because using this only for testing
+	/*
+		TODO (supraja): add more code to validate that only one id was
+		matches, now 0 because using this only for testing
+	*/
+	proto.ParseFromRaw(got, rawResult[0])
 	return got, nil
 }
 
@@ -144,7 +149,7 @@ func (e *executor) GetNewEntries(ctx context.Context) ([]*ctrl.SignedPld, error)
 	rawResult := make([][]byte, len(cols))
 	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
 
-	for i, _ := range rawResult {
+	for i := range rawResult {
 		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
 	}
 
