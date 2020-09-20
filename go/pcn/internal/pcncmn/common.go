@@ -49,6 +49,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 	pcnmsgr.Msgr, err = nc.Messenger()
 	pcnmsgr.IA = cfg.IA
 	pcncrypto.CfgDir = cfg.CfgDir
+
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}

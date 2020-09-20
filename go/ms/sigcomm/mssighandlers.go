@@ -87,8 +87,6 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	//TODO_Q (supraja): Is this ok to Assume the AS is a BGP style AS?
 
 	//Do RPKI validation with a shell script for now
-
-	//TODO (supraja): read this correctly from config file.
 	//For now, the validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
 	//TODO (supraja): find a better way to do this
 	cmdStr := validator.Path + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]

@@ -294,6 +294,15 @@ func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld,
 	return replyCtrlPld, nil
 }
 
+func (m *Messenger) SignedMSListRep(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.PushMSListReply,
+		"msg_id", id, "request", nil, "peer", a)
+
+	return m.sendMessage(ctx, msg, a, id, infra.PushMSListReply)
+}
+
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): generate random ReqId ?
@@ -1267,6 +1276,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		switch pld.Pcn.Which {
 		case proto.PCN_Which_addPLNEntryRequest:
 			return infra.AddPLNEntryRequest, pld.Pcn.AddPLNEntryRequest, nil
+		case proto.PCN_Which_msListRep:
+			return infra.PushMSListReply, pld.Pcn.MSListRep, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pcn.Xxx message type",

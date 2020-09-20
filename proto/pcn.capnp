@@ -10,6 +10,7 @@ struct PCN {
     union {
         unset @1 :Void;
         addPLNEntryRequest @2 :AddPLNEntryRequest;
+        msListRep @3 :MSListRep;
     }
 }
 
@@ -17,4 +18,9 @@ struct AddPLNEntryRequest{
     entry @0 :Pln.PlnListEntry;
 }
 
+struct MSListRep{
+    signedMSList @0 :Data;
+    commitId @1 :Text;
+    timestamp @2 :UInt64; #PCN promises to add MSList before timestamp 
+}
 

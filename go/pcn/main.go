@@ -82,12 +82,16 @@ func realMain() int {
 		pcnmsgr.Msgr.AddHandler(infra.IfId, pcncmn.IfIdHandler{})
 	}
 
+	pcnmsgr.Id = cfg.General.ID
 	go func() {
 		defer log.HandlePanic()
 		pcnmsgr.Msgr.ListenAndServe()
 	}()
 
-	setupDb()
+	if err := setupDb(); err != nil {
+		log.Error("PCN db initialization failed", "err", err)
+		return 1
+	}
 
 	go func(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) {
 		defer log.HandlePanic()

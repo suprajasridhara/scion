@@ -13,5 +13,10 @@ const (
 		id INTEGER PRIMARY KEY,
 		entry BLOB
 	);
+
+	CREATE TABLE IF NOT EXISTS pcn_reps(
+		id INTEGER PRIMARY KEY,
+		fullRep BLOB
+	)
 	`
 )

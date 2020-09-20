@@ -92,6 +92,16 @@ func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result
 	return res, nil
 }
 
+func (e *executor) InsertPCNRep(ctx context.Context, entry []byte) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, InsertPCNRep, entry)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld, error) {
 	e.RLock()
 	defer e.RUnlock()

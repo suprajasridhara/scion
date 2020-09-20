@@ -103,7 +103,10 @@ func realMain() int {
 		msmsgr.Msgr.ListenAndServe()
 	}()
 
-	setupDb()
+	if err := setupDb(); err != nil {
+		log.Error("MS db initialization failed", "err", err)
+		return 1
+	}
 
 	defer msmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.

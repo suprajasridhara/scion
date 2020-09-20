@@ -15,4 +15,7 @@ const (
 	InsertNewEntry = `
 	INSERT INTO new_entries(entry) VALUES (?)
 	`
+	InsertPCNRep = `
+	INSERT INTO pcn_reps(fullRep) VALUES (?)
+	`
 )

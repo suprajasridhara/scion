@@ -1,5 +1,5 @@
 package sqlite
 
 const (
-	Placeholder = "Placeholder"
+	QueryPlaceholder = "Placeholder"
 )

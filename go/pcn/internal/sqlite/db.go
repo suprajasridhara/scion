@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"sync"
 
@@ -41,4 +42,13 @@ func NewFromDB(db *sql.DB) *DB {
 			db: db,
 		},
 	}
+}
+
+func (e *executor) InsertNewMapEntry(ctx context.Context, entry []byte, commitId string) (sql.Result, error) {
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitId)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

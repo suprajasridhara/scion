@@ -1,5 +1,7 @@
 package sqlite
 
 const (
-	Placeholder = "Placeholder"
+	InsertNewEntry = `
+	INSERT INTO node_list_entries(msList, commitId) VALUES (?,?)
+	`
 )

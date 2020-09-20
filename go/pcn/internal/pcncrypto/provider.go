@@ -14,18 +14,18 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust"
 )
 
-type PLNEngine struct {
+type PCNEngine struct {
 	Msgr infra.Messenger
 	IA   addr.IA
 }
 
-func (m PLNEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID,
+func (m PCNEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID,
 	o ...trust.Option) error {
 	//TODO (supraja): implement this
 	return nil
 }
 
-func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
+func (m PCNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	o ...trust.Option) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
@@ -39,7 +39,7 @@ func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	return rawChains.Chains()
 }
 
-func (m PLNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
+func (m PCNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
 	o ...trust.Option) (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
