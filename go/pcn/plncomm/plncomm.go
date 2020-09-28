@@ -16,7 +16,7 @@ import (
 func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) error {
 	addr := &snet.SVCAddr{IA: plnIA, SVC: addr.SvcPLN}
 
-	entry := pln_mgmt.NewPlnListEntry(pcnId, uint64(ia.IAInt()))
+	entry := pln_mgmt.NewPlnListEntry(pcnId, uint64(ia.IAInt()), nil)
 	req := pcn_mgmt.NewAddPLNEntryRequest(*entry)
 
 	pcncrypt := &pcncrypto.PCNSigner{}

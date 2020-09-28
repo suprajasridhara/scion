@@ -24,7 +24,7 @@ func SendPLNList(addr net.Addr, id uint64) error {
 	added := make(map[string]bool)
 	for _, entry := range plnList {
 		if !added[entry.PcnId] {
-			l = append(l, *pln_mgmt.NewPlnListEntry(entry.PcnId, uint64(entry.IA)))
+			l = append(l, *pln_mgmt.NewPlnListEntry(entry.PcnId, uint64(entry.IA), entry.Raw))
 			added[entry.PcnId] = true
 		}
 	}

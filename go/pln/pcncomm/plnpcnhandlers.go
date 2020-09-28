@@ -47,7 +47,13 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	_, err = sqlite.Db.InsertNewPlnEntry(context.Background(), plnEntry.PCNId, plnEntry.IA)
+	packed, err := proto.PackRoot(m)
+	if err != nil {
+		log.Error("Error while packing message")
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+	}
+
+	_, err = sqlite.Db.InsertNewPlnEntry(context.Background(), plnEntry.PCNId, plnEntry.IA, packed)
 	log.Info("Insert entry: AddPLNEntryHandler.Handle")
 
 	if err != nil {

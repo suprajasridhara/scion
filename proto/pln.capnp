@@ -23,5 +23,6 @@ struct PlnList {
 struct PlnListEntry{
     pcnId @0 :Text;
     ia @1 :UInt64;
+    raw @2 :Data;
 }
 
