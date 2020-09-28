@@ -374,7 +374,7 @@ func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
-	logger.Info("[Messenger] Sending response", "rep_type", infra.PlnListReply,
+	logger.Info("[Messenger] Sending message", "req_type", infra.PlnListReply,
 		"msg_id", id, "request", nil, "peer", a)
 	return m.sendMessage(ctx, msg, a, id, infra.PlnListReply)
 }
@@ -1263,8 +1263,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		}
 	case proto.CtrlPld_Which_pln:
 		switch pld.Pln.Which {
-		case proto.PLN_Which_msListRep:
-			return infra.PlnListReply, pld.Pln.MsListRep, nil
+		case proto.PLN_Which_plnList:
+			return infra.PlnListReply, pld.Pln.PlnList, nil
 		case proto.PLN_Which_msListReq:
 			return infra.PlnListRequest, pld.Pln.MsListReq, nil
 		default:

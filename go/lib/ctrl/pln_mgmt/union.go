@@ -9,7 +9,7 @@ import (
 type union struct {
 	Which     proto.PLN_Which
 	MsListReq *PlnListReq
-	MsListRep *PlnList
+	PlnList   *PlnList `capnp:"plnList"`
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -18,8 +18,8 @@ func (u *union) set(c proto.Cerealizable) error {
 		u.Which = proto.PLN_Which_msListReq
 		u.MsListReq = p
 	case *PlnList:
-		u.Which = proto.PLN_Which_msListRep
-		u.MsListRep = p
+		u.Which = proto.PLN_Which_plnList
+		u.PlnList = p
 	default:
 		return common.NewBasicError("Unsupported PLN ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -29,8 +29,8 @@ func (u *union) set(c proto.Cerealizable) error {
 
 func (u *union) get() (proto.Cerealizable, error) {
 	switch u.Which {
-	case proto.PLN_Which_msListRep:
-		return u.MsListRep, nil
+	case proto.PLN_Which_plnList:
+		return u.PlnList, nil
 	case proto.PLN_Which_msListReq:
 		return u.MsListReq, nil
 	}

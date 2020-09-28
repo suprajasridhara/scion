@@ -40,7 +40,7 @@ func GetPlnList(ctx context.Context) ([]PCN, error) {
 		compat.Verifier{Verifier: verifier})
 	log.Info(verifiedPayload.String())
 
-	plnList := verifiedPayload.Pln.MsListRep
+	plnList := verifiedPayload.Pln.PlnList
 
 	pcns := []PCN{}
 

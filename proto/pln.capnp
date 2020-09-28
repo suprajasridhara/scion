@@ -8,7 +8,7 @@ struct PLN {
     union {
         unset @1 :Void;
         msListReq @2 :PlnListReq;
-        msListRep @3 :PlnList;
+        plnList @3 :PlnList;
     }
 }
 

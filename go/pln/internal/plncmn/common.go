@@ -15,6 +15,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/mscomm"
 	"github.com/scionproto/scion/go/pln/pcncomm"
+	"github.com/scionproto/scion/go/pln/plncomm"
 )
 
 var (
@@ -53,6 +54,7 @@ func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) 
 
 	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, mscomm.PlnListHandler{})
 	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pcncomm.AddPLNEntryHandler{})
+	plnmsgr.Msgr.AddHandler(infra.PlnListReply, plncomm.PLNListHandler{})
 
 	return nil
 }
