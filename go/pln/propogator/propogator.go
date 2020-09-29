@@ -2,6 +2,7 @@ package propogator
 
 import (
 	"context"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
@@ -15,6 +16,17 @@ import (
 const n = 3
 
 type Propogator struct {
+}
+
+func (p *Propogator) Start(ctx context.Context, interval time.Duration) {
+	p.Run()
+	propTicker := time.NewTicker(interval * time.Minute)
+	for {
+		select {
+		case <-propTicker.C:
+			p.Run()
+		}
+	}
 }
 
 func (p *Propogator) Run() {
