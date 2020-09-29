@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -24,6 +25,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plncmn"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/internal/sqlite"
+	"github.com/scionproto/scion/go/pln/propogator"
 	"github.com/scionproto/scion/go/proto"
 )
 
@@ -84,9 +86,21 @@ func realMain() int {
 		plnmsgr.Msgr.ListenAndServe()
 	}()
 
-	setupDb()
+	if err := setupDb(); err != nil {
+		log.Error("PLN db initialization failed", "err", err)
+		return 1
+	}
 
 	defer plnmsgr.Msgr.CloseServer()
+
+	prop := propogator.Propogator{}
+	go func(p propogator.Propogator) {
+		defer log.HandlePanic()
+
+		//TODO (supraja): read the interval from config or constant
+		p.Start(context.Background(), 10)
+	}(prop)
+
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),
