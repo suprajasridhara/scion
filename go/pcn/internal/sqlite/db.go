@@ -8,6 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
+	"github.com/scionproto/scion/go/lib/serrors"
 )
 
 var Db *DB
@@ -51,4 +52,24 @@ func (e *executor) InsertNewMapEntry(ctx context.Context, entry []byte, commitId
 		return nil, err
 	}
 	return res, nil
+}
+
+func (e *executor) GetFullNodeList(ctx context.Context) ([]NodeListEntry, error) {
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, FullNodeList)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []NodeListEntry{}
+	for rows.Next() {
+		var r NodeListEntry
+		err = rows.Scan(&r.Id, &r.MsList, &r.CommitId)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
 }

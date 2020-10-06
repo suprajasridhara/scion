@@ -1,5 +1,5 @@
 package sqlite
 
 const (
-	QueryPlaceholder = "Placeholder"
+	FullNodeList = "Select * from node_list_entries"
 )

@@ -24,6 +24,7 @@ import (
 	"github.com/scionproto/scion/go/pcn/internal/pcncmn"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
 	"github.com/scionproto/scion/go/pcn/internal/sqlite"
+	"github.com/scionproto/scion/go/pcn/pcncomm"
 	"github.com/scionproto/scion/go/pcn/plncomm"
 	pcnconfig "github.com/scionproto/scion/go/pkg/pcn/config"
 	"github.com/scionproto/scion/go/pkg/service"
@@ -97,6 +98,11 @@ func realMain() int {
 		defer log.HandlePanic()
 		plncomm.AddPCNEntry(ctx, pcnId, ia, plnIA)
 	}(context.Background(), cfg.General.ID, pcncmn.IA, pcncmn.PLNIA)
+
+	go func(ctx context.Context, plnIA addr.IA) {
+		defer log.HandlePanic()
+		pcncomm.BroadcastNodeList(ctx, 1000000, plnIA)
+	}(context.Background(), cfg.Pcn.PLNIA)
 
 	defer pcnmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.

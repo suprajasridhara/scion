@@ -8,7 +8,6 @@ import (
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
-	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
@@ -32,14 +31,14 @@ func SendSignedList(ctx context.Context, interval time.Duration) {
 func pushSignedPrefix(ctx context.Context) {
 	asEntries, err := sqlite3.Db.GetNewEntries(context.Background()) //signed ASMapEntries in the form of SignedPld
 	if err != nil {
-		log.Error("could not get entries from DB", err)
+		//log.Error("could not get entries from DB", err)
 	}
 
 	mscrypt := &mscrypto.MSSigner{}
 	mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
 	signer, err := mscrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		log.Error("error getting signer", err)
+		//log.Error("error getting signer", err)
 	}
 	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PushMSListRequest})
 
@@ -53,7 +52,7 @@ func pushSignedPrefix(ctx context.Context) {
 
 	pcns, err := plncomm.GetPlnList(ctx)
 	if err != nil {
-		log.Error("error getting pcns", err)
+		//log.Error("error getting pcns", err)
 	}
 
 	//pick a random pcn to send signed list to
@@ -68,7 +67,7 @@ func pushSignedPrefix(ctx context.Context) {
 	reply, err := msmsgr.Msgr.SendSignedMSList(ctx, pld, address, 123)
 
 	if err != nil {
-		log.Error("error getting reply from PCN", err)
+		//log.Error("error getting reply from PCN", err)
 	}
 
 	//Validate PCN signature
@@ -78,14 +77,14 @@ func pushSignedPrefix(ctx context.Context) {
 	err = verifier.Verify(ctx, reply.Blob, reply.Sign)
 
 	if err != nil {
-		log.Error("error verifying sign for PCN rep", err)
+		//log.Error("error verifying sign for PCN rep", err)
 	}
 
 	packed, err := proto.PackRoot(reply)
 	_, err = sqlite3.Db.InsertPCNRep(context.Background(), packed)
 
 	if err != nil {
-		log.Error("error persisting PCN rep", err)
+		//log.Error("error persisting PCN rep", err)
 	}
 
 }

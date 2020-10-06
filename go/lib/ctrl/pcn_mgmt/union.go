@@ -10,6 +10,7 @@ type union struct {
 	Which              proto.PCN_Which
 	AddPLNEntryRequest *AddPLNEntryRequest
 	MSListRep          *MSListRep `capnp:"msListRep"`
+	NodeList           *NodeList
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -19,6 +20,8 @@ func (u *union) set(c proto.Cerealizable) error {
 		u.AddPLNEntryRequest = p
 	case *MSListRep:
 		u.Which = proto.PCN_Which_msListRep
+	case *NodeList:
+		u.Which = proto.PCN_Which_nodeList
 	default:
 		return common.NewBasicError("Unsupported PCN ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -33,6 +36,8 @@ func (u *union) get() (proto.Cerealizable, error) {
 
 	case proto.PCN_Which_msListRep:
 		return u.MSListRep, nil
+	case proto.PCN_Which_nodeList:
+		return u.NodeList, nil
 
 	}
 	return nil, common.NewBasicError("Unsupported PLN ctrl union type (get)", nil,

@@ -157,6 +157,7 @@ const (
 	PushMSListRequest
 	PushMSListReply
 	OkMessage
+	NodeList
 )
 
 func (mt MessageType) String() string {
@@ -223,6 +224,8 @@ func (mt MessageType) String() string {
 		return "PushMSListReply"
 	case OkMessage:
 		return "OkMessage"
+	case NodeList:
+		return "NodeList"
 
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
@@ -295,6 +298,8 @@ func (mt MessageType) MetricLabel() string {
 		return "push_ms_list_rep"
 	case OkMessage:
 		return "ok_message"
+	case NodeList:
+		return "node_list"
 	default:
 		return "unknown_mt"
 	}
@@ -395,6 +400,8 @@ type Messenger interface {
 	SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
 		id uint64) (*ctrl.SignedPld, error)
 	SignedMSListRep(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
 		id uint64) error
 	SendOkMessage(ctx context.Context, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)

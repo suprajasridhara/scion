@@ -8,9 +8,13 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
+	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pcn/internal/pcncrypto"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
+	"github.com/scionproto/scion/go/pcn/internal/types"
+	"github.com/scionproto/scion/go/pkg/trust"
+	"github.com/scionproto/scion/go/pkg/trust/compat"
 )
 
 func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) error {
@@ -27,7 +31,7 @@ func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) e
 	}
 	signer, err := pcncrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		log.Error("error getting signer")
+		log.Error("error getting signer", err)
 		return err
 	}
 	pcnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPLNEntryRequest})
@@ -41,4 +45,35 @@ func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) e
 	}
 	return err
 
+}
+
+func GetPlnList(ctx context.Context, plnIA addr.IA) ([]types.PCN, error) {
+	address := &snet.SVCAddr{IA: plnIA, SVC: addr.SvcPLN}
+
+	plnListReq := pln_mgmt.NewPlnListReq("request")
+	pld, err := pln_mgmt.NewPld(1, plnListReq)
+	if err != nil {
+		return nil, serrors.WrapStr("Error creating pln_mgmt pld", err)
+	}
+	signedPld, err := pcnmsgr.Msgr.GetPlnList(ctx, pld, address, 1)
+	if err != nil {
+		return nil, serrors.WrapStr("Error getting plnlist", err)
+	}
+	e := pcncrypto.PCNEngine{Msgr: pcnmsgr.Msgr, IA: pcnmsgr.IA}
+	verifier := trust.Verifier{BoundIA: plnIA, Engine: e}
+	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
+		compat.Verifier{Verifier: verifier})
+	log.Info(verifiedPayload.String())
+
+	plnList := verifiedPayload.Pln.PlnList
+
+	pcns := []types.PCN{}
+
+	for _, plnListEntry := range plnList.L {
+		pcn := types.PCN{PCNId: plnListEntry.PCNId, PCNIA: addr.IAInt(plnListEntry.IA).IA()}
+		pcns = append(pcns, pcn)
+	}
+	//Signature from PLN is validated, the list is now authenticated.
+
+	return pcns, nil
 }

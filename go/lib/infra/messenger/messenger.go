@@ -302,6 +302,14 @@ func (m *Messenger) SignedMSListRep(ctx context.Context, msg *pcn_mgmt.Pld, a ne
 
 	return m.sendMessage(ctx, msg, a, id, infra.PushMSListReply)
 }
+func (m *Messenger) SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending nodeList", "rep_type", infra.NodeList,
+		"msg_id", id, "request", nil, "peer", a)
+
+	return m.sendMessage(ctx, msg, a, id, infra.NodeList)
+}
 
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
@@ -316,19 +324,6 @@ func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.ASActionRequest)
 	}
-	// // _, replyMsg, err := Validate(replyCtrlPld)
-	// if err != nil {
-	// 	return nil, nil, common.NewBasicError("[Messenger] Reply validation failed", err)
-	// }
-	//print(replyMsg.(type))
-	// switch reply := *replyCtrlPld.(type) {
-	// case *ctrl.SignedPld:
-	// 	logger.Debug("[Messenger] Received reply", "req_id", id, "reply", reply)
-	// 	return reply, sign, nil
-	// default:
-	// 	err := newTypeAssertErr("*ms_mgmt.Pld", replyMsg)
-	// 	return nil, nil, common.NewBasicError("[Messenger] Type assertion failed", err)
-	// }
 	return replyCtrlPld, nil
 
 }
@@ -355,19 +350,6 @@ func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.PlnListRequest)
 	}
-	// _, replyMsg, err := Validate(replyCtrlPld)
-	// if err != nil {
-	// 	return nil, common.NewBasicError("[Messenger] Reply validation failed", err)
-	// }
-	// //print(replyMsg.(type))
-	// switch reply := replyMsg.(type) {
-	// case *pln_mgmt.PlnList:
-	// 	logger.Debug("[Messenger] Received reply", "req_id", id, "reply", reply)
-	// 	return reply, nil
-	// default:
-	// 	err := newTypeAssertErr("*pln_mgmt.Pld", replyMsg)
-	// 	return nil, common.NewBasicError("[Messenger] Type assertion failed", err)
-	// }
 	return replyCtrlPld, nil
 }
 
@@ -1278,6 +1260,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.AddPLNEntryRequest, pld.Pcn.AddPLNEntryRequest, nil
 		case proto.PCN_Which_msListRep:
 			return infra.PushMSListReply, pld.Pcn.MSListRep, nil
+		case proto.PCN_Which_nodeList:
+			return infra.NodeList, pld.Pcn.NodeList, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pcn.Xxx message type",

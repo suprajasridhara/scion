@@ -13,6 +13,7 @@ import (
 	"github.com/scionproto/scion/go/pcn/internal/pcncrypto"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
 	"github.com/scionproto/scion/go/pcn/mscomm"
+	"github.com/scionproto/scion/go/pcn/pcncomm"
 	pcnconfig "github.com/scionproto/scion/go/pkg/pcn/config"
 )
 
@@ -56,6 +57,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 
 	//Add messenger handlers here
 	pcnmsgr.Msgr.AddHandler(infra.PushMSListRequest, mscomm.MSListHandler{})
+	pcnmsgr.Msgr.AddHandler(infra.NodeList, pcncomm.NodeListHandler{})
 
 	return nil
 }
