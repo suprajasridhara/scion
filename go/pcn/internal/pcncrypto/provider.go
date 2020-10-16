@@ -32,7 +32,7 @@ func (m PCNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	skid := cq.SubjectKeyID
 	req := &cert_mgmt.ChainReq{RawIA: cq.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): generate id randomly?
-	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 1234)
+	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 12342342)
 	if err != nil {
 		return nil, serrors.WrapStr("Unable to fetch Chains", err)
 	}

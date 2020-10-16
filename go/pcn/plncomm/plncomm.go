@@ -26,7 +26,7 @@ func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) e
 	pcncrypt := &pcncrypto.PCNSigner{}
 	err := pcncrypt.Init(ctx, pcnmsgr.Msgr, pcnmsgr.IA, pcncrypto.CfgDir)
 	if err != nil {
-		log.Error("error getting pcncrypto")
+		log.Error("error getting pcncrypto", err)
 		return err
 	}
 	signer, err := pcncrypt.SignerGen.Generate(context.Background())
@@ -63,7 +63,6 @@ func GetPlnList(ctx context.Context, plnIA addr.IA) ([]types.PCN, error) {
 	verifier := trust.Verifier{BoundIA: plnIA, Engine: e}
 	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
 		compat.Verifier{Verifier: verifier})
-	log.Info(verifiedPayload.String())
 
 	plnList := verifiedPayload.Pln.PlnList
 

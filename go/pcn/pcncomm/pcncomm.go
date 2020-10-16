@@ -54,9 +54,12 @@ func sendSignedPCNList(ctx context.Context, plnIA addr.IA) error {
 		}
 	}
 
-	for i := range randIs {
+	for _, i := range randIs {
 		pcn := pcns[i]
-		pcnmsgr.SendNodeList(context.Background(), pcn.PCNIA)
+		err = pcnmsgr.SendNodeList(context.Background(), pcn.PCNIA)
+		if err != nil {
+			log.Error("Error sending pcn list", err)
+		}
 	}
 
 	return nil

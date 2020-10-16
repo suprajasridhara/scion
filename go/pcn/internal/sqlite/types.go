@@ -7,4 +7,5 @@ type NodeListEntry struct {
 	Id       int            `TbField:"id"`
 	MsList   *[]byte        `TbField:"msList"`
 	CommitId sql.NullString `TbField:"commitId"`
+	MSIA     sql.NullString `TbField:"msIA"`
 }

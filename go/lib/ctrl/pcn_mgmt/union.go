@@ -20,8 +20,10 @@ func (u *union) set(c proto.Cerealizable) error {
 		u.AddPLNEntryRequest = p
 	case *MSListRep:
 		u.Which = proto.PCN_Which_msListRep
+		u.MSListRep = p
 	case *NodeList:
 		u.Which = proto.PCN_Which_nodeList
+		u.NodeList = p
 	default:
 		return common.NewBasicError("Unsupported PCN ctrl union type (set)", nil,
 			"type", common.TypeOf(c))

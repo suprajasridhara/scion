@@ -291,6 +291,8 @@ func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld,
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.PushMSListRequest)
 	}
+	logger.Info("[Messenger] Got response request", "req_type", infra.PushMSListRequest,
+		"msg_id", id, "response", nil, "peer", a)
 	return replyCtrlPld, nil
 }
 

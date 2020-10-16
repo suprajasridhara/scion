@@ -56,7 +56,7 @@ func (m MSListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	fm := r.FullMessage.(*ctrl.SignedPld)
 	packed, err := proto.PackRoot(fm)
 	commitId := generateCommitID()
-	err = persistMSList(context.Background(), packed, commitId)
+	err = persistMSList(context.Background(), packed, commitId, signedMSList.MSIA)
 	if err != nil {
 		log.Error("Error persisting list", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
@@ -126,8 +126,8 @@ func isValidMSList(peerIA addr.IA, l ms_mgmt.SignedMSList) (bool, error) {
 	return true, nil
 }
 
-func persistMSList(ctx context.Context, signedMSList []byte, commitId string) error {
-	_, err := sqlite.Db.InsertNewMapEntry(ctx, signedMSList, commitId)
+func persistMSList(ctx context.Context, signedMSList []byte, commitId string, msIA string) error {
+	_, err := sqlite.Db.InsertNewNodeListEntry(ctx, signedMSList, commitId, msIA)
 	return err
 }
 func generateCommitID() string {

@@ -50,6 +50,7 @@ struct SignedMSList{
     timestamp @0 :UInt64;
     pcnId @1 :Text;
     asEntries @2 :List(SignedEntry); #the payload is of type ASMapEntry with signature from the source AS
+    msIa @3 :Text;
 }
 
 struct SignedEntry {

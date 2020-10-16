@@ -101,7 +101,7 @@ func realMain() int {
 
 	go func(ctx context.Context, plnIA addr.IA) {
 		defer log.HandlePanic()
-		pcncomm.BroadcastNodeList(ctx, 1000000, plnIA)
+		pcncomm.BroadcastNodeList(ctx, 10, plnIA)
 	}(context.Background(), cfg.Pcn.PLNIA)
 
 	defer pcnmsgr.Msgr.CloseServer()

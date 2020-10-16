@@ -2,9 +2,11 @@ package pcnmsgr
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/serrors"
@@ -23,30 +25,32 @@ func SendNodeList(ctx context.Context, pcnIA addr.IA) error {
 		return serrors.WrapStr("Error getting full node list", err)
 	}
 
-	var nodeListEntries []pcn_mgmt.NodeListEntry
-	for _, nle := range fullNodeList {
-		nodeListEntries = append(nodeListEntries, *pcn_mgmt.NewNodeListEntry(nle.MsList, nle.CommitId.String))
-	}
+	if len(fullNodeList) > 0 {
+		var nodeListEntries []pcn_mgmt.NodeListEntry
+		for _, nle := range fullNodeList {
+			nodeListEntries = append(nodeListEntries, *pcn_mgmt.NewNodeListEntry(common.RawBytes(*nle.MsList), nle.CommitId.String))
+		}
 
-	timestamp := time.Now()
-	nodeList := pcn_mgmt.NewNodeList(nodeListEntries, uint64(timestamp.Unix()))
+		timestamp := time.Now()
+		nodeList := pcn_mgmt.NewNodeList(nodeListEntries, uint64(timestamp.Unix()))
 
-	pld, err := pcn_mgmt.NewPld(1, nodeList)
+		pld, err := pcn_mgmt.NewPld(1, nodeList)
 
-	pcncrypt := &pcncrypto.PCNSigner{}
-	pcncrypt.Init(ctx, Msgr, IA, pcncrypto.CfgDir)
-	signer, err := pcncrypt.SignerGen.Generate(context.Background())
-	if err != nil {
-		//log.Error("error getting signer", err)
-	}
-	Msgr.UpdateSigner(signer, []infra.MessageType{infra.NodeList})
+		pcncrypt := &pcncrypto.PCNSigner{}
+		pcncrypt.Init(ctx, Msgr, IA, pcncrypto.CfgDir)
+		signer, err := pcncrypt.SignerGen.Generate(context.Background())
+		if err != nil {
+			//log.Error("error getting signer", err)
+		}
+		Msgr.UpdateSigner(signer, []infra.MessageType{infra.NodeList})
 
-	address := &snet.SVCAddr{IA: pcnIA, SVC: addr.SvcPCN}
+		address := &snet.SVCAddr{IA: pcnIA, SVC: addr.SvcPCN}
 
-	//TODO_Q (supraja): random Id?
-	err = Msgr.SendNodeList(context.Background(), pld, address, 1234323)
-	if err != nil {
-		return serrors.WrapStr("Error sending node list", err)
+		//TODO_Q (supraja): random Id?
+		err = Msgr.SendNodeList(context.Background(), pld, address, uint64(rand.Intn(1<<32-1)))
+		if err != nil {
+			return serrors.WrapStr("Error sending node list", err)
+		}
 	}
 	return nil
 }

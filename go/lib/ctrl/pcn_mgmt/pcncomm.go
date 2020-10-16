@@ -3,6 +3,7 @@ package pcn_mgmt
 import (
 	"fmt"
 
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/proto"
 )
 
@@ -28,11 +29,11 @@ func (n *NodeList) String() string {
 }
 
 type NodeListEntry struct {
-	SignedMSList *[]byte
+	SignedMSList common.RawBytes
 	CommitId     string
 }
 
-func NewNodeListEntry(signedMSList *[]byte, commitId string) *NodeListEntry {
+func NewNodeListEntry(signedMSList common.RawBytes, commitId string) *NodeListEntry {
 	return &NodeListEntry{SignedMSList: signedMSList, CommitId: commitId}
 }
 

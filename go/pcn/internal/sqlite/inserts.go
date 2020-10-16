@@ -2,6 +2,6 @@ package sqlite
 
 const (
 	InsertNewEntry = `
-	INSERT INTO node_list_entries(msList, commitId) VALUES (?,?)
+	INSERT INTO node_list_entries(msList, commitId, msIA) VALUES (?,?,?)
 	`
 )
