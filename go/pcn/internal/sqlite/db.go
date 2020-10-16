@@ -45,9 +45,18 @@ func NewFromDB(db *sql.DB) *DB {
 	}
 }
 
-func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte, commitId string, msIA string) (sql.Result, error) {
+func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte, commitId string, msIA string, timestamp uint64) (sql.Result, error) {
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitId, msIA)
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitId, msIA, timestamp)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte, commitId string, msIA string, timestamp uint64) (sql.Result, error) {
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, UpdateNodeListEntry, entry, commitId, timestamp, msIA)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +74,7 @@ func (e *executor) GetFullNodeList(ctx context.Context) ([]NodeListEntry, error)
 	got := []NodeListEntry{}
 	for rows.Next() {
 		var r NodeListEntry
-		err = rows.Scan(&r.Id, &r.MsList, &r.CommitId, &r.MSIA)
+		err = rows.Scan(&r.Id, &r.MsList, &r.CommitId, &r.MSIA, &r.Timestamp)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}

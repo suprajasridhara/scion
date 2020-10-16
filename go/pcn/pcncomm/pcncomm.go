@@ -9,6 +9,7 @@ import (
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
+	"github.com/scionproto/scion/go/pcn/internal/sqlite"
 	"github.com/scionproto/scion/go/pcn/plncomm"
 )
 
@@ -35,33 +36,39 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 }
 
 func sendSignedPCNList(ctx context.Context, plnIA addr.IA) error {
-	pcns, err := plncomm.GetPlnList(ctx, plnIA)
+	fullNodeList, err := sqlite.Db.GetFullNodeList(context.Background())
 	if err != nil {
-		return serrors.WrapStr("Error getting pln list", err)
+		return serrors.WrapStr("Error getting full node list", err)
 	}
 
-	if n > len(pcns) {
-		return serrors.WrapStr("n is greater than nuymber of pcns in PLN list", err)
-	}
-
-	var randIs []int
-	for i := 0; i < n; i++ {
-		r := rand.Intn(len(pcns))
-		if !contains(randIs, r) {
-			randIs = append(randIs, r)
-		} else {
-			i--
-		}
-	}
-
-	for _, i := range randIs {
-		pcn := pcns[i]
-		err = pcnmsgr.SendNodeList(context.Background(), pcn.PCNIA)
+	if len(fullNodeList) > 0 {
+		pcns, err := plncomm.GetPlnList(ctx, plnIA)
 		if err != nil {
-			log.Error("Error sending pcn list", err)
+			return serrors.WrapStr("Error getting pln list", err)
+		}
+
+		if n > len(pcns) {
+			return serrors.WrapStr("n is greater than nuymber of pcns in PLN list", err)
+		}
+
+		var randIs []int
+		for i := 0; i < n; i++ {
+			r := rand.Intn(len(pcns))
+			if !contains(randIs, r) {
+				randIs = append(randIs, r)
+			} else {
+				i--
+			}
+		}
+
+		for _, i := range randIs {
+			pcn := pcns[i]
+			err = pcnmsgr.SendNodeList(context.Background(), pcn.PCNIA, fullNodeList)
+			if err != nil {
+				log.Error("Error sending pcn list", err)
+			}
 		}
 	}
-
 	return nil
 
 }

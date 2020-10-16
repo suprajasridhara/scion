@@ -93,7 +93,32 @@ func validateAndPersistNodeListEntries(nodeListEntries []pcn_mgmt.NodeListEntry,
 		}
 
 		//persist NodeListEntries
-		//TODO (supraja): check for duplicates and replace. More changes when commit chains are implemented
-		sqlite.Db.InsertNewNodeListEntry(context.Background(), nodeListEntry.SignedMSList, nodeListEntry.CommitId, msIA.String())
+
+		fullNodeList, err := sqlite.Db.GetFullNodeList(context.Background())
+		if err != nil {
+			log.Error("error reading list from db", err)
+		}
+		insert := true
+		update := false
+		//check if entry exists with the same commit ID, replace only if not
+		for _, nle := range fullNodeList {
+			if nle.MSIA.String == msIA.String() && nle.CommitId.String == nodeListEntry.CommitId { //if msIA and commitId both match it should be the same list. No need to insert
+				insert = false
+				break
+			} else if nle.MSIA.String == msIA.String() && uint64(nle.Timestamp) > msPld.Ms.PushMSListReq.Timestamp { //if msIA is the same and the timestamp in the db is newer then there is no need to update it
+				insert = false
+				break
+			} else if nle.MSIA.String == msIA.String() {
+				update = true
+				break
+			}
+		}
+		if update {
+			log.Info("Updating MSList in DB. MSIA: " + msIA.String())
+			sqlite.Db.UpdateNodeListEntry(context.Background(), nodeListEntry.SignedMSList, nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
+		} else if insert {
+			log.Info("Inserting MSList to DB. MSIA: "+msIA.String(), nil)
+			sqlite.Db.InsertNewNodeListEntry(context.Background(), nodeListEntry.SignedMSList, nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
+		}
 	}
 }

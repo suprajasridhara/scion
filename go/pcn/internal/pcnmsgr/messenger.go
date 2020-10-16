@@ -19,12 +19,7 @@ var Msgr infra.Messenger
 var IA addr.IA
 var Id string
 
-func SendNodeList(ctx context.Context, pcnIA addr.IA) error {
-	fullNodeList, err := sqlite.Db.GetFullNodeList(context.Background())
-	if err != nil {
-		return serrors.WrapStr("Error getting full node list", err)
-	}
-
+func SendNodeList(ctx context.Context, pcnIA addr.IA, fullNodeList []sqlite.NodeListEntry) error {
 	if len(fullNodeList) > 0 {
 		var nodeListEntries []pcn_mgmt.NodeListEntry
 		for _, nle := range fullNodeList {

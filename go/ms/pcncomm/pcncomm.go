@@ -2,6 +2,7 @@ package pcncomm
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
@@ -56,13 +57,12 @@ func pushSignedPrefix(ctx context.Context) {
 
 	//pick a random pcn to send signed list to
 
-	//TODO (supraja): uncomment this
-	//randomIndex := rand.Intn(len(pcns))
-	// pcnIA := pcns[randomIndex].PCNIA
+	randomIndex := rand.Intn(len(pcns))
+	pcnIA := pcns[randomIndex].PCNIA
 
-	pcnIA := pcns[0].PCNIA
+	// pcnIA := pcns[0].PCNIA
 	address := &snet.SVCAddr{IA: pcnIA, SVC: addr.SvcPCN}
-	req := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), pcns[0].PCNId, entries, msmsgr.IA.String())
+	req := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), pcns[randomIndex].PCNId, entries, msmsgr.IA.String())
 	print("Timestamp in MSLIST : ", timestamp.Unix())
 	pld, err := ms_mgmt.NewPld(1, req)
 
