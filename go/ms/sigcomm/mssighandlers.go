@@ -124,14 +124,6 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	}
 
-	// pld, err := sqlite3.Db.GetNewEntryById(context.Background(), 1)
-	// print(pld)
-	// if err != nil {
-	// 	print(err.Error())
-	// }
-	// y := bytes.Equal(pld.Blob, m.Blob)
-	// print(y)
-
 	//Done inserting token. Now send back token with message and signature
 
 	mscrypt := &mscrypto.MSSigner{}

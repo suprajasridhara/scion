@@ -7,10 +7,11 @@ import (
 
 // union represents the contents of the unnamed capnp union.
 type union struct {
-	Which              proto.PCN_Which
-	AddPLNEntryRequest *AddPLNEntryRequest
-	MSListRep          *MSListRep `capnp:"msListRep"`
-	NodeList           *NodeList
+	Which                proto.PCN_Which
+	AddPLNEntryRequest   *AddPLNEntryRequest
+	MSListRep            *MSListRep `capnp:"msListRep"`
+	NodeList             *NodeList
+	NodeListEntryRequest *NodeListEntryRequest
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -24,6 +25,9 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *NodeList:
 		u.Which = proto.PCN_Which_nodeList
 		u.NodeList = p
+	case *NodeListEntryRequest:
+		u.Which = proto.PCN_Which_nodeListEntryRequest
+		u.NodeListEntryRequest = p
 	default:
 		return common.NewBasicError("Unsupported PCN ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -40,6 +44,8 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.MSListRep, nil
 	case proto.PCN_Which_nodeList:
 		return u.NodeList, nil
+	case proto.PCN_Which_nodeListEntryRequest:
+		return u.NodeListEntryRequest, nil
 
 	}
 	return nil, common.NewBasicError("Unsupported PLN ctrl union type (get)", nil,

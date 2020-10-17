@@ -313,6 +313,23 @@ func (m *Messenger) SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.A
 	return m.sendMessage(ctx, msg, a, id, infra.NodeList)
 }
 
+func (m *Messenger) SendNodeListRequest(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) (*ctrl.SignedPld, error) {
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12235754})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.NodeListEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.NodeListEntryRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.NodeListEntryRequest)
+	}
+	logger.Info("[Messenger] Got response request", "rep_type", infra.NodeList,
+		"msg_id", id, "response", nil, "peer", a)
+	return replyCtrlPld, nil
+}
+
 func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): generate random ReqId ?
@@ -1264,6 +1281,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.PushMSListReply, pld.Pcn.MSListRep, nil
 		case proto.PCN_Which_nodeList:
 			return infra.NodeList, pld.Pcn.NodeList, nil
+		case proto.PCN_Which_nodeListEntryRequest:
+			return infra.NodeListEntryRequest, pld.Pcn.NodeListEntryRequest, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pcn.Xxx message type",

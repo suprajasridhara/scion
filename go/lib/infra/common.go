@@ -158,6 +158,7 @@ const (
 	PushMSListReply
 	OkMessage
 	NodeList
+	NodeListEntryRequest
 )
 
 func (mt MessageType) String() string {
@@ -226,6 +227,8 @@ func (mt MessageType) String() string {
 		return "OkMessage"
 	case NodeList:
 		return "NodeList"
+	case NodeListEntryRequest:
+		return "NodeListEntryRequest"
 
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
@@ -300,6 +303,8 @@ func (mt MessageType) MetricLabel() string {
 		return "ok_message"
 	case NodeList:
 		return "node_list"
+	case NodeListEntryRequest:
+		return "node_list_entry_req"
 	default:
 		return "unknown_mt"
 	}
@@ -403,6 +408,8 @@ type Messenger interface {
 		id uint64) error
 	SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
 		id uint64) error
+	SendNodeListRequest(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
 	SendOkMessage(ctx context.Context, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)

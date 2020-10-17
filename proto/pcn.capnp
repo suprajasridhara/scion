@@ -12,6 +12,7 @@ struct PCN {
         addPLNEntryRequest @2 :AddPLNEntryRequest;
         msListRep @3 :MSListRep;
         nodeList @4 :NodeList;
+        nodeListEntryRequest @5 :NodeListEntryRequest;
     }
 }
 
@@ -33,5 +34,9 @@ struct NodeList{
 struct NodeListEntry{
     signedMSList @0 :Data;
     commitId @1 :Text;
+}
+
+struct NodeListEntryRequest{
+    query @0 :Text;
 }
 

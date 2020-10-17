@@ -26,8 +26,11 @@ const ms_list_valid_time = 1000000 * time.Minute
 type MSListHandler struct {
 }
 
+type NodeListEntryReqHandler struct {
+}
+
 func (m MSListHandler) Handle(r *infra.Request) *infra.HandlerResult {
-	log.Info("Entering: PlnListHandler.Handle")
+	log.Info("Entering: MSListHandler.Handle")
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
 
@@ -124,6 +127,11 @@ func isValidMSList(peerIA addr.IA, l ms_mgmt.SignedMSList) (bool, error) {
 
 	//validate the AS entries are the AS for which the MS is authoritative for
 	return true, nil
+}
+
+func (n NodeListEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	log.Info("Entering: NodeListEntryReqHandler.Handle")
+	return nil
 }
 
 func persistMSList(ctx context.Context, signedMSList []byte, commitId string, msIA string, timestamp uint64) error {

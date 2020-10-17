@@ -58,6 +58,7 @@ func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) 
 	//Add messenger handlers here
 	pcnmsgr.Msgr.AddHandler(infra.PushMSListRequest, mscomm.MSListHandler{})
 	pcnmsgr.Msgr.AddHandler(infra.NodeList, pcncomm.NodeListHandler{})
+	pcnmsgr.Msgr.AddHandler(infra.NodeListEntryRequest, mscomm.NodeListEntryReqHandler{})
 
 	return nil
 }
