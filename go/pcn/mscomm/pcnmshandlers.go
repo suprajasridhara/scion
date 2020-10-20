@@ -34,12 +34,13 @@ func (m MSListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
 
-	//Verify AS signature
-	message := r.FullMessage.(*ctrl.SignedPld)
-	e := pcncrypto.PCNEngine{Msgr: pcnmsgr.Msgr, IA: pcnmsgr.IA}
-	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
-	// msmsgr.Msgr.UpdateVerifier(verifier)
-	err := verifier.Verify(ctx, message.Blob, message.Sign)
+	// //Verify AS signature
+	// message := r.FullMessage.(*ctrl.SignedPld)
+	// e := pcncrypto.PCNEngine{Msgr: pcnmsgr.Msgr, IA: pcnmsgr.IA}
+	// verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
+	// err := verifier.Verify(ctx, message.Blob, message.Sign)
+
+	err := verifyASSignature(ctx, r.FullMessage.(*ctrl.SignedPld), requester.IA)
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
 	if err != nil {
@@ -131,6 +132,27 @@ func isValidMSList(peerIA addr.IA, l ms_mgmt.SignedMSList) (bool, error) {
 
 func (n NodeListEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: NodeListEntryReqHandler.Handle")
+	ctx := r.Context()
+	requester := r.Peer.(*snet.UDPAddr)
+
+	//validate AS signature
+	err := verifyASSignature(ctx, r.FullMessage.(*ctrl.SignedPld), requester.IA)
+	rw, _ := infra.ResponseWriterFromContext(ctx)
+	sendAck := messenger.SendAckHelper(ctx, rw)
+	if err != nil {
+		log.Error("Certificate verification failed!", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
+	query := r.Message.(*pcn_mgmt.NodeListEntryRequest).Query
+	var nles []sqlite.NodeListEntry
+	if query == "" { //empty string is considered wildcard
+		nles, err = sqlite.Db.GetFullNodeList(context.Background())
+	}
+
+	pcnmsgr.SendNodeList(context.Background(), r.Peer, nles, r.ID)
+
 	return nil
 }
 
@@ -141,4 +163,11 @@ func persistMSList(ctx context.Context, signedMSList []byte, commitId string, ms
 func generateCommitID() string {
 	//TODO (supraja): implement this correctly when doing the update messages
 	return "1234"
+}
+
+func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
+	//Verify AS signature
+	e := pcncrypto.PCNEngine{Msgr: pcnmsgr.Msgr, IA: pcnmsgr.IA}
+	verifier := trust.Verifier{BoundIA: IA, Engine: e}
+	return verifier.Verify(ctx, message.Blob, message.Sign)
 }

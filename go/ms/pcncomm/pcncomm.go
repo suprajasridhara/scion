@@ -34,14 +34,14 @@ func pushSignedPrefix(ctx context.Context) {
 	logger := log.FromCtx(ctx)
 	asEntries, err := sqlite3.Db.GetNewEntries(context.Background()) //signed ASMapEntries in the form of SignedPld
 	if err != nil {
-		logger.Error("could not get entries from DB", err)
+		logger.Error("could not get entries from DB", "Err: ", err)
 	}
 
 	mscrypt := &mscrypto.MSSigner{}
 	mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
 	signer, err := mscrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		logger.Error("error getting signer", err)
+		logger.Error("error getting signer", "Err: ", err)
 	}
 	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PushMSListRequest})
 
@@ -64,7 +64,7 @@ func pushSignedPrefix(ctx context.Context) {
 	reply, err := msmsgr.Msgr.SendSignedMSList(ctx, pld, address, 123)
 
 	if err != nil {
-		logger.Error("error getting reply from PCN", err)
+		logger.Error("error getting reply from PCN", "Err: ", err)
 	}
 
 	//Validate PCN signature
@@ -73,14 +73,14 @@ func pushSignedPrefix(ctx context.Context) {
 	err = verifier.Verify(ctx, reply.Blob, reply.Sign)
 
 	if err != nil {
-		logger.Error("error verifying sign for PCN rep", err)
+		logger.Error("error verifying sign for PCN rep", "Err: ", err)
 	}
 
 	packed, err := proto.PackRoot(reply)
 	_, err = sqlite3.Db.InsertPCNRep(context.Background(), packed)
 
 	if err != nil {
-		logger.Error("error persisting PCN rep", err)
+		logger.Error("error persisting PCN rep", "Err: ", err)
 	}
 
 }
@@ -88,16 +88,19 @@ func pushSignedPrefix(ctx context.Context) {
 func PullNodeListEntry(ctx context.Context, query string) {
 	logger := log.FromCtx(ctx)
 	mscrypt := &mscrypto.MSSigner{}
-	mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
+	err := mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
+	if err != nil {
+		logger.Error("error mscrypt init", "Err: ", err)
+	}
 	signer, err := mscrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		logger.Error("error getting signer", err)
+		logger.Error("error getting signer", "Err: ", err)
 	}
 	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.NodeListEntryRequest})
 	req := pcn_mgmt.NewNodeListEntryRequest(query)
 	pld, err := pcn_mgmt.NewPld(1, req)
 	if err != nil {
-		logger.Error("error constructing payload", err)
+		logger.Error("error constructing payload", "Err: ", err)
 	}
 	pcn := getRandomPCN(ctx)
 	address := &snet.SVCAddr{IA: pcn.PCNIA, SVC: addr.SvcPCN}
@@ -111,9 +114,10 @@ func getRandomPCN(ctx context.Context) plncomm.PCN {
 	logger := log.FromCtx(ctx)
 	pcns, err := plncomm.GetPlnList(context.Background())
 	if err != nil {
-		logger.Error("error getting pcns", err)
+		logger.Error("error getting pcns", "Err: ", err)
 	}
 	//pick a random pcn to send signed list to
 	randomIndex := rand.Intn(len(pcns))
+	randomIndex = 1
 	return pcns[randomIndex]
 }

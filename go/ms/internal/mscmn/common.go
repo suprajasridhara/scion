@@ -61,14 +61,14 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
 	}
 	msmsgr.Msgr, err = nc.Messenger()
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch Messenger", err)
+	}
 	msmsgr.IA = cfg.IA
 	mscrypto.CfgDir = cfg.CfgDir
 	validator.Path = cfg.RPKIValidator
 	validator.EntryValid = cfg.RPKIValidString
 	plncomm.PLNAddr = cfg.PLNIA
-	if err != nil {
-		return serrors.WrapStr("Unable to fetch Messenger", err)
-	}
 
 	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
 	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})

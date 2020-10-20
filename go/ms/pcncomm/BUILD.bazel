@@ -18,6 +18,7 @@ go_library(
 	"//go/ms/plncomm:go_default_library",
 	"//go/pkg/trust:go_default_library",
 	"//go/proto:go_default_library",
+	"//go/lib/ctrl/pcn_mgmt:go_default_library",
     ],
 )
 

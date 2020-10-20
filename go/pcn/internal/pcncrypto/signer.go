@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/x509"
+	"math/rand"
 	"path/filepath"
 	"time"
 
@@ -65,7 +66,7 @@ func (m *PCNSigner) getChains(ctx context.Context,
 
 	req := &cert_mgmt.ChainReq{RawIA: m.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): generate id randomly?
-	rawChains, err := m.Msgr.GetCertChain(context.Background(), req, addr, 1234)
+	rawChains, err := m.Msgr.GetCertChain(context.Background(), req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Error in getChains", err)
 	}

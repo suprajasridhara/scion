@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/x509"
+	"math/rand"
 	"path/filepath"
 	"time"
 
@@ -65,7 +66,7 @@ func (m *MSSigner) getChains(ctx context.Context,
 
 	req := &cert_mgmt.ChainReq{RawIA: m.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): generate id randomly?
-	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 1234)
+	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Error in getChains", err)
 	}
@@ -78,7 +79,10 @@ func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
 	//TODO_Q (supraja): generate id randomly?
 	//TODO (supraja): replace hardcoded id
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
-		&cert_mgmt.TRCReq{ISD: 1, Base: 1, Serial: 1}, addr, 1)
+		&cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, rand.Uint64())
+	if err != nil {
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch TRC", err)
+	}
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)

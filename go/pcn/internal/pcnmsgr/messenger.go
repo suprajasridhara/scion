@@ -2,7 +2,7 @@ package pcnmsgr
 
 import (
 	"context"
-	"math/rand"
+	"net"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
@@ -10,7 +10,6 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/serrors"
-	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pcn/internal/pcncrypto"
 	"github.com/scionproto/scion/go/pcn/internal/sqlite"
 )
@@ -19,7 +18,7 @@ var Msgr infra.Messenger
 var IA addr.IA
 var Id string
 
-func SendNodeList(ctx context.Context, pcnIA addr.IA, fullNodeList []sqlite.NodeListEntry) error {
+func SendNodeList(ctx context.Context, address net.Addr, fullNodeList []sqlite.NodeListEntry, id uint64) error {
 	if len(fullNodeList) > 0 {
 		var nodeListEntries []pcn_mgmt.NodeListEntry
 		for _, nle := range fullNodeList {
@@ -35,14 +34,12 @@ func SendNodeList(ctx context.Context, pcnIA addr.IA, fullNodeList []sqlite.Node
 		pcncrypt.Init(ctx, Msgr, IA, pcncrypto.CfgDir)
 		signer, err := pcncrypt.SignerGen.Generate(context.Background())
 		if err != nil {
-			//log.Error("error getting signer", err)
+			return serrors.WrapStr("Error getting signer", err)
 		}
 		Msgr.UpdateSigner(signer, []infra.MessageType{infra.NodeList})
 
-		address := &snet.SVCAddr{IA: pcnIA, SVC: addr.SvcPCN}
-
 		//TODO_Q (supraja): random Id?
-		err = Msgr.SendNodeList(context.Background(), pld, address, uint64(rand.Intn(1<<32-1)))
+		err = Msgr.SendNodeList(context.Background(), pld, address, id)
 		if err != nil {
 			return serrors.WrapStr("Error sending node list", err)
 		}

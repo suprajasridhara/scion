@@ -8,6 +8,7 @@ import (
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pcn/internal/pcnmsgr"
 	"github.com/scionproto/scion/go/pcn/internal/sqlite"
 	"github.com/scionproto/scion/go/pcn/plncomm"
@@ -63,7 +64,8 @@ func sendSignedPCNList(ctx context.Context, plnIA addr.IA) error {
 
 		for _, i := range randIs {
 			pcn := pcns[i]
-			err = pcnmsgr.SendNodeList(context.Background(), pcn.PCNIA, fullNodeList)
+			address := &snet.SVCAddr{IA: pcn.PCNIA, SVC: addr.SvcPCN}
+			err = pcnmsgr.SendNodeList(context.Background(), address, fullNodeList, rand.Uint64())
 			if err != nil {
 				log.Error("Error sending pcn list", err)
 			}

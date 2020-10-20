@@ -5,7 +5,6 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
-	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/ms/internal/mscrypto"
@@ -38,7 +37,6 @@ func GetPlnList(ctx context.Context) ([]PCN, error) {
 	// }
 	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
 		compat.Verifier{Verifier: verifier})
-	log.Info(verifiedPayload.String())
 
 	plnList := verifiedPayload.Pln.PlnList
 
