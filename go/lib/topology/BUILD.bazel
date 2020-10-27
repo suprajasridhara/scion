@@ -21,7 +21,6 @@ go_library(
         "//go/lib/topology/json:go_default_library",
         "//go/lib/topology/underlay:go_default_library",
         "//go/proto:go_default_library",
-
     ],
 )
 
