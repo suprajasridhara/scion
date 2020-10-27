@@ -3,17 +3,17 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
-       "asaction.go",
-       "fullmap.go",
-       "pld.go",
-       "union.go",
-       "signedlist.go",
-       "common.go",
+        "asaction.go",
+        "common.go",
+        "fullmap.go",
+        "pld.go",
+        "signedlist.go",
+        "union.go",
     ],
     importpath = "github.com/scionproto/scion/go/lib/ctrl/ms_mgmt",
     visibility = ["//visibility:public"],
     deps = [
-      "//go/proto:go_default_library",
-      "//go/lib/common:go_default_library",
+        "//go/lib/common:go_default_library",
+        "//go/proto:go_default_library",
     ],
 )

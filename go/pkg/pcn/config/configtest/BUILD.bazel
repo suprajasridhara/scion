@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["configtest.go"],
-    importpath = "github.com/scionproto/scion/go/pkg/pln/config/configtest",
+    importpath = "github.com/scionproto/scion/go/pkg/pcn/config/configtest",
     visibility = ["//visibility:public"],
     deps = ["//go/pkg/ms/config:go_default_library"],
 )
