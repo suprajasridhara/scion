@@ -55,7 +55,7 @@ func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte,
 	return res, nil
 }
 
-func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte, 
+func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte,
 	commitId string, msIA string, timestamp uint64) (sql.Result, error) {
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, UpdateNodeListEntry, entry, commitId, timestamp, msIA)
