@@ -38,10 +38,13 @@ func AddPCNEntry(ctx context.Context, pcnId string, ia addr.IA, plnIA addr.IA) e
 
 	pld, err := pcn_mgmt.NewPld(1, req)
 
+	if err != nil {
+		log.Error("Error forming pcn_mgmt payload", "Err: ", err)
+	}
 	//TODO_Q (supraja): random id?
 	err = pcnmsgr.Msgr.SendPLNEntry(ctx, pld, addr, 1)
 	if err != nil {
-		log.Error("error", err)
+		log.Error("Error sending PLNEntry ", "Error: ", err)
 	}
 	return err
 
@@ -63,7 +66,10 @@ func GetPlnList(ctx context.Context, plnIA addr.IA) ([]types.PCN, error) {
 	verifier := trust.Verifier{BoundIA: plnIA, Engine: e}
 	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
 		compat.Verifier{Verifier: verifier})
+	if err != nil {
+		return nil, serrors.WrapStr("Error getting verifiedPayload for plnlist", err)
 
+	}
 	plnList := verifiedPayload.Pln.PlnList
 
 	pcns := []types.PCN{}

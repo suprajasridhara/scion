@@ -28,16 +28,20 @@ func GetPlnList(ctx context.Context) ([]PCN, error) {
 	if err != nil {
 		return nil, serrors.WrapStr("Error creating pln_mgmt pld", err)
 	}
+
 	signedPld, err := msmsgr.Msgr.GetPlnList(ctx, pld, address, 1)
+	if err != nil {
+		return nil, serrors.WrapStr("Error getting plnList from messenger", err)
+	}
 	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
 	verifier := trust.Verifier{BoundIA: PLNAddr, Engine: e}
-	// err = verifier.Verify(ctx, signedPld.Blob, signedPld.Sign)
-	// if err != nil {
-	// 	return serrors.WrapStr("Invalid signature", err)
-	// }
+
 	verifiedPayload, err := signedPld.GetVerifiedPld(context.Background(),
 		compat.Verifier{Verifier: verifier})
 
+	if err != nil {
+		return nil, serrors.WrapStr("Error getting verified payload", err)
+	}
 	plnList := verifiedPayload.Pln.PlnList
 
 	pcns := []PCN{}

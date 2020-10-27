@@ -45,6 +45,9 @@ func SendPLNList(addr net.Addr, id uint64) error {
 		plncrypt.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PlnListReply})
 
 		pld, err := pln_mgmt.NewPld(1, plnL)
+		if err != nil {
+			return err
+		}
 		err = Msgr.SendPlnList(context.Background(), pld, addr, id)
 		if err != nil {
 			return err

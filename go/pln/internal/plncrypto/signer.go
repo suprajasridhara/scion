@@ -79,9 +79,12 @@ func (m *PLNSigner) getTRC() (cppki.SignedTRC, error) {
 	//TODO (supraja): replace hard coded Ids
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, 1)
+	if err != nil {
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch TRC", err)
+	}
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
-		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch SignedTRC", err)
 	}
 	return trc, nil
 }

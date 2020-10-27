@@ -67,6 +67,9 @@ func pushSignedPrefix(ctx context.Context) {
 	req := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), pcn.PCNId, entries, msmsgr.IA.String())
 	print("Timestamp in MSLIST : ", timestamp.Unix())
 	pld, err := ms_mgmt.NewPld(1, req)
+	if err != nil {
+		logger.Error("error forming ms_mgmt payload", "Err: ", err)
+	}
 
 	//TODO_Q (supraja): generate random id?
 	reply, err := msmsgr.Msgr.SendSignedMSList(ctx, pld, address, 123)
@@ -85,6 +88,9 @@ func pushSignedPrefix(ctx context.Context) {
 	}
 
 	packed, err := proto.PackRoot(reply)
+	if err != nil {
+		logger.Error("Error packing reply", "Err: ", err)
+	}
 	_, err = sqlite3.Db.InsertPCNRep(context.Background(), packed)
 
 	if err != nil {
@@ -125,7 +131,9 @@ func PullNodeListEntry(ctx context.Context, query string) {
 	address := &snet.SVCAddr{IA: pcn.PCNIA, SVC: addr.SvcPCN}
 
 	spld, err := msmsgr.Msgr.SendNodeListRequest(ctx, pld, address, rand.Uint64())
-
+	if err != nil {
+		logger.Error("Eror sending node list request to PCN ", "Err: ", err)
+	}
 	//verify AS signatures
 	err = verifyASSignature(context.Background(), spld, pcn.PCNIA)
 	if err != nil {
@@ -153,7 +161,6 @@ func getRandomPCN(ctx context.Context) plncomm.PCN {
 	}
 	//pick a random pcn to send signed list to
 	randomIndex := rand.Intn(len(pcns))
-	randomIndex = 1
 	return pcns[randomIndex]
 }
 

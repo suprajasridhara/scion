@@ -142,9 +142,12 @@ func getTRC() (cppki.SignedTRC, error) {
 	//TODO_Q (supraja): Where do we get Base and Serial from?
 	encTRC, err := sigcmn.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: sigcmn.IA.I, Base: 1, Serial: 1}, addr, 1)
+	if err != nil {
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch TRC", err)
+	}
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
-		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch SignedTRC", err)
 	}
 	return trc, nil
 }
@@ -174,6 +177,10 @@ func AddASMap(ctx context.Context, ip string) error {
 	}
 	sigcmn.Msgr.UpdateSigner(signer, []infra.MessageType{infra.ASActionRequest})
 	pld, err := ms_mgmt.NewPld(1, asEntry)
+	if err != nil {
+		return serrors.WrapStr("Error forming ms_mgmt payload", err)
+
+	}
 	rep, err := sigcmn.Msgr.SendASAction(ctx, pld, addr, 1)
 	if err != nil {
 		return serrors.WrapStr("Error sending AS Action", err)
@@ -193,6 +200,9 @@ func AddASMap(ctx context.Context, ip string) error {
 
 	//The signature is validated. store the MSToken for future use
 	packed, err := proto.PackRoot(rep)
+	if err != nil {
+		return serrors.WrapStr("Error paking reply to insert into db", err)
+	}
 	_, err = sqlite.Db.InsertNewMSToken(context.Background(), packed)
 	if err != nil {
 		return serrors.WrapStr("Error storing MS token into db", err)

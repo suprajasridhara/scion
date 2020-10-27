@@ -44,6 +44,9 @@ func (m PLNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
 	//TODO_Q (supraja): generate id randomly?
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial}, addr, 1)
+	if err != nil {
+		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch TRC", err)
+	}
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch SignedTRC", err)
