@@ -2,10 +2,12 @@ package pcncomm
 
 import (
 	"context"
+	"database/sql"
 	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -18,6 +20,10 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
 )
+
+//TODO (supraja): read from config file
+//valid time in hours
+const ms_list_valid_time = 100000
 
 func SendSignedList(ctx context.Context, interval time.Duration) {
 	pushSignedPrefix(ctx)
@@ -85,6 +91,17 @@ func pushSignedPrefix(ctx context.Context) {
 
 }
 
+func PullFullNodeList(ctx context.Context, interval time.Duration) {
+	pushSignedPrefix(ctx)
+	pushTicker := time.NewTicker(interval * time.Minute)
+	for {
+		select {
+		case <-pushTicker.C:
+			PullNodeListEntry(ctx, "") //"" is considered wildcard.
+		}
+	}
+}
+
 func PullNodeListEntry(ctx context.Context, query string) {
 	logger := log.FromCtx(ctx)
 	mscrypt := &mscrypto.MSSigner{}
@@ -105,8 +122,24 @@ func PullNodeListEntry(ctx context.Context, query string) {
 	pcn := getRandomPCN(ctx)
 	address := &snet.SVCAddr{IA: pcn.PCNIA, SVC: addr.SvcPCN}
 
-	nodeList, err := msmsgr.Msgr.SendNodeListRequest(ctx, pld, address, 123)
-	print(nodeList.Sign)
+	spld, err := msmsgr.Msgr.SendNodeListRequest(ctx, pld, address, rand.Uint64())
+
+	//verify AS signatures
+	err = verifyASSignature(context.Background(), spld, pcn.PCNIA)
+	if err != nil {
+		logger.Error("error verifying AS signature on response from PCN", "Err: ", err)
+	}
+
+	//parse signed payload to get the nodelist
+	cpld := &ctrl.Pld{}
+	err = proto.ParseFromRaw(cpld, spld.Blob)
+	if err != nil {
+		logger.Error("error parsing payload", "Err: ", err)
+	}
+
+	nodeList := cpld.Pcn.NodeList
+	validateAndPersistNLEs(nodeList.L)
+	print(nodeList.L[0].CommitId)
 
 }
 
@@ -120,4 +153,105 @@ func getRandomPCN(ctx context.Context) plncomm.PCN {
 	randomIndex := rand.Intn(len(pcns))
 	randomIndex = 1
 	return pcns[randomIndex]
+}
+
+func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
+	//Verify AS signature
+	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
+	verifier := trust.Verifier{BoundIA: IA, Engine: e}
+	return verifier.Verify(ctx, message.Blob, message.Sign)
+}
+
+func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
+	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
+	for _, nodeListEntry := range nodeListEntries {
+		//verify ms signature on msList
+		spld := &ctrl.SignedPld{}
+		err := proto.ParseFromRaw(spld, nodeListEntry.SignedMSList)
+		if err != nil {
+			log.Error("Error decerializing nodeListEntry", err)
+			continue
+		}
+
+		msPld := &ctrl.Pld{}
+		err = proto.ParseFromRaw(msPld, spld.Blob)
+		if err != nil {
+			log.Error("Error decerializing msPld", err)
+			continue
+		}
+		msIA, err := addr.IAFromString(msPld.Ms.PushMSListReq.MSIA)
+		if err != nil {
+			log.Error("Error getting ms IA from string", err)
+			continue
+		}
+
+		verifier := trust.Verifier{BoundIA: msIA, Engine: e}
+		err = verifier.Verify(context.Background(), spld.Blob, spld.Sign)
+		if err != nil {
+			log.Error("Certificate verification failed for MS!", err)
+			continue
+		}
+
+		//verify timestamp
+		if uint64(time.Now().Unix())-msPld.Ms.PushMSListReq.Timestamp >
+			uint64(ms_list_valid_time*time.Hour) {
+			log.Error("msList entry too old. Reject", err)
+			continue
+		}
+
+		//process and persist here
+		asEntries := msPld.Ms.PushMSListReq.AsEntries
+
+		for _, asEntry := range asEntries {
+			cpld := &ctrl.Pld{}
+			err = proto.ParseFromRaw(cpld, asEntry.Blob)
+			if err != nil {
+				log.Error("Error decerializing asEntries", err)
+				continue
+			}
+			asMapEntry := cpld.Ms.AsActionReq
+
+			//TODO (supraja): validate RPKI signature here for every prefix in the ASEntry?
+
+			//verify that the IA In the map originated the entry by checking the signature
+			ia, err := addr.IAFromString(asMapEntry.Ia)
+			verifier = trust.Verifier{BoundIA: ia, Engine: e}
+			//err = verifier.Verify(context.Background(), asEntry.Blob, asEntry.Sign)
+			if err != nil {
+				log.Error("Certificate verification failed for ASMapEntry source AS", err)
+				continue
+			}
+
+			for _, prefix := range asMapEntry.Ip {
+				//query by IA, IP
+
+				oldMapEntries, err := sqlite3.Db.GetFullMapEntryByIp(context.Background(), prefix)
+				if err != nil {
+					log.Error("Error getting old entries for IP from DB", err)
+					continue
+				}
+
+				for _, oldMapEntry := range oldMapEntries {
+					/*if the rpki signature was validated for the new entry then it is the
+					entry with the most trust, delete all other entries*/
+					_, err := sqlite3.Db.DeleteFullMapEntryById(context.Background(), oldMapEntry.Id)
+					if err != nil {
+						log.Error("Error deleting old entry")
+					}
+				}
+
+				_, err = sqlite3.Db.InsertFullMapEntry(context.Background(),
+					sqlite3.FullMapRow{IP: sql.NullString{String: prefix, Valid: true},
+						IA:        sql.NullString{String: asMapEntry.Ia, Valid: true},
+						Timestamp: int(asMapEntry.Timestamp)})
+
+				if err != nil {
+					log.Error("Error inserting entry into db", err)
+					continue
+				}
+			}
+
+		}
+
+	}
 }

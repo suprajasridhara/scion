@@ -6,6 +6,7 @@ const (
 		id INTEGER NOT NULL,
 		ip DATA NOT NULL,
 		ia DATA NOT NULL,
+		timestamp INTEGER NOT NULL,
 		PRIMARY KEY (id)
 	);
 

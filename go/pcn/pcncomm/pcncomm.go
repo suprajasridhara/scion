@@ -38,6 +38,7 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 
 func sendSignedPCNList(ctx context.Context, plnIA addr.IA) error {
 	fullNodeList, err := sqlite.Db.GetFullNodeList(context.Background())
+	log.Info("Full list timstamp ", fullNodeList[0].Timestamp)
 	if err != nil {
 		return serrors.WrapStr("Error getting full node list", err)
 	}
@@ -55,7 +56,7 @@ func sendSignedPCNList(ctx context.Context, plnIA addr.IA) error {
 		var randIs []int
 		for i := 0; i < n; i++ {
 			r := rand.Intn(len(pcns))
-			if !contains(randIs, r) {
+			if !contains(randIs, r) && !pcns[r].PCNIA.Equal(pcnmsgr.IA) {
 				randIs = append(randIs, r)
 			} else {
 				i--

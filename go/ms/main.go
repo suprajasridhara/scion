@@ -121,8 +121,18 @@ func realMain() int {
 
 	go func() {
 		defer log.HandlePanic()
+
+		//TODO (supraja): read interval value from config
 		pcncomm.SendSignedList(context.Background(), 1)
 	}()
+
+	go func() {
+		defer log.HandlePanic()
+
+		//TODO (supraja): read interval value from config
+		pcncomm.PullFullNodeList(context.Background(), 1)
+	}()
+
 	select {
 	case <-fatal.ShutdownChan():
 		return 0

@@ -73,7 +73,7 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	got := []FullMapRow{}
 	for rows.Next() {
 		var r FullMapRow
-		err = rows.Scan(&r.Id, &r.IP, &r.IA)
+		err = rows.Scan(&r.Id, &r.IP, &r.IA, &r.Timestamp)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -82,10 +82,50 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	return got, nil
 }
 
+func (e *executor) GetFullMapEntryByIp(ctx context.Context, ip string) ([]FullMapRow, error) {
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, FullMapEntryByIP, ip)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []FullMapRow{}
+	for rows.Next() {
+		var r FullMapRow
+		err = rows.Scan(&r.Id, &r.IP, &r.IA, &r.Timestamp)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
+}
+
+func (e *executor) InsertFullMapEntry(ctx context.Context, fmRow FullMapRow) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, InsFullMapEntry, fmRow.IP, fmRow.IA, fmRow.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (e *executor) DeleteFullMapEntryById(ctx context.Context, id int) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, DelFullMapEntry, id)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry)
+	res, err := e.db.ExecContext(ctx, InsNewEntry, entry)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +135,7 @@ func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result
 func (e *executor) InsertPCNRep(ctx context.Context, entry []byte) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsertPCNRep, entry)
+	res, err := e.db.ExecContext(ctx, InsPCNRep, entry)
 	if err != nil {
 		return nil, err
 	}

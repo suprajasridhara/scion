@@ -67,7 +67,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
 	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
 	// msmsgr.Msgr.UpdateVerifier(verifier)
-	err := verifier.Verify(ctx, m.Blob, m.Sign)
+	err := verifier.Verify(context.Background(), m.Blob, m.Sign)
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
 	if err != nil {

@@ -22,7 +22,8 @@ type NodeListHandler struct {
 }
 
 //TODO (supraja): read from config file
-const ms_list_valid_time = 5
+//valid time in hours
+const ms_list_valid_time = 100000
 
 func (n NodeListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: NodeListHandler.Handle")
@@ -84,10 +85,10 @@ func validateAndPersistNodeListEntries(nodeListEntries []pcn_mgmt.NodeListEntry,
 		}
 
 		//verify timestamp
-		// timeNow := time.Now().Unix()
+
 		// print(timeNow)
 		//compTimestamp := time.Now().Add(ms_list_valid_time * time.Minute).UTC().Unix()
-		if uint64(time.Now().Unix())-msPld.Ms.PushMSListReq.Timestamp > 300 {
+		if uint64(time.Now().Unix())-msPld.Ms.PushMSListReq.Timestamp > uint64(ms_list_valid_time*time.Hour) {
 			log.Error("msList entry too old. Reject", err)
 			continue
 		}
