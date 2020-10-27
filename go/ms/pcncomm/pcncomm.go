@@ -38,7 +38,9 @@ func SendSignedList(ctx context.Context, interval time.Duration) {
 
 func pushSignedPrefix(ctx context.Context) {
 	logger := log.FromCtx(ctx)
-	asEntries, err := sqlite3.Db.GetNewEntries(context.Background()) //signed ASMapEntries in the form of SignedPld
+
+	//signed ASMapEntries in the form of SignedPld
+	asEntries, err := sqlite3.Db.GetNewEntries(context.Background())
 	if err != nil {
 		logger.Error("could not get entries from DB", "Err: ", err)
 	}
@@ -234,7 +236,8 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 				for _, oldMapEntry := range oldMapEntries {
 					/*if the rpki signature was validated for the new entry then it is the
 					entry with the most trust, delete all other entries*/
-					_, err := sqlite3.Db.DeleteFullMapEntryById(context.Background(), oldMapEntry.Id)
+					_, err := sqlite3.Db.DeleteFullMapEntryById(context.Background(),
+						oldMapEntry.Id)
 					if err != nil {
 						log.Error("Error deleting old entry")
 					}

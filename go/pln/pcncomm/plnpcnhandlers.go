@@ -30,7 +30,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	m := r.FullMessage.(*ctrl.SignedPld)
 	e := plncrypto.PLNEngine{Msgr: plnmsgr.Msgr, IA: plnmsgr.IA}
 	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
-	err := verifier.Verify(context.Background(), m.Blob, m.Sign) //TODO_Q (supraja): here, the validation is for the source AS because the signatures are with AS keys. Is it possible to get per entity keys with cpki?
+	err := verifier.Verify(context.Background(), m.Blob, m.Sign)
 	if err != nil {
 		log.Error("Certificate verification failed!")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())

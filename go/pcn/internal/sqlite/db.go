@@ -45,7 +45,8 @@ func NewFromDB(db *sql.DB) *DB {
 	}
 }
 
-func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte, commitId string, msIA string, timestamp uint64) (sql.Result, error) {
+func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte,
+	commitId string, msIA string, timestamp uint64) (sql.Result, error) {
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitId, msIA, timestamp)
 	if err != nil {
@@ -54,7 +55,8 @@ func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte, com
 	return res, nil
 }
 
-func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte, commitId string, msIA string, timestamp uint64) (sql.Result, error) {
+func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte, 
+	commitId string, msIA string, timestamp uint64) (sql.Result, error) {
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, UpdateNodeListEntry, entry, commitId, timestamp, msIA)
 	if err != nil {

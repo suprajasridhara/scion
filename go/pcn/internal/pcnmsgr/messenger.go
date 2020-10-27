@@ -18,11 +18,15 @@ var Msgr infra.Messenger
 var IA addr.IA
 var Id string
 
-func SendNodeList(ctx context.Context, address net.Addr, fullNodeList []sqlite.NodeListEntry, id uint64) error {
+func SendNodeList(ctx context.Context, address net.Addr,
+	fullNodeList []sqlite.NodeListEntry, id uint64) error {
 	if len(fullNodeList) > 0 {
 		var nodeListEntries []pcn_mgmt.NodeListEntry
 		for _, nle := range fullNodeList {
-			nodeListEntries = append(nodeListEntries, *pcn_mgmt.NewNodeListEntry(common.RawBytes(*nle.MsList), nle.CommitId.String))
+			nodeListEntries = append(nodeListEntries,
+				*pcn_mgmt.NewNodeListEntry(
+					common.RawBytes(*nle.MsList), nle.CommitId.String)
+				)
 		}
 
 		timestamp := time.Now()

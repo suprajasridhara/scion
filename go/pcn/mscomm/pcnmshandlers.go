@@ -60,7 +60,8 @@ func (m MSListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	fm := r.FullMessage.(*ctrl.SignedPld)
 	packed, err := proto.PackRoot(fm)
 	commitId := generateCommitID()
-	err = persistMSList(context.Background(), packed, commitId, signedMSList.MSIA, signedMSList.Timestamp)
+	err = persistMSList(context.Background(), packed, commitId,
+		signedMSList.MSIA, signedMSList.Timestamp)
 	if err != nil {
 		log.Error("Error persisting list", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
@@ -99,7 +100,8 @@ func isValidMSList(peerIA addr.IA, l ms_mgmt.SignedMSList) (bool, error) {
 		return false, serrors.New("Invalid timstamp in SignedMSList", "")
 	}
 
-	//Validate that the entries are in the same ISD. For this validate the signature on the ASEntry first
+	//Validate that the entries are in the same ISD.
+	//For this validate the signature on the ASEntry first
 	for _, asEntry := range l.AsEntries {
 		// asME := &ms_mgmt.ASMapEntry{}
 		// err := proto.ParseFromRaw(asME, asEntry.Blob)
@@ -156,8 +158,10 @@ func (n NodeListEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	return nil
 }
 
-func persistMSList(ctx context.Context, signedMSList []byte, commitId string, msIA string, timestamp uint64) error {
-	_, err := sqlite.Db.InsertNewNodeListEntry(ctx, signedMSList, commitId, msIA, timestamp)
+func persistMSList(ctx context.Context, signedMSList []byte,
+	commitId string, msIA string, timestamp uint64) error {
+	_, err := sqlite.Db.InsertNewNodeListEntry(ctx, signedMSList,
+		commitId, msIA, timestamp)
 	return err
 }
 func generateCommitID() string {

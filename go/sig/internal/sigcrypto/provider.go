@@ -24,7 +24,8 @@ func (m SIGEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID, o ...trust.
 	return nil
 }
 
-func (m SIGEngine) GetChains(ctx context.Context, cq trust.ChainQuery, o ...trust.Option) ([][]*x509.Certificate, error) {
+func (m SIGEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
+	o ...trust.Option) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid := cq.SubjectKeyID
@@ -38,10 +39,12 @@ func (m SIGEngine) GetChains(ctx context.Context, cq trust.ChainQuery, o ...trus
 	return rawChains.Chains()
 }
 
-func (m SIGEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID, o ...trust.Option) (cppki.SignedTRC, error) {
+func (m SIGEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
+	o ...trust.Option) (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): can i generate req_id in messenger calls to a random value?
-	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial}, addr, 1)
+	encTRC, err := m.Msgr.GetTRC(context.Background(),
+		&cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch SignedTRC", err)

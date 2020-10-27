@@ -120,10 +120,12 @@ type SigConf struct {
 	//KeyFile for QUIC socket
 	KeyFile string `toml:"key_file,omitempty"`
 
-	//PrefixFile contains the list of prefixes that should be pushed to a Mapping service in the ISD. This file is scanned periodically for changes
+	//PrefixFile contains the list of prefixes that should be
+	//pushed to a Mapping service in the ISD. This file is scanned periodically for changes
 	PrefixFile string `toml:"prefix_file,omitempty"`
 
-	//PrefixPushInterval in minutes is the interval between 2 consecutive pushes of prefixes to the mapping service. default (60)
+	//PrefixPushInterval in minutes is the interval between
+	//2 consecutive pushes of prefixes to the mapping service. default (60)
 	PrefixPushInterval time.Duration `toml:"prefix_push_interval,omitempty"`
 }
 

@@ -23,7 +23,8 @@ type PLNSigner struct {
 	signedTRC cppki.SignedTRC
 }
 
-func (m *PLNSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, cfgDir string) error {
+func (m *PLNSigner) Init(ctx context.Context, Msgr infra.Messenger,
+	IA addr.IA, cfgDir string) error {
 	m.Msgr = Msgr
 	m.IA = IA
 	t, err := m.getTRC()
@@ -56,7 +57,8 @@ func (m *PLNSigner) Init(ctx context.Context, Msgr infra.Messenger, IA addr.IA, 
 	return nil
 }
 
-func (m *PLNSigner) getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, error) {
+func (m *PLNSigner) getChains(ctx context.Context,
+	key crypto.Signer) ([][]*x509.Certificate, error) {
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid, _ := cppki.SubjectKeyID(key.Public())
@@ -75,7 +77,8 @@ func (m *PLNSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
 	//TODO (supraja): replace hard coded Ids
-	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, 1)
+	encTRC, err := m.Msgr.GetTRC(context.Background(),
+		&cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)

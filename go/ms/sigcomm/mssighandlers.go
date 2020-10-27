@@ -22,7 +22,9 @@ import (
 )
 
 const (
-	max_ms_as_add_time = 10 //time is in minutes. TODO (supraja): this should be configurable and related to other timestamp values to be added later. See doc
+	/* //TODO (supraja): this should be configurable and related
+	to other timestamp values to be added later. See doc*/
+	max_ms_as_add_time = 10 //time is in minutes.
 )
 
 type FullMapReqHandler struct {
@@ -83,11 +85,13 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	//Source IA is the IA in the asMap as well. Now validate the AS-IP mapping using an rpkivalidator
+	//Source IA is the IA in the asMap as well.
+	//Now validate the AS-IP mapping using an rpkivalidator
 	//TODO_Q (supraja): Is this ok to Assume the AS is a BGP style AS?
 
 	//Do RPKI validation with a shell script for now
-	//For now, the validator should take 2 arguments, asn and prefix and return "valid" if the mapping is valid
+	//For now, the validator should take 2 arguments,
+	//asn and prefix and return "valid" if the mapping is valid
 	//TODO (supraja): find a better way to do this
 	cmdStr := validator.Path + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
 	cmd := exec.Command("/bin/sh", "-c", cmdStr)
@@ -107,7 +111,8 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	//RPKI validation passed. Add entry to database to be read later
 
-	packed, err := proto.PackRoot(m) //Full message from SIG. Contains *ms_mgmt.ASMapEntry along with signature
+	//Full message from SIG. Contains *ms_mgmt.ASMapEntry along with signature
+	packed, err := proto.PackRoot(m)
 
 	x := &ctrl.SignedPld{}
 	proto.ParseFromRaw(x, packed)

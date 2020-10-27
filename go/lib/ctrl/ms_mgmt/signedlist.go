@@ -31,7 +31,8 @@ type SignedMSList struct {
 	MSIA      string          `capnp:"msIa"`
 }
 
-func NewSignedMSList(timestamp uint64, pcnId string, asEntry []SignedAsEntry, msIa string) *SignedMSList {
+func NewSignedMSList(timestamp uint64, pcnId string,
+	asEntry []SignedAsEntry, msIa string) *SignedMSList {
 	return &SignedMSList{Timestamp: timestamp, PCNId: pcnId, AsEntries: asEntry, MSIA: msIa}
 }
 

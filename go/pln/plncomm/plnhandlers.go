@@ -69,7 +69,8 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 		if err == nil {
 			//persist entry in database
-			err = insertIfNotExists(pldFromRaw.Pcn.AddPLNEntryRequest.Entry.PCNId, uint64(pcnIAInt), plnListEntry.Raw)
+			err = insertIfNotExists(pldFromRaw.Pcn.AddPLNEntryRequest.Entry.PCNId,
+				uint64(pcnIAInt), plnListEntry.Raw)
 			if err != nil {
 				log.Error("Error while inserting new entry")
 				sendAck(proto.Ack_ErrCode_reject, err.Error())

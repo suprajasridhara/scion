@@ -83,7 +83,8 @@ type MsConf struct {
 	//KeyFile for QUIC socket
 	KeyFile string `toml:"key_file,omitempty"`
 
-	//RPKIValidator is the path to the shell scripts that takes 2 arguments, ASID and the prefix to validate
+	//RPKIValidator is the path to the shell scripts that takes 2 arguments,
+	//ASID and the prefix to validate
 	RPKIValidator string `toml:"rpki_validator,omitempty"`
 
 	//RPKIValidString is the response of the validator script if the ASID and prefix are valid

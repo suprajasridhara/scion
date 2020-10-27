@@ -150,7 +150,8 @@ type Messenger struct {
 	// Networking layer for sending and receiving messages
 	dispatcher *disp.Dispatcher
 
-	// addressRewriter is used to compute full remote addresses (path + server)
+	// addressRewriter is used to compute
+	// full remote addresses (path + server)
 	addressRewriter *AddressRewriter
 
 	cryptoLock sync.RWMutex

@@ -65,7 +65,8 @@ func (e *executor) GetPlnList(ctx context.Context) ([]PlnListEntry, error) {
 	return got, nil
 }
 
-func (e *executor) InsertNewPlnEntry(ctx context.Context, pcnId string, entry uint64, raw []byte) (sql.Result, error) {
+func (e *executor) InsertNewPlnEntry(ctx context.Context,
+	pcnId string, entry uint64, raw []byte) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, InsertPLNEntry, pcnId, entry, raw)

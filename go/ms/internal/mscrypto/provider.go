@@ -44,7 +44,9 @@ func (m MSEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
 	o ...trust.Option) (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): generate id randomly?
-	encTRC, err := m.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial}, addr, 1)
+	encTRC, err := m.Msgr.GetTRC(context.Background(),
+		&cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial},
+		addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch SignedTRC", err)

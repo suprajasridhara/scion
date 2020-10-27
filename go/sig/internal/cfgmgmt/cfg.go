@@ -37,7 +37,8 @@ var (
 	prefixFile string
 )
 
-func Init(ctx context.Context, cfgDir string, prefixFilePath string, prefixPushInterval time.Duration) error {
+func Init(ctx context.Context, cfgDir string, prefixFilePath string,
+	prefixPushInterval time.Duration) error {
 	signedTRC, err := getTRC()
 	CoreASes = signedTRC.TRC.CoreASes
 	if err != nil {
@@ -139,7 +140,8 @@ func getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, e
 func getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: sigcmn.IA, SVC: addr.SvcCS}
 	//TODO_Q (supraja): Where do we get Base and Serial from?
-	encTRC, err := sigcmn.Msgr.GetTRC(context.Background(), &cert_mgmt.TRCReq{ISD: sigcmn.IA.I, Base: 1, Serial: 1}, addr, 1)
+	encTRC, err := sigcmn.Msgr.GetTRC(context.Background(),
+		&cert_mgmt.TRCReq{ISD: sigcmn.IA.I, Base: 1, Serial: 1}, addr, 1)
 	trc, err := cppki.DecodeSignedTRC(encTRC.RawTRC)
 	if err != nil {
 		return cppki.SignedTRC{}, serrors.WrapStr("Unable to fetch Core as", err)
@@ -178,7 +180,8 @@ func AddASMap(ctx context.Context, ip string) error {
 
 	}
 	//verify signatures here
-	//TODO_Q (supraja): Should we use the messenger verifier. It is currently tightly coupled with control plane messages that have a trust store
+	//TODO_Q (supraja): Should we use the messenger verifier.
+	//It is currently tightly coupled with control plane messages that have a trust store
 
 	e := sigcrypto.SIGEngine{Msgr: sigcmn.Msgr, IA: sigcmn.IA}
 	verifier := trust.Verifier{BoundIA: ia, Engine: e}
@@ -212,9 +215,17 @@ func LoadCfg(cfg *sigjson.Cfg) error {
 	log.Info("LodCfg: entering")
 	asList := CoreASes
 	success := false
-	//TODO (supraja): impelemnt wait mechanism after timeout from each core AS. For now contact one Core AS assuming the TRC had atleast one Core AS
-	//TODO_Q (supraja): on debugging I see that an scmp packet is returned when the service doesnt exist, but the dispatcher has no handler, so the error is just logged and the dispatcher returns false and continues. Messenger waits for reply on channels that are never returned to.
-	//error logged:  scmp packet received, but no handler found scmp.Hdr="Class=ROUTING(1) Type=UNREACH_HOST(1) TotalLen=64B Checksum=89bb Timestamp=2020-09-10 07:55:33.827096 +0000 UTC" src="{1-ff00:0:112 fd00:f00d:cafe::7f00:9}
+	//TODO (supraja): impelemnt wait mechanism after timeout from each core AS.
+	//For now contact one Core AS assuming the TRC had atleast one Core AS
+
+	/*//TODO_Q (supraja): on debugging I see that an scmp packet is returned when
+	the service doesnt exist, but the dispatcher has no handler, so the error is
+	just logged and the dispatcher returns false and continues. Messenger waits for reply
+	on channels that are never returned to.
+	error logged: scmp packet received, but no handler found scmp.Hdr="Class=ROUTING(1)
+	Type=UNREACH_HOST(1) TotalLen=64B Checksum=89bb Timestamp=2020-09-10 07:55:33.827096 +0000 UTC"
+	src="{1-ff00:0:112 fd00:f00d:cafe::7f00:9}*/
+
 	for _, as := range asList {
 		ia := addr.IA{
 			I: sigcmn.IA.I,

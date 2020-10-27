@@ -25,9 +25,13 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust/internal/metrics"
 )
 
-//TODO (supraja): SignerGen uses a database. Since non cs services might not have a trust database they can query the cs for trc and cert chains and generate signatures for messages. Is this the correct behavior or should we just use a trust db?
+//TODO (supraja): SignerGen uses a database.
+//Since non cs services might not have a trust database
+//they can query the cs for trc and cert chains and generate signatures for messages.
+//Is this the correct behavior or should we just use a trust db?
 //This is a copy of SignerGen in signer_gen.go with DB replaced with SignedTRC and Chains
-// SignerGenNoDB generates signers from the keys available in key dir. It does not require a DB connection instead takes in SignedTRC assumed to be active and Chains
+// SignerGenNoDB generates signers from the keys available in key dir.
+//It does not require a DB connection instead takes in SignedTRC assumed to be active and Chains
 type SignerGenNoDB struct {
 	IA          addr.IA
 	KeyRing     KeyRing
@@ -86,22 +90,6 @@ func (s SignerGenNoDB) Generate(ctx context.Context) (Signer, error) {
 }
 
 func (s *SignerGenNoDB) bestForKey(ctx context.Context, key crypto.Signer) (*Signer, error) {
-	// FIXME(roosd): We currently take the sha1 sum of the public key.
-	// The final implementation needs to be smarter than that, but this
-	// requires a proper design that also considers certificate renewal.
-	// skid, err := cppki.SubjectKeyID(key.Public())
-	// if err != nil {
-	// 	return nil, nil
-	// }
-	// chains, err := s.DB.Chains(ctx, ChainQuery{
-	// 	IA:           s.IA,
-	// 	SubjectKeyID: skid,
-	// 	Date:         time.Now(),
-	// })
-	// if err != nil {
-	// 	// TODO	metrics.Signer.Generate(l.WithResult(metrics.ErrDB)).Inc()
-	// 	return nil, err
-	// }
 
 	chains, _ := s.Chains[key]
 	chain := bestChainNoDB(&s.SignedTRCs[0].TRC, chains)
@@ -118,9 +106,11 @@ func (s *SignerGenNoDB) bestForKey(ctx context.Context, key crypto.Signer) (*Sig
 		}
 		inGrace = true
 	}
-	id, expiry := s.SignedTRCs[0].TRC.ID, min(chain[0].NotAfter, s.SignedTRCs[0].TRC.Validity.NotAfter)
+	id, expiry := s.SignedTRCs[0].TRC.ID, min(chain[0].NotAfter,
+		s.SignedTRCs[0].TRC.Validity.NotAfter)
 	if inGrace {
-		id, expiry = s.SignedTRCs[1].TRC.ID, min(chain[0].NotAfter, s.SignedTRCs[0].TRC.GracePeriodEnd())
+		id, expiry = s.SignedTRCs[1].TRC.ID, min(chain[0].NotAfter,
+			s.SignedTRCs[0].TRC.GracePeriodEnd())
 	}
 	return &Signer{
 		PrivateKey:   key,
