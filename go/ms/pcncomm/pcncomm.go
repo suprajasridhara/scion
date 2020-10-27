@@ -178,33 +178,33 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 		spld := &ctrl.SignedPld{}
 		err := proto.ParseFromRaw(spld, nodeListEntry.SignedMSList)
 		if err != nil {
-			log.Error("Error decerializing nodeListEntry", err)
+			log.Error("Error decerializing nodeListEntry", "Err: ", err)
 			continue
 		}
 
 		msPld := &ctrl.Pld{}
 		err = proto.ParseFromRaw(msPld, spld.Blob)
 		if err != nil {
-			log.Error("Error decerializing msPld", err)
+			log.Error("Error decerializing msPld", "Err: ", err)
 			continue
 		}
 		msIA, err := addr.IAFromString(msPld.Ms.PushMSListReq.MSIA)
 		if err != nil {
-			log.Error("Error getting ms IA from string", err)
+			log.Error("Error getting ms IA from string", "Err: ", err)
 			continue
 		}
 
 		verifier := trust.Verifier{BoundIA: msIA, Engine: e}
 		err = verifier.Verify(context.Background(), spld.Blob, spld.Sign)
 		if err != nil {
-			log.Error("Certificate verification failed for MS!", err)
+			log.Error("Certificate verification failed for MS!", "Err: ", err)
 			continue
 		}
 
 		//verify timestamp
 		if uint64(time.Now().Unix())-msPld.Ms.PushMSListReq.Timestamp >
 			uint64(ms_list_valid_time*time.Hour) {
-			log.Error("msList entry too old. Reject", err)
+			log.Error("msList entry too old. Reject", "Err: ", err)
 			continue
 		}
 
@@ -215,7 +215,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 			cpld := &ctrl.Pld{}
 			err = proto.ParseFromRaw(cpld, asEntry.Blob)
 			if err != nil {
-				log.Error("Error decerializing asEntries", err)
+				log.Error("Error decerializing asEntries", "Err: ", err)
 				continue
 			}
 			asMapEntry := cpld.Ms.AsActionReq
@@ -227,7 +227,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 			verifier = trust.Verifier{BoundIA: ia, Engine: e}
 			//err = verifier.Verify(context.Background(), asEntry.Blob, asEntry.Sign)
 			if err != nil {
-				log.Error("Certificate verification failed for ASMapEntry source AS", err)
+				log.Error("Certificate verification failed for ASMapEntry source AS", "Err: ", err)
 				continue
 			}
 
@@ -236,7 +236,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 
 				oldMapEntries, err := sqlite3.Db.GetFullMapEntryByIp(context.Background(), prefix)
 				if err != nil {
-					log.Error("Error getting old entries for IP from DB", err)
+					log.Error("Error getting old entries for IP from DB", "Err: ", err)
 					continue
 				}
 
@@ -246,7 +246,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 					_, err := sqlite3.Db.DeleteFullMapEntryById(context.Background(),
 						oldMapEntry.Id)
 					if err != nil {
-						log.Error("Error deleting old entry")
+						log.Error("Error deleting old entry", "Err: ", err)
 					}
 				}
 
@@ -256,7 +256,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 						Timestamp: int(asMapEntry.Timestamp)})
 
 				if err != nil {
-					log.Error("Error inserting entry into db", err)
+					log.Error("Error inserting entry into db", "Err: ", err)
 					continue
 				}
 			}
