@@ -3,6 +3,8 @@ package pcncomm
 import (
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
@@ -15,7 +17,6 @@ import (
 	"github.com/scionproto/scion/go/pcn/internal/sqlite"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
-	"golang.org/x/net/context"
 )
 
 type NodeListHandler struct {
@@ -102,12 +103,15 @@ func validateAndPersistNodeListEntries(nodeListEntries []pcn_mgmt.NodeListEntry,
 		update := false
 		//check if entry exists with the same commit ID, replace only if not
 		for _, nle := range fullNodeList {
-			if nle.MSIA.String == msIA.String() 
-				&& nle.CommitId.String == nodeListEntry.CommitId { //if msIA and commitId both match it should be the same list. No need to insert
+			if nle.MSIA.String == msIA.String() &&
+				nle.CommitId.String == nodeListEntry.CommitId {
+				//if msIA and commitId both match it should be the same list. No need to insert
 				insert = false
 				break
-			} else if nle.MSIA.String == msIA.String() 
-				&& uint64(nle.Timestamp) > msPld.Ms.PushMSListReq.Timestamp { //if msIA is the same and the timestamp in the db is newer then there is no need to update it
+			} else if nle.MSIA.String == msIA.String() && uint64(nle.Timestamp) >
+				msPld.Ms.PushMSListReq.Timestamp {
+				//if msIA is the same and the timestamp in the db is
+				//newer then there is no need to update it
 				insert = false
 				break
 			} else if nle.MSIA.String == msIA.String() {
@@ -117,12 +121,12 @@ func validateAndPersistNodeListEntries(nodeListEntries []pcn_mgmt.NodeListEntry,
 		}
 		if update {
 			log.Info("Updating MSList in DB. MSIA: " + msIA.String())
-			sqlite.Db.UpdateNodeListEntry(context.Background(), nodeListEntry.SignedMSList, 
-			nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
+			sqlite.Db.UpdateNodeListEntry(context.Background(), nodeListEntry.SignedMSList,
+				nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
 		} else if insert {
 			log.Info("Inserting MSList to DB. MSIA: "+msIA.String(), nil)
-			sqlite.Db.InsertNewNodeListEntry(context.Background(), nodeListEntry.SignedMSList, 
-			nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
+			sqlite.Db.InsertNewNodeListEntry(context.Background(), nodeListEntry.SignedMSList,
+				nodeListEntry.CommitId, msIA.String(), msPld.Ms.PushMSListReq.Timestamp)
 		}
 	}
 }

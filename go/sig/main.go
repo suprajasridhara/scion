@@ -100,7 +100,9 @@ func realMain() int {
 	}
 	sigdisp.Init(sigcmn.CtrlConn, false)
 
-	if err := cfgmgmt.Init(context.Background(), cfg.Sig.CfgDir, cfg.Sig.PrefixFile, cfg.Sig.PrefixPushInterval); err != nil {
+	if err := cfgmgmt.Init(context.Background(),
+		cfg.Sig.CfgDir, cfg.Sig.PrefixFile,
+		cfg.Sig.PrefixPushInterval); err != nil {
 		log.Error("", "Sig configuration initialization failed", err)
 		return 1
 	}

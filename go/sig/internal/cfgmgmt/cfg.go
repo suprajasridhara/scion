@@ -253,7 +253,8 @@ func LoadCfg(cfg *sigjson.Cfg) error {
 				return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)
 			}
 			if !ip.Equal(ipnet.IP) {
-				return common.NewBasicError("Network is not canonical (should not be host address).",
+				return common.NewBasicError(
+					"Network is not canonical (should not be host address).",
 					nil, "raw", f.Ip)
 			}
 			//TODO (supraja): if IA exists, add logic to handle

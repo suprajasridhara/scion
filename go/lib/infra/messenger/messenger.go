@@ -356,7 +356,8 @@ func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld,
 	return m.sendMessage(ctx, msg, a, id, infra.ASActionReply)
 }
 
-//GetPlnList fetches the pln list form the PLN and returns the payload with the signature from the destination AS. The caller should verify the signature
+//GetPlnList fetches the pln list form the PLN and returns the payload with the
+//signature from the destination AS. The caller should verify the signature
 func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): Generate random ReqId?
