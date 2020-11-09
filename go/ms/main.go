@@ -26,23 +26,17 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/scionproto/scion/go/cs/ifstate"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
-	"github.com/scionproto/scion/go/lib/infra"
-	"github.com/scionproto/scion/go/lib/infra/infraenv"
-	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
-	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	"github.com/scionproto/scion/go/ms/pcncomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 	"github.com/scionproto/scion/go/pkg/service"
-	"github.com/scionproto/scion/go/proto"
 )
 
 var (
@@ -81,22 +75,22 @@ func realMain() int {
 	}
 
 	cfg.Metrics.StartPrometheus()
-	intfs, err := setupTopo()
-	if err != nil {
-		log.Error("MS setupTopo failed", "err", err)
-		return 1
-	}
+	// intfs, err := setupTopo()
+	// if err != nil {
+	// 	log.Error("MS setupTopo failed", "err", err)
+	// 	return 1
+	// }
 	if err := mscmn.Init(cfg.Ms, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("MS common initialization failed", "err", err)
 		return 1
 	}
-	// Keepalive mechanism is deprecated and will be removed with change to
-	// header v2. Disable with https://github.com/Anapaya/scion/issues/3337.
-	if !cfg.Features.HeaderV2 || true {
-		msmsgr.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
-		//TODO (supraja): fix this with a handler that works if needed
-		msmsgr.Msgr.AddHandler(infra.IfId, mscmn.IdIdHandler{})
-	}
+	// // Keepalive mechanism is deprecated and will be removed with change to
+	// // header v2. Disable with https://github.com/Anapaya/scion/issues/3337.
+	// if !cfg.Features.HeaderV2 || true {
+	// 	msmsgr.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
+	// 	//TODO (supraja): fix this with a handler that works if needed
+	// 	msmsgr.Msgr.AddHandler(infra.IfId, mscmn.IdIdHandler{})
+	// }
 
 	go func() {
 		defer log.HandlePanic()
@@ -122,15 +116,12 @@ func realMain() int {
 	go func() {
 		defer log.HandlePanic()
 
-		//TODO (supraja): read interval value from config
-		pcncomm.SendSignedList(context.Background(), 1)
+		pcncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime)
 	}()
 
 	go func() {
 		defer log.HandlePanic()
-
-		//TODO (supraja): read interval value from config
-		pcncomm.PullFullNodeList(context.Background(), 1)
+		pcncomm.PullFullNodeList(context.Background(), cfg.Ms.MSPullListInterval)
 	}()
 
 	select {
@@ -149,32 +140,32 @@ func setupDb() error {
 	return nil
 }
 
-func setupTopo() (*ifstate.Interfaces, error) {
-	//itopo.Init(&itopo.Config{})
+// func setupTopo() (*ifstate.Interfaces, error) {
+// 	//itopo.Init(&itopo.Config{})
 
-	topo, err := topology.FromJSONFile(cfg.General.Topology())
-	if err != nil {
-		return nil, serrors.WrapStr("loading topology", err)
-	}
+// 	topo, err := topology.FromJSONFile(cfg.General.Topology())
+// 	if err != nil {
+// 		return nil, serrors.WrapStr("loading topology", err)
+// 	}
 
-	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
-	//prometheus.MustRegister(ifstate.NewCollector(intfs))
-	itopo.Init(&itopo.Config{
-		ID:  cfg.General.ID,
-		Svc: proto.ServiceType_ms,
-		Callbacks: itopo.Callbacks{
-			OnUpdate: func() {
-				intfs.Update(itopo.Get().IFInfoMap())
-			},
-		},
-	})
+// 	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
+// 	//prometheus.MustRegister(ifstate.NewCollector(intfs))
+// 	itopo.Init(&itopo.Config{
+// 		ID:  cfg.General.ID,
+// 		Svc: proto.ServiceType_ms,
+// 		Callbacks: itopo.Callbacks{
+// 			OnUpdate: func() {
+// 				intfs.Update(itopo.Get().IFInfoMap())
+// 			},
+// 		},
+// 	})
 
-	if err := itopo.Update(topo); err != nil {
-		return nil, serrors.WrapStr("setting initial static topology", err)
-	}
-	infraenv.InitInfraEnvironment(cfg.General.Topology())
-	return intfs, nil
-}
+// 	if err := itopo.Update(topo); err != nil {
+// 		return nil, serrors.WrapStr("setting initial static topology", err)
+// 	}
+// 	infraenv.InitInfraEnvironment(cfg.General.Topology())
+// 	return intfs, nil
+// }
 
 // setupBasic loads the config from file and initializes logging.
 func setupBasic() error {
@@ -202,11 +193,6 @@ func validateConfig() error {
 		cfg.Metrics.Prometheus = "127.0.0.1:1285"
 	}
 	return nil
-}
-
-func loadConfig(path string) bool {
-	//TODO_MS:(supraja) do we need a config file?
-	return true
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {

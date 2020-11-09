@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/config"
@@ -55,47 +56,64 @@ func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
 var _ config.Config = (*MsConf)(nil)
 
 type MsConf struct {
-	//TODO_MS:(supraja) create the config definition to start the MS instance
-	//sciond config, IP, PLN config
-	ID               string  `toml:"id,omitempty"`
-	DispatcherBypass string  `toml:"disaptcher_bypass,omitempty"`
-	IP               net.IP  `toml:"ip,omitempty"`
-	CtrlPort         uint16  `toml:"ctrl_port,omitempty"`
-	DataPort         uint16  `toml:"data_port,omitempty"`
-	IA               addr.IA `toml:"isd_as,omitempty"`
-	Address          string  `toml:"address,omitempty"`
+	// ID of the MS (required)
+	ID string `toml:"id,omitempty"`
 
-	//config directory to read crypto keys from
+	// DispatcherBypass is the underlay address (e.g. ":30041") to use when bypassing SCION
+	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
+	// instead.
+	DispatcherBypass string `toml:"disaptcher_bypass,omitempty"`
+	// IP to listen on (required)
+	IP net.IP `toml:"ip,omitempty"`
+	// Port to listen on (required)
+	Port uint16 `toml:"port,omitempty"`
+	// IA the local IA (required)
+	IA addr.IA `toml:"isd_as,omitempty"`
+
+	//CfgDir directory to read crypto keys from (required)
 	CfgDir string `toml:"cfg_dir,omitempty"`
 
-	//db to store ms cfg data (default ./ms.db will be created or read from)
+	//Db to store ms cfg data (default ./ms.db will be created or read from)
 	Db string `toml:"db,omitempty"`
 
-	//UDP port to open a messenger connection on
-	UDPPort uint16 `toml:"udp_port,omitempty"`
-
-	//QUIC IP:Port
+	//QUIC address to listen to quic IP:Port (required)
 	QUICAddr string `toml:"quic_addr,omitempty"`
 
-	//CertFile for QUIC socket
+	//CertFile for QUIC socket (required)
 	CertFile string `toml:"cert_file,omitempty"`
 
-	//KeyFile for QUIC socket
+	//KeyFile for QUIC socket (required)
 	KeyFile string `toml:"key_file,omitempty"`
 
 	//RPKIValidator is the path to the shell scripts that takes 2 arguments,
-	//ASID and the prefix to validate
+	//ASID and the prefix to validate (required)
 	RPKIValidator string `toml:"rpki_validator,omitempty"`
 
-	//RPKIValidString is the response of the validator script if the ASID and prefix are valid
+	//RPKIValidString is the response of the validator script if the ASID and prefix are valid (required)
 	RPKIValidString string `toml:"rpki_entry_valid,omitempty"`
 
+	//PLNIA IA of the PLN to contact for PCN lists (required)
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
+
+	//MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
+	MSListValidTime time.Duration
+
+	//MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day
+	MSPullListInterval time.Duration
 }
 
 func (cfg *MsConf) InitDefaults() {
-	//TODO_MS:(supraja)
+	if cfg.Db == "" {
+		cfg.Db = "./ms.db"
+	}
 
+	if cfg.MSListValidTime == 0 {
+		cfg.MSListValidTime = 10080
+	}
+
+	if cfg.MSPullListInterval == 0 {
+		cfg.MSPullListInterval = 1440
+	}
 }
 func (cfg *MsConf) Validate() error {
 
@@ -111,8 +129,20 @@ func (cfg *MsConf) Validate() error {
 	if cfg.IP.IsUnspecified() {
 		return serrors.New("ip must be set")
 	}
+	if cfg.Port == 0 {
+		return serrors.New("Port must be set")
+	}
 	if cfg.CfgDir == "" {
 		return serrors.New("ms cfg_dir should be set")
+	}
+	if cfg.QUICAddr == "" {
+		return serrors.New("quic addr should be set")
+	}
+	if cfg.CertFile == "" {
+		return serrors.New("CertFile must be set")
+	}
+	if cfg.KeyFile == "" {
+		return serrors.New("KeyFile must be set")
 	}
 	if cfg.RPKIValidator == "" {
 		return serrors.New("rpki_validator should be set")
@@ -120,13 +150,10 @@ func (cfg *MsConf) Validate() error {
 	if cfg.PLNIA.IsZero() {
 		return serrors.New("pln_isd_as must be set")
 	}
-
 	if cfg.RPKIValidString == "" {
 		return serrors.New("rpki_entry_valid should be set")
 	}
-	if cfg.Db == "" {
-		cfg.Db = "/ms.db"
-	}
+
 	return nil
 }
 
