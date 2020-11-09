@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/x509"
+	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -129,7 +130,7 @@ func getChains(ctx context.Context, key crypto.Signer) ([][]*x509.Certificate, e
 
 	req := &cert_mgmt.ChainReq{RawIA: sigcmn.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): random id?
-	rawChains, err := sigcmn.Msgr.GetCertChain(ctx, req, addr, 1234)
+	rawChains, err := sigcmn.Msgr.GetCertChain(ctx, req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Error getting cert chains", err)
 	}

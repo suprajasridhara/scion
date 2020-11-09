@@ -2,6 +2,7 @@ package propogator
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
@@ -33,7 +34,7 @@ func (p *Propogator) Run() {
 	msg := &path_mgmt.SegReq{RawSrcIA: plnmsgr.IA.IAInt(), RawDstIA: addr.IA{I: 0, A: 0}.IAInt()}
 	csaddr := &snet.SVCAddr{IA: plnmsgr.IA, SVC: addr.SvcCS}
 
-	rep, err := plnmsgr.Msgr.GetSegs(context.Background(), msg, csaddr, 1234343)
+	rep, err := plnmsgr.Msgr.GetSegs(context.Background(), msg, csaddr, rand.Uint64())
 	if err != nil {
 		log.Error("error", err)
 	}
@@ -47,7 +48,7 @@ func (p *Propogator) Run() {
 		// print("\n")
 		address := &snet.SVCAddr{IA: p.IA(), SVC: addr.SvcPLN}
 		//TODO_Q (supraja): random id?
-		err := plnmsgr.SendPLNList(address, 123423)
+		err := plnmsgr.SendPLNList(address, rand.Uint64())
 		if err != nil {
 			log.Error("error sending list to "+address.String(), err)
 		}

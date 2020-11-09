@@ -3,6 +3,7 @@ package plncrypto
 import (
 	"context"
 	"crypto/x509"
+	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
@@ -31,7 +32,7 @@ func (m PLNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	skid := cq.SubjectKeyID
 	req := &cert_mgmt.ChainReq{RawIA: cq.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
 	//TODO_Q (supraja): generate id randomly?
-	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, 1234)
+	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Unable to fetch Chains", err)
 	}
