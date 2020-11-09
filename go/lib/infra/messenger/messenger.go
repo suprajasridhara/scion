@@ -73,6 +73,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -361,7 +362,7 @@ func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld,
 func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
 	//TODO_Q (supraja): Generate random ReqId?
-	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.PlnListRequest,
 		"msg_id", id, "request", nil, "peer", a)
@@ -385,7 +386,7 @@ func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld,
 func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld,
 	a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
 	//TODO_Q (supraja): Generate random ReqId?
-	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 1234})
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
 		"msg_id", id, "request", nil, "peer", a)
