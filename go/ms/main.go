@@ -26,17 +26,22 @@ import (
 
 	"github.com/BurntSushi/toml"
 
+	"github.com/scionproto/scion/go/cs/ifstate"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
+	"github.com/scionproto/scion/go/lib/infra/infraenv"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite3"
 	"github.com/scionproto/scion/go/ms/pcncomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 	"github.com/scionproto/scion/go/pkg/service"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var (
@@ -75,11 +80,11 @@ func realMain() int {
 	}
 
 	cfg.Metrics.StartPrometheus()
-	// intfs, err := setupTopo()
-	// if err != nil {
-	// 	log.Error("MS setupTopo failed", "err", err)
-	// 	return 1
-	// }
+	_, err := setupTopo()
+	if err != nil {
+		log.Error("MS setupTopo failed", "err", err)
+		return 1
+	}
 	if err := mscmn.Init(cfg.Ms, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("MS common initialization failed", "err", err)
 		return 1
@@ -140,32 +145,30 @@ func setupDb() error {
 	return nil
 }
 
-// func setupTopo() (*ifstate.Interfaces, error) {
-// 	//itopo.Init(&itopo.Config{})
+func setupTopo() (*ifstate.Interfaces, error) {
 
-// 	topo, err := topology.FromJSONFile(cfg.General.Topology())
-// 	if err != nil {
-// 		return nil, serrors.WrapStr("loading topology", err)
-// 	}
+	topo, err := topology.FromJSONFile(cfg.General.Topology())
+	if err != nil {
+		return nil, serrors.WrapStr("loading topology", err)
+	}
 
-// 	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
-// 	//prometheus.MustRegister(ifstate.NewCollector(intfs))
-// 	itopo.Init(&itopo.Config{
-// 		ID:  cfg.General.ID,
-// 		Svc: proto.ServiceType_ms,
-// 		Callbacks: itopo.Callbacks{
-// 			OnUpdate: func() {
-// 				intfs.Update(itopo.Get().IFInfoMap())
-// 			},
-// 		},
-// 	})
+	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
+	itopo.Init(&itopo.Config{
+		ID:  cfg.General.ID,
+		Svc: proto.ServiceType_ms,
+		Callbacks: itopo.Callbacks{
+			OnUpdate: func() {
+				intfs.Update(itopo.Get().IFInfoMap())
+			},
+		},
+	})
 
-// 	if err := itopo.Update(topo); err != nil {
-// 		return nil, serrors.WrapStr("setting initial static topology", err)
-// 	}
-// 	infraenv.InitInfraEnvironment(cfg.General.Topology())
-// 	return intfs, nil
-// }
+	if err := itopo.Update(topo); err != nil {
+		return nil, serrors.WrapStr("setting initial static topology", err)
+	}
+	infraenv.InitInfraEnvironment(cfg.General.Topology())
+	return intfs, nil
+}
 
 // setupBasic loads the config from file and initializes logging.
 func setupBasic() error {
