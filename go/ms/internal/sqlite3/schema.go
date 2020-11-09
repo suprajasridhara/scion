@@ -1,6 +1,11 @@
 package sqlite3
 
 const (
+	/*Schema for MS:
+		- full_map - stores the processed mapping entries that the MS pulls from the Publishing Infrastructured
+	- new_entries - stores new mappings that MS recives from SIGs to be pushed to the Publishing Infrastructure
+	- pcn_reps - stores response tokens from the publishing infrastructure.
+	*/
 	Schema = `
 	CREATE TABLE IF NOT EXISTS full_map(
 		id INTEGER NOT NULL,
