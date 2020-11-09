@@ -13,13 +13,21 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust/compat"
 )
 
+//PLNAddr address of the PLN that the MS is configured to connect to
 var PLNAddr addr.IA
 
+//PCN pcn objects that are returned from the PLN
 type PCN struct {
+	//PCNId is the id of the PCN In the IA it is deployed
 	PCNId string
+	//PCNIA ia of the PCN
 	PCNIA addr.IA
 }
 
+/*GetPlnList The Mapping Service sends the request using the infra.Messenger instance in msmsgr package and
+verifies the origin of the response before processing it. It then returns the processed list of
+PCN Id and IA objects to the calling function
+*/
 func GetPlnList(ctx context.Context) ([]PCN, error) {
 	address := &snet.SVCAddr{IA: PLNAddr, SVC: addr.SvcPLN}
 

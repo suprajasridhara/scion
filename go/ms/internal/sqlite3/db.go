@@ -48,20 +48,6 @@ func NewFromDB(db *sql.DB) *DB {
 	}
 }
 
-// func InsertDummyData() {
-// 	stmt, err := db.Prepare(InsertDummyData1)
-// 	if err != nil {
-// 		log.Error(err.Error())
-// 	}
-// 	stmt.Exec()
-
-// 	stmt, err = db.Prepare(InsertDummyData2)
-// 	if err != nil {
-// 		log.Error(err.Error())
-// 	}
-// 	stmt.Exec()
-// }
-
 func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	e.RLock()
 	defer e.RUnlock()
@@ -103,7 +89,6 @@ func (e *executor) GetFullMapEntryByIp(ctx context.Context, ip string) ([]FullMa
 }
 
 func (e *executor) InsertFullMapEntry(ctx context.Context, fmRow FullMapRow) (sql.Result, error) {
-
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, InsFullMapEntry, fmRow.IP, fmRow.IA, fmRow.Timestamp)
 	if err != nil {

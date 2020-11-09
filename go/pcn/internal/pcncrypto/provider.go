@@ -32,7 +32,6 @@ func (m PCNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid := cq.SubjectKeyID
 	req := &cert_mgmt.ChainReq{RawIA: cq.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
-	//TODO_Q (supraja): generate id randomly?
 	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Unable to fetch Chains", err)
@@ -43,7 +42,6 @@ func (m PCNEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 func (m PCNEngine) GetSignedTRC(ctx context.Context, trcId cppki.TRCID,
 	o ...trust.Option) (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
-	//TODO_Q (supraja): generate id randomly?
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: trcId.ISD, Base: trcId.Base, Serial: trcId.Serial},
 		addr, 1)

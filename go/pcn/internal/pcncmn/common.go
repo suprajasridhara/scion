@@ -18,16 +18,11 @@ import (
 )
 
 var (
-	IA       addr.IA
-	CtrlAddr net.IP
-	CtrlPort int
-	PLNIA    addr.IA
+	IA    addr.IA
+	PLNIA addr.IA
 )
 
 func Init(cfg pcnconfig.PcnConf, sdCfg env.SCIONDClient, features env.Features) error {
-	CtrlAddr = cfg.IP
-	CtrlPort = int(cfg.CtrlPort)
-
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
 		return serrors.WrapStr("Error in Init mscmn", err)

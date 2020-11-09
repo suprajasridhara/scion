@@ -28,7 +28,6 @@ var (
 	Network    *snet.SCIONNetwork
 	Addr       net.IP
 	Port       int
-	CtrlConn   *snet.Conn
 )
 
 func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) error {

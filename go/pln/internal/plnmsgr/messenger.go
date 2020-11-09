@@ -38,8 +38,6 @@ func SendPLNList(addr net.Addr, id uint64) error {
 		if err != nil {
 			log.Error("error getting signer", err)
 			return err
-			//sendAck(proto.Ack_ErrCode_reject, err.Error())
-
 		}
 
 		plncrypt.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PlnListReply})
@@ -51,7 +49,6 @@ func SendPLNList(addr net.Addr, id uint64) error {
 		err = Msgr.SendPlnList(context.Background(), pld, addr, id)
 		if err != nil {
 			return err
-			//sendAck(proto.Ack_ErrCode_reject, err.Error())
 		}
 	}
 	return nil

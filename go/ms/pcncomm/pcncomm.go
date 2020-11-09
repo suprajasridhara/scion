@@ -21,10 +21,23 @@ import (
 	"github.com/scionproto/scion/go/proto"
 )
 
-//TODO (supraja): read from config file
-//valid time in hours
-const ms_list_valid_time = 100000
+//valid time in minutes
+var ms_list_valid_time time.Duration
 
+//Init initilises pcncomm
+func Init(msListValidTime time.Duration) {
+	ms_list_valid_time = msListValidTime
+}
+
+/*SendSignedList The MS sends its signed mapping list to PCNs periodically. The time interval (in minutes) can be specified in the config file during service startups. This time interval should not be more than the global value for validity of MS lists, otherwise the lists in the PCNs will be stale and invalid.
+
+To push the list the MS performs the following:
+- get the AS entries in the new_entries table
+- fetch the PCN list from the configured PLN
+- pick a random PCN from the list
+- form the ms_mgmt.SignedMSList payload
+- send the list to the PCN that was picked using the messenger instance stored in msmsgr
+*/
 func SendSignedList(ctx context.Context, interval time.Duration) {
 	pushSignedPrefix(ctx)
 	pushTicker := time.NewTicker(interval * time.Minute)
@@ -105,12 +118,12 @@ func PullFullNodeList(ctx context.Context, interval time.Duration) {
 	for {
 		select {
 		case <-pushTicker.C:
-			PullNodeListEntry(ctx, "") //"" is considered wildcard.
+			pullNodeListEntry(ctx, "") //"" is considered wildcard.
 		}
 	}
 }
 
-func PullNodeListEntry(ctx context.Context, query string) {
+func pullNodeListEntry(ctx context.Context, query string) {
 	logger := log.FromCtx(ctx)
 	mscrypt := &mscrypto.MSSigner{}
 	err := mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
@@ -203,7 +216,7 @@ func validateAndPersistNLEs(nodeListEntries []pcn_mgmt.NodeListEntry) {
 
 		//verify timestamp
 		if uint64(time.Now().Unix())-msPld.Ms.PushMSListReq.Timestamp >
-			uint64(ms_list_valid_time*time.Hour) {
+			uint64(ms_list_valid_time*time.Minute) {
 			log.Error("msList entry too old. Reject", "Err: ", err)
 			continue
 		}

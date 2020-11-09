@@ -118,9 +118,9 @@ func realMain() int {
 		return 1
 	}
 
+	pcncomm.Init(cfg.Ms.MSListValidTime)
 	go func() {
 		defer log.HandlePanic()
-
 		pcncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime)
 	}()
 

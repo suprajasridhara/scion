@@ -13,7 +13,6 @@ import (
 	"github.com/scionproto/scion/go/cs/ifstate"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
-	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
@@ -65,7 +64,7 @@ func realMain() int {
 	}
 
 	cfg.Metrics.StartPrometheus()
-	intfs, err := setupTopo()
+	_, err := setupTopo()
 	if err != nil {
 		log.Error("PLN setupTopo failed", "err", err)
 		return 1
@@ -73,12 +72,6 @@ func realMain() int {
 	if err := plncmn.Init(cfg.Pln, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("PLN common initialization failed", "err", err)
 		return 1
-	}
-	// Keepalive mechanism is deprecated and will be removed with change to
-	// header v2. Disable with https://github.com/Anapaya/scion/issues/3337.
-	if !cfg.Features.HeaderV2 || true {
-		plnmsgr.Msgr.AddHandler(infra.IfStateReq, ifstate.NewHandler(intfs))
-		plnmsgr.Msgr.AddHandler(infra.IfId, plncmn.IfIdHandler{})
 	}
 
 	go func() {
@@ -96,9 +89,7 @@ func realMain() int {
 	prop := propogator.Propogator{}
 	go func(p propogator.Propogator) {
 		defer log.HandlePanic()
-
-		//TODO (supraja): read the interval from config or constant
-		p.Start(context.Background(), 10)
+		p.Start(context.Background(), cfg.Pln.PropogateInterval)
 	}(prop)
 
 	// Start HTTP endpoints.
@@ -157,15 +148,12 @@ func validateConfig() error {
 }
 
 func setupTopo() (*ifstate.Interfaces, error) {
-	//itopo.Init(&itopo.Config{})
-
 	topo, err := topology.FromJSONFile(cfg.General.Topology())
 	if err != nil {
 		return nil, serrors.WrapStr("loading topology", err)
 	}
 
 	intfs := ifstate.NewInterfaces(topo.IFInfoMap(), ifstate.Config{})
-	//prometheus.MustRegister(ifstate.NewCollector(intfs))
 	itopo.Init(&itopo.Config{
 		ID:  cfg.General.ID,
 		Svc: proto.ServiceType_pln,

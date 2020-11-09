@@ -7,41 +7,42 @@ const msSample = `
 id = "%s"
 
 # IP to listen on (required)
-IP = "127.0.0.65"
+ip = "127.0.0.65"
+
 # Port to listen on (required)
-Port = 3009 
+port = 3009 
+
 # IA the local IA (required)
-IA = "1-ff00:0:110"
+isd_as = "1-ff00:0:110"
 
 #CfgDir directory to read crypto keys from (required)
-CfgDir = "gen/ISD1/ASff00_0_110" 
+cfg_dir = "gen/ISD1/ASff00_0_110" 
 
 #Db to store ms cfg data (default ./ms.db will be created or read from)
-Db = "./ms.db" 
+db = "./ms.db" 
 
 #QUIC address to listen to quic IP:Port (required)
-QUICAddr = "127.0.0.27:20655" 
+quic_addr = "127.0.0.27:20655" 
 
 #CertFile for QUIC socket (required)
-CertFile = "gen-certs/tls.pem" 
+cert_file = "gen-certs/tls.pem" 
 
 #KeyFile for QUIC socket (required)
-KeyFile = "gen-certs/tls.key" 
+key_file = "gen-certs/tls.key" 
 
 #RPKIValidator is the path to the shell scripts that takes 2 arguments,
 #ASID and the prefix to validate (required)
-RPKIValidator = "validator.sh" 
+rpki_validator = "validator.sh" 
 
 #RPKIValidString is the response of the validator script if the ASID and prefix are valid (required)
-RPKIValidString = "valid" 
+rpki_entry_balid = "valid" 
 
 #PLNIA IA of the PLN to contact for PCN lists (required)
-PLNIA = "1-ff00:0:110"
+pln_isd_as = "1-ff00:0:110"
 
 #MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
-MSListValidTime = 10080
+ms_list_valid_time = 10080
 
 #MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day
-MSPullListInterval = 1440
-
+ms_pull_list_interval = 1440
 `

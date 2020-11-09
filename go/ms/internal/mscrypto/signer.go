@@ -65,7 +65,6 @@ func (m *MSSigner) getChains(ctx context.Context,
 	skid, _ := cppki.SubjectKeyID(key.Public())
 
 	req := &cert_mgmt.ChainReq{RawIA: m.IA.IAInt(), SubjectKeyID: skid, RawDate: date.Unix()}
-	//TODO_Q (supraja): generate id randomly?
 	rawChains, err := m.Msgr.GetCertChain(ctx, req, addr, rand.Uint64())
 	if err != nil {
 		return nil, serrors.WrapStr("Error in getChains", err)
@@ -76,7 +75,6 @@ func (m *MSSigner) getChains(ctx context.Context,
 }
 func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
-	//TODO_Q (supraja): generate id randomly?
 	//TODO (supraja): replace hardcoded id
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, rand.Uint64())

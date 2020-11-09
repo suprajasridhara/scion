@@ -25,8 +25,7 @@ func SendNodeList(ctx context.Context, address net.Addr,
 		for _, nle := range fullNodeList {
 			nodeListEntries = append(nodeListEntries,
 				*pcn_mgmt.NewNodeListEntry(
-					common.RawBytes(*nle.MsList), nle.CommitId.String)
-				)
+					common.RawBytes(*nle.MsList), nle.CommitId.String))
 		}
 
 		timestamp := time.Now()
@@ -41,8 +40,6 @@ func SendNodeList(ctx context.Context, address net.Addr,
 			return serrors.WrapStr("Error getting signer", err)
 		}
 		Msgr.UpdateSigner(signer, []infra.MessageType{infra.NodeList})
-
-		//TODO_Q (supraja): random Id?
 		err = Msgr.SendNodeList(context.Background(), pld, address, id)
 		if err != nil {
 			return serrors.WrapStr("Error sending node list", err)

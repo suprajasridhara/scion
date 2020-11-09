@@ -19,22 +19,17 @@ import (
 )
 
 var (
-	IA       addr.IA
-	CtrlAddr net.IP
-	CtrlPort int
+	IA addr.IA
 )
 
 func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) error {
-	CtrlAddr = cfg.IP
-	CtrlPort = int(cfg.CtrlPort)
-
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
 		return serrors.WrapStr("Error in Init mscmn", err)
 	}
 	nc := infraenv.NetworkConfig{
 		IA:                    cfg.IA,
-		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.CtrlPort)},
+		Public:                &net.UDPAddr{IP: cfg.IP, Port: int(cfg.Port)},
 		SVC:                   addr.SvcPLN,
 		ReconnectToDispatcher: true,
 		QUIC: infraenv.QUIC{

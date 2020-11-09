@@ -96,10 +96,10 @@ type MsConf struct {
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 
 	//MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
-	MSListValidTime time.Duration
+	MSListValidTime time.Duration `toml:"ms_list_valid_time,omitempty"`
 
 	//MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day
-	MSPullListInterval time.Duration
+	MSPullListInterval time.Duration ` toml:"ms_pull_list_interval,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
