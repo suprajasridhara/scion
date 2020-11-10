@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "mscomm.go",
+        "pcncomm.go",
+        "pld.go",
+        "plncomm.go",
+        "union.go",
+    ],
+    importpath = "github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/lib/common:go_default_library",
+        "//go/lib/ctrl/pln_mgmt:go_default_library",
+        "//go/proto:go_default_library",
+    ],
+)

@@ -26,7 +26,10 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ack"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/proto"
@@ -144,6 +147,18 @@ const (
 	HPSegReply
 	HPCfgRequest
 	HPCfgReply
+	MSFullMapRequest
+	MSFullMapReply
+	ASActionRequest
+	ASActionReply
+	PlnListRequest
+	PlnListReply
+	AddPLNEntryRequest
+	PushMSListRequest
+	PushMSListReply
+	OkMessage
+	NodeList
+	NodeListEntryRequest
 )
 
 func (mt MessageType) String() string {
@@ -190,6 +205,31 @@ func (mt MessageType) String() string {
 		return "HPCfgRequest"
 	case HPCfgReply:
 		return "HPCfgReply"
+	case MSFullMapRequest:
+		return "MSFullMapRequest"
+	case MSFullMapReply:
+		return "MSFullMapReply"
+	case ASActionRequest:
+		return "ASActionRequest"
+	case ASActionReply:
+		return "ASActionReply"
+	case PlnListRequest:
+		return "PlnListRequest"
+	case PlnListReply:
+		return "PlnListReply"
+	case AddPLNEntryRequest:
+		return "AddPLNEntryRequest"
+	case PushMSListRequest:
+		return "PushMSListRequest"
+	case PushMSListReply:
+		return "PushMSListReply"
+	case OkMessage:
+		return "OkMessage"
+	case NodeList:
+		return "NodeList"
+	case NodeListEntryRequest:
+		return "NodeListEntryRequest"
+
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -241,6 +281,30 @@ func (mt MessageType) MetricLabel() string {
 		return "hp_cfg_req"
 	case HPCfgReply:
 		return "hp_cfg_push"
+	case MSFullMapRequest:
+		return "ms_full_map_req"
+	case MSFullMapReply:
+		return "ms_full_map_push"
+	case ASActionRequest:
+		return "ms_as_action_req"
+	case ASActionReply:
+		return "ms_as_action_push"
+	case PlnListRequest:
+		return "pln_list_req"
+	case PlnListReply:
+		return "pln_list_rep"
+	case AddPLNEntryRequest:
+		return "add_pln_entry_req"
+	case PushMSListRequest:
+		return "push_ms_list_req"
+	case PushMSListReply:
+		return "push_ms_list_rep"
+	case OkMessage:
+		return "ok_message"
+	case NodeList:
+		return "node_list"
+	case NodeListEntryRequest:
+		return "node_list_entry_req"
 	default:
 		return "unknown_mt"
 	}
@@ -322,7 +386,31 @@ type Messenger interface {
 		id uint64) (*cert_mgmt.ChainRenewalReply, error)
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
-	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
+	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr,
+		id uint64) error
+	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ms_mgmt.FullMapRep, error)
+	SendFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) error
+	GetPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SignedMSListRep(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) error
+	SendNodeListRequest(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SendOkMessage(ctx context.Context, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)

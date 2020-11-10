@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "common.go",
+        "msghandlers.go",
+    ],
+    importpath = "github.com/scionproto/scion/go/ms/internal/mscmn",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/dispatcher/dispatcher:go_default_library",
+        "//go/lib/addr:go_default_library",
+        "//go/lib/env:go_default_library",
+        "//go/lib/infra:go_default_library",
+        "//go/lib/infra/infraenv:go_default_library",
+        "//go/lib/infra/messenger:go_default_library",
+        "//go/lib/infra/modules/itopo:go_default_library",
+        "//go/lib/log:go_default_library",
+        "//go/lib/pathmgr:go_default_library",
+        "//go/lib/sciond:go_default_library",
+        "//go/lib/sciond/fake:go_default_library",
+        "//go/lib/serrors:go_default_library",
+        "//go/lib/snet:go_default_library",
+        "//go/lib/sock/reliable:go_default_library",
+        "//go/ms/internal/mscrypto:go_default_library",
+        "//go/ms/internal/msmsgr:go_default_library",
+        "//go/ms/internal/validator:go_default_library",
+        "//go/ms/plncomm:go_default_library",
+        "//go/ms/sigcomm:go_default_library",
+        "//go/pkg/ms/config:go_default_library",
+    ],
+)

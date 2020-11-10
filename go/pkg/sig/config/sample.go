@@ -40,4 +40,32 @@ tun = "sig"
 
 # Id of the routing table. (default 11)
 tun_routing_table_id = 11
+
+#Config directory to read crypto material from 
+cfg_dir = "etc/gen/ISD1/ASff00_0_113"
+
+#DB file to read/store sig configuration data (default ./sig.db)
+db = ./sig.db
+
+#UDP port to open a messenger connection on
+udp_port = 30955
+
+#QUIC IP:Port
+quic_addr = "192.0.2.111:20655"
+
+#CertFile for QUIC socket
+cert_file = "/etc/gen-certs/tls.pem"
+
+#KeyFile for QUIC socket
+key_file = "/etc/gen-certs/tls.key"
+
+#PrefixFile contains the list of prefixes that should be pushed to a 
+#Mapping service in the ISD. This file is scanned periodically for changes
+prefix_file = "/etc/scion/sig/prefixes.json"
+
+#PrefixPushInterval in minutes is the interval between 2 consecutive 
+#pushes of prefixes to the mapping service. default (60)
+prefix_push_interval = 60 
+
+
 `

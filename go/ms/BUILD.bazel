@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//:scion.bzl", "scion_go_binary")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/scionproto/scion/go/ms",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/cs/ifstate:go_default_library",
+        "//go/lib/env:go_default_library",
+        "//go/lib/fatal:go_default_library",
+        "//go/lib/infra:go_default_library",
+        "//go/lib/infra/infraenv:go_default_library",
+        "//go/lib/infra/modules/itopo:go_default_library",
+        "//go/lib/log:go_default_library",
+        "//go/lib/prom:go_default_library",
+        "//go/lib/serrors:go_default_library",
+        "//go/lib/topology:go_default_library",
+        "//go/ms/internal/mscmn:go_default_library",
+        "//go/ms/internal/msmsgr:go_default_library",
+        "//go/ms/internal/sqlite3:go_default_library",
+        "//go/ms/pcncomm:go_default_library",
+        "//go/pkg/ms/config:go_default_library",
+        "//go/pkg/service:go_default_library",
+        "//go/proto:go_default_library",
+        "@com_github_burntsushi_toml//:go_default_library",
+    ],
+)
+
+scion_go_binary(
+    name = "ms",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

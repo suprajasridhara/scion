@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["rpkivalidator.go"],
+    importpath = "github.com/scionproto/scion/go/ms/internal/validator",
+    visibility = ["//visibility:public"],
+)

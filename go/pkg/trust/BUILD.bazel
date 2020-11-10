@@ -15,6 +15,7 @@ go_library(
         "rpc.go",
         "signer.go",
         "signer_gen.go",
+        "signer_gen_no_db.go",
         "store.go",
         "verifier.go",
     ],

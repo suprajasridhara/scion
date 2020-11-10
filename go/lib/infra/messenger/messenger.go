@@ -73,6 +73,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -88,7 +89,10 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ctrl_msg"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pcn_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/disp"
@@ -147,7 +151,8 @@ type Messenger struct {
 	// Networking layer for sending and receiving messages
 	dispatcher *disp.Dispatcher
 
-	// addressRewriter is used to compute full remote addresses (path + server)
+	// addressRewriter is used to compute
+	// full remote addresses (path + server)
 	addressRewriter *AddressRewriter
 
 	cryptoLock sync.RWMutex
@@ -230,7 +235,26 @@ func New(config *Config) *Messenger {
 	}
 }
 
-func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id uint64) error {
+func (m *Messenger) SendFullMap(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.MSFullMapReply,
+		"msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.MSFullMapReply)
+}
+
+func (m *Messenger) SendOkMessage(ctx context.Context,
+	a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.OkMessage,
+		"msg_id", id, "request", nil, "peer", a)
+	msmgmtPld, _ := ms_mgmt.NewPld(1, &ms_mgmt.OkMessage{Ok: "ok"})
+
+	return m.sendMessage(ctx, msmgmtPld, a, id, infra.OkMessage)
+}
+
+func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack,
+	a net.Addr, id uint64) error {
 	pld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: id})
 	if err != nil {
 		return err
@@ -238,6 +262,152 @@ func (m *Messenger) SendAck(ctx context.Context, msg *ack.Ack, a net.Addr, id ui
 	logger := log.FromCtx(ctx)
 	logger.Debug("[Messenger] Sending Ack", "to", a, "id", id)
 	return m.getFallbackRequester(infra.Ack).Notify(ctx, pld, a)
+}
+
+func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pcn_mgmt.Pld,
+	a net.Addr, id uint64) error {
+	//TODO_Q (supraja): generate random ReqId ?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12424322})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.AddPLNEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	_, err := m.getFallbackRequester(infra.AddPLNEntryRequest).Request(ctx, pld, a, false)
+	logger.Info("[Messenger] Got response", "req_type", infra.AddPLNEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	if err != nil {
+		return common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.AddPLNEntryRequest)
+	}
+	return nil
+}
+
+func (m *Messenger) SendSignedMSList(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.PushMSListRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PushMSListRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.PushMSListRequest)
+	}
+	logger.Info("[Messenger] Got response request", "req_type", infra.PushMSListRequest,
+		"msg_id", id, "response", nil, "peer", a)
+	return replyCtrlPld, nil
+}
+
+func (m *Messenger) SignedMSListRep(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", infra.PushMSListReply,
+		"msg_id", id, "request", nil, "peer", a)
+
+	return m.sendMessage(ctx, msg, a, id, infra.PushMSListReply)
+}
+func (m *Messenger) SendNodeList(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending nodeList", "rep_type", infra.NodeList,
+		"msg_id", id, "request", nil, "peer", a)
+
+	return m.sendMessage(ctx, msg, a, id, infra.NodeList)
+}
+
+func (m *Messenger) SendNodeListRequest(ctx context.Context, msg *pcn_mgmt.Pld, a net.Addr,
+	id uint64) (*ctrl.SignedPld, error) {
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12235754})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.NodeListEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.NodeListEntryRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.NodeListEntryRequest)
+	}
+	logger.Info("[Messenger] Got response request", "rep_type", infra.NodeList,
+		"msg_id", id, "response", nil, "peer", a)
+	return replyCtrlPld, nil
+}
+
+func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+	//TODO_Q (supraja): generate random ReqId ?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: 12})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.ASActionRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.ASActionRequest)
+	}
+	return replyCtrlPld, nil
+
+}
+
+func (m *Messenger) SendASMSRepToken(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type",
+		infra.ASActionReply, "msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.ASActionReply)
+}
+
+//GetPlnList fetches the pln list form the PLN and returns the payload with the
+//signature from the destination AS. The caller should verify the signature
+func (m *Messenger) GetPlnList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+	//TODO_Q (supraja): Generate random ReqId?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.PlnListRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.PlnListRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.PlnListRequest)
+	}
+	return replyCtrlPld, nil
+}
+
+func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending message", "req_type", infra.PlnListReply,
+		"msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, infra.PlnListReply)
+}
+
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ms_mgmt.FullMapRep, error) {
+	//TODO_Q (supraja): Generate random ReqId?
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.MSFullMapRequest).Request(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.MSFullMapRequest)
+	}
+	_, replyMsg, err := Validate(replyCtrlPld)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Reply validation failed", err)
+	}
+	//print(replyMsg.(type))
+	switch reply := replyMsg.(type) {
+	case *ms_mgmt.FullMapRep:
+		logger.Debug("[Messenger] Received reply", "req_id", id, "reply", reply)
+		return reply, nil
+	default:
+		err := newTypeAssertErr("*ms_mgmt.Pld", replyMsg)
+		return nil, common.NewBasicError("[Messenger] Type assertion failed", err)
+	}
 }
 
 func (m *Messenger) GetTRC(ctx context.Context, msg *cert_mgmt.TRCReq,
@@ -272,7 +442,8 @@ func (m *Messenger) GetTRC(ctx context.Context, msg *cert_mgmt.TRCReq,
 	}
 }
 
-func (m *Messenger) SendTRC(ctx context.Context, msg *cert_mgmt.TRC, a net.Addr, id uint64) error {
+func (m *Messenger) SendTRC(ctx context.Context, msg *cert_mgmt.TRC,
+	a net.Addr, id uint64) error {
 	pld, err := cert_mgmt.NewPld(msg, nil)
 	if err != nil {
 		return err
@@ -322,7 +493,8 @@ func (m *Messenger) SendCertChain(ctx context.Context, msg *cert_mgmt.Chain, a n
 	return m.sendMessage(ctx, pld, a, id, infra.Chain)
 }
 
-func (m *Messenger) SendIfId(ctx context.Context, msg *ifid.IFID, a net.Addr, id uint64) error {
+func (m *Messenger) SendIfId(ctx context.Context, msg *ifid.IFID,
+	a net.Addr, id uint64) error {
 	return m.sendMessage(ctx, msg, a, id, infra.IfId)
 }
 
@@ -892,6 +1064,26 @@ func (pr *pathingRequester) Request(ctx context.Context, pld *ctrl.Pld,
 	return pld, err
 }
 
+func (pr *pathingRequester) RequestWithSign(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr, downgradeToNotify bool) (*ctrl.SignedPld, error) {
+
+	newAddr, redirect, err := pr.addressRewriter.RedirectToQUIC(ctx, a)
+	if err != nil {
+		return nil, err
+	}
+	logger := log.FromCtx(ctx)
+	if redirect && pr.quicRequester != nil {
+		logger.Debug("Request upgraded to QUIC", "remote", newAddr)
+		return pr.quicRequester.RequestSigned(ctx, pld, newAddr)
+	}
+	logger.Debug("Request could not be upgraded to QUIC, using UDP", "remote", newAddr)
+	if downgradeToNotify {
+		return nil, pr.requester.Notify(ctx, pld, newAddr)
+	}
+	spld, err := pr.requester.RequestWithSign(ctx, pld, newAddr)
+	return spld, err
+}
+
 func (pr *pathingRequester) Notify(ctx context.Context, pld *ctrl.Pld, a net.Addr) error {
 	newAddr, _, err := pr.addressRewriter.RedirectToQUIC(ctx, a)
 	if err != nil {
@@ -951,6 +1143,45 @@ func (r *QUICRequester) Request(ctx context.Context, pld *ctrl.Pld,
 		return nil, err
 	}
 	return replyPld, nil
+}
+
+func (r *QUICRequester) RequestSigned(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*ctrl.SignedPld, error) {
+
+	// FIXME(scrye): Rely on QUIC for security for now. This needs to do
+	// additional verifications in the future.
+	newAddr, _, err := r.AddressRewriter.RedirectToQUIC(ctx, a)
+	if err != nil {
+		return nil, err
+	}
+
+	signedPld, err := pld.SignedPld(ctx, r.Signer)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := SignedPldToMsg(signedPld)
+	if err != nil {
+		return nil, err
+	}
+
+	request := &rpc.Request{Message: msg}
+	reply, err := r.QUICClientConfig.Request(ctx, request, newAddr)
+	log.FromCtx(ctx).Debug("QUICRequester", "err", err)
+	if err != nil {
+		return nil, err
+	}
+
+	replySignedPld, err := MsgToSignedPld(reply.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	// replyPld, err := replySignedPld.UnsafePld()
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	return replySignedPld, nil
 }
 
 // Validate checks that msg is one of the acceptable message types for SCION
@@ -1015,6 +1246,52 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		}
 	case proto.CtrlPld_Which_ack:
 		return infra.Ack, pld.Ack, nil
+	case proto.CtrlPld_Which_ms:
+		switch pld.Ms.Which {
+		case proto.MS_Which_fullMapReq:
+			return infra.MSFullMapRequest, pld.Ms.FullMapReq, nil
+		case proto.MS_Which_fullMapRep:
+			return infra.MSFullMapReply, pld.Ms.FullMapRep, nil
+		case proto.MS_Which_asActionReq:
+			return infra.ASActionRequest, pld.Ms.AsActionReq, nil
+		case proto.MS_Which_asActionRep:
+			return infra.ASActionReply, pld.Ms.AsActionRep, nil
+		case proto.MS_Which_pushMSListReq:
+			return infra.PushMSListRequest, pld.Ms.PushMSListReq, nil
+		case proto.MS_Which_okMessage:
+			return infra.OkMessage, pld.Ms.OkMessage, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",
+					nil, "capnp_which", pld.Ms.Which)
+		}
+	case proto.CtrlPld_Which_pln:
+		switch pld.Pln.Which {
+		case proto.PLN_Which_plnList:
+			return infra.PlnListReply, pld.Pln.PlnList, nil
+		case proto.PLN_Which_msListReq:
+			return infra.PlnListRequest, pld.Pln.MsListReq, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pln.Xxx message type",
+					nil, "capnp_which", pld.Pln.Which)
+		}
+	case proto.CtrlPld_Which_pcn:
+		switch pld.Pcn.Which {
+		case proto.PCN_Which_addPLNEntryRequest:
+			return infra.AddPLNEntryRequest, pld.Pcn.AddPLNEntryRequest, nil
+		case proto.PCN_Which_msListRep:
+			return infra.PushMSListReply, pld.Pcn.MSListRep, nil
+		case proto.PCN_Which_nodeList:
+			return infra.NodeList, pld.Pcn.NodeList, nil
+		case proto.PCN_Which_nodeListEntryRequest:
+			return infra.NodeListEntryRequest, pld.Pcn.NodeListEntryRequest, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pcn.Xxx message type",
+					nil, "capnp_which", pld.Pln.Which)
+		}
+
 	default:
 		return infra.None, nil, common.NewBasicError("Unsupported SignedPld.Pld.Xxx message type",
 			nil, "capnp_which", pld.Which)

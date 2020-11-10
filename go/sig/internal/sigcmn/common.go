@@ -25,6 +25,10 @@ import (
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl/sig_mgmt"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
+	"github.com/scionproto/scion/go/lib/infra/infraenv"
+	"github.com/scionproto/scion/go/lib/infra/messenger"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/pathmgr"
 	"github.com/scionproto/scion/go/lib/sciond/fake"
@@ -55,6 +59,7 @@ var (
 	DataAddr   net.IP
 	DataPort   int
 	CtrlConn   *snet.Conn
+	Msgr       infra.Messenger
 )
 
 func Init(cfg sigconfig.SigConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -120,6 +125,7 @@ func initNetworkWithRealSCIOND(cfg sigconfig.SigConf,
 	deadline := time.Now().Add(sdCfg.InitialConnectPeriod.Duration)
 	var retErr error
 	for tries := 0; time.Now().Before(deadline); tries++ {
+		log.Info(sdCfg.Address)
 		resolver, err := snetmigrate.ResolverFromSD(sdCfg.Address, sdCfg.PathCount)
 		if err == nil {
 			return &snet.SCIONNetwork{
@@ -170,4 +176,32 @@ func ValidatePort(desc string, port int) error {
 func GetMgmtAddr() sig_mgmt.Addr {
 	return *sig_mgmt.NewAddr(addr.HostFromIP(CtrlAddr), uint16(CtrlPort),
 		addr.HostFromIP(DataAddr), uint16(DataPort))
+}
+
+func SetupMessenger(cfg sigconfig.Config) error {
+	log.Info("Starting messenger initialization")
+	router, err := infraenv.NewRouter(cfg.Sig.IA, cfg.Sciond)
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch router", err)
+	}
+	nc := infraenv.NetworkConfig{
+		IA:                    cfg.Sig.IA,
+		Public:                &net.UDPAddr{IP: cfg.Sig.IP, Port: int(cfg.Sig.UDPPort)},
+		SVC:                   addr.SvcWildcard,
+		ReconnectToDispatcher: true,
+		QUIC: infraenv.QUIC{
+			Address:  cfg.Sig.QUICAddr,
+			CertFile: cfg.Sig.CertFile,
+			KeyFile:  cfg.Sig.KeyFile,
+		},
+		Router:    router,
+		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
+	}
+	Msgr, err = nc.Messenger()
+	if err != nil {
+		return serrors.WrapStr("Unable to fetch Messenger", err)
+	}
+	log.Info("Messenger initiliased successfully")
+
+	return nil
 }

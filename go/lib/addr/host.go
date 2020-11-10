@@ -71,10 +71,12 @@ const (
 	SvcSB       HostSVC = 0x0003
 	SvcSIG      HostSVC = 0x0004
 	SvcHPS      HostSVC = 0x0005
+	SvcMS       HostSVC = 0x0006
+	SvcPLN      HostSVC = 0x0007
+	SvcPCN      HostSVC = 0x0008
 	SvcWildcard HostSVC = 0x0010
 	SvcNone     HostSVC = 0xffff
-
-	SVCMcast HostSVC = 0x8000
+	SVCMcast    HostSVC = 0x8000
 )
 
 type HostAddr interface {
@@ -215,6 +217,12 @@ func HostSVCFromString(str string) HostSVC {
 		return SvcSB | m
 	case "SIG":
 		return SvcSIG | m
+	case "MS":
+		return SvcMS | m
+	case "PLN":
+		return SvcPLN | m
+	case "PCN":
+		return SvcPCN | m
 	case "Wildcard":
 		return SvcWildcard | m
 	default:
@@ -290,6 +298,12 @@ func (h HostSVC) BaseString() string {
 		return "SB"
 	case SvcSIG:
 		return "SIG"
+	case SvcMS:
+		return "MS"
+	case SvcPLN:
+		return "PLN"
+	case SvcPCN:
+		return "PCN"
 	case SvcWildcard:
 		return "Wildcard"
 	default:

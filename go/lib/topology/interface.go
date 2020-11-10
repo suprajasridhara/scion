@@ -247,6 +247,13 @@ func (t *topologyS) topoAddress(svc addr.HostSVC, name string) *TopoAddr {
 		addresses = t.Topology.CS
 	case addr.SvcSIG:
 		addresses = t.Topology.SIG
+	case addr.SvcMS:
+		addresses = t.Topology.MS
+	case addr.SvcPLN:
+		addresses = t.Topology.PLN
+	case addr.SvcPCN:
+		addresses = t.Topology.PCN
+
 	}
 	if addresses == nil {
 		return nil
@@ -312,7 +319,8 @@ func (t *topologyS) UnderlayAnycast(svc addr.HostSVC) (*net.UDPAddr, error) {
 
 func supportedSVC(svc addr.HostSVC) bool {
 	b := svc.Base()
-	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG
+	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG ||
+		b == addr.SvcMS || b == addr.SvcPLN || b == addr.SvcPCN
 }
 
 func (t *topologyS) UnderlayMulticast(svc addr.HostSVC) ([]*net.UDPAddr, error) {
@@ -372,6 +380,12 @@ func toProtoServiceType(svc addr.HostSVC) (proto.ServiceType, error) {
 		return proto.ServiceType_cs, nil
 	case addr.SvcSIG:
 		return proto.ServiceType_sig, nil
+	case addr.SvcMS:
+		return proto.ServiceType_ms, nil
+	case addr.SvcPLN:
+		return proto.ServiceType_pln, nil
+	case addr.SvcPCN:
+		return proto.ServiceType_pcn, nil
 	default:
 		// FIXME(scrye): Return this error because some calling code in the BR searches for it.
 		// Ideally, the error should be communicated in a more explicit way.
@@ -407,6 +421,12 @@ func (t *topologyS) SVCNames(svc addr.HostSVC) ServiceNames {
 		m = t.Topology.CS
 	case addr.SvcSIG:
 		m = t.Topology.SIG
+	case addr.SvcMS:
+		m = t.Topology.MS
+	case addr.SvcPLN:
+		m = t.Topology.PLN
+	case addr.SvcPCN:
+		m = t.Topology.PCN
 	}
 
 	var names ServiceNames

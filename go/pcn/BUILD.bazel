@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/scionproto/scion/go/pcn",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/cs/ifstate:go_default_library",
+        "//go/lib/addr:go_default_library",
+        "//go/lib/env:go_default_library",
+        "//go/lib/fatal:go_default_library",
+        "//go/lib/infra:go_default_library",
+        "//go/lib/infra/infraenv:go_default_library",
+        "//go/lib/infra/modules/itopo:go_default_library",
+        "//go/lib/log:go_default_library",
+        "//go/lib/prom:go_default_library",
+        "//go/lib/serrors:go_default_library",
+        "//go/lib/topology:go_default_library",
+        "//go/pcn/internal/pcncmn:go_default_library",
+        "//go/pcn/internal/pcnmsgr:go_default_library",
+        "//go/pcn/internal/sqlite:go_default_library",
+        "//go/pcn/pcncomm:go_default_library",
+        "//go/pcn/plncomm:go_default_library",
+        "//go/pkg/pcn/config:go_default_library",
+        "//go/pkg/service:go_default_library",
+        "//go/proto:go_default_library",
+        "@com_github_burntsushi_toml//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "pcn",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

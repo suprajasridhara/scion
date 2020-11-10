@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/config"
@@ -34,6 +35,7 @@ const (
 )
 
 type Config struct {
+	General  env.General `toml:"general ,omitempty"`
 	Features env.Features
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
@@ -99,6 +101,32 @@ type SigConf struct {
 	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
 	// instead.
 	DispatcherBypass string `toml:"disaptcher_bypass,omitempty"`
+
+	//config directory to read crypto keys from
+	CfgDir string `toml:"cfg_dir,omitempty"`
+
+	//db to store sig cfg data (default ./sig.db will be created or read from)
+	Db string `toml:"db,omitempty"`
+
+	//UDP port to open a messenger connection on
+	UDPPort uint16 `toml:"udp_port,omitempty"`
+
+	//QUIC IP:Port
+	QUICAddr string `toml:"quic_addr,omitempty"`
+
+	//CertFile for QUIC socket
+	CertFile string `toml:"cert_file,omitempty"`
+
+	//KeyFile for QUIC socket
+	KeyFile string `toml:"key_file,omitempty"`
+
+	//PrefixFile contains the list of prefixes that should be
+	//pushed to a Mapping service in the ISD. This file is scanned periodically for changes
+	PrefixFile string `toml:"prefix_file,omitempty"`
+
+	//PrefixPushInterval in minutes is the interval between
+	//2 consecutive pushes of prefixes to the mapping service. default (60)
+	PrefixPushInterval time.Duration `toml:"prefix_push_interval,omitempty"`
 }
 
 // InitDefaults sets the default values to unset values.
@@ -122,6 +150,12 @@ func (cfg *SigConf) Validate() error {
 	if cfg.IP.IsUnspecified() {
 		return serrors.New("ip must be set")
 	}
+	if cfg.CfgDir == "" {
+		return serrors.New("sig cfg_dir should be set")
+	}
+	if cfg.PrefixFile == "" {
+		return serrors.New("prefix_file should be set")
+	}
 	if cfg.CtrlPort == 0 {
 		cfg.CtrlPort = DefaultCtrlPort
 	}
@@ -133,6 +167,12 @@ func (cfg *SigConf) Validate() error {
 	}
 	if cfg.TunRTableId == 0 {
 		cfg.TunRTableId = DefaultTunRTableId
+	}
+	if cfg.Db == "" {
+		cfg.Db = "/sig.db"
+	}
+	if cfg.PrefixPushInterval == 0 {
+		cfg.PrefixPushInterval = 60
 	}
 	return nil
 }

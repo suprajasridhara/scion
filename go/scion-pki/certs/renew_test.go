@@ -103,7 +103,7 @@ func TestBuildMsgr(t *testing.T) {
 		local, remote string
 	}{
 		"valid": {
-			dp:     reliable.NewDispatcher("[127.0.0.19]:30255"),
+			dp:     reliable.NewDispatcher("[127.0.0.11]:30255"),
 			sd:     sciond.NewService("/run/shm/dispatcher/default.sock"),
 			local:  "1-ff00:0:111,[127.0.0.18]:0",
 			remote: "1-ff00:0:110,[127.0.0.11]:4001",
