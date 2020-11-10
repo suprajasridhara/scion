@@ -108,13 +108,15 @@ type MsConf struct {
 	//ASID and the prefix to validate (required)
 	RPKIValidator string `toml:"rpki_validator,omitempty"`
 
-	//RPKIValidString is the response of the validator script if the ASID and prefix are valid (required)
+	//RPKIValidString is the response of the validator script if the
+	//ASID and prefix are valid (required)
 	RPKIValidString string `toml:"rpki_entry_valid,omitempty"`
 
 	//PLNIA IA of the PLN to contact for PCN lists (required)
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 
-	//MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
+	//MSListValidTime time for which a published ms list is
+	//valid in minutes (default = 10080) 1 week
 	MSListValidTime time.Duration `toml:"ms_list_valid_time,omitempty"`
 
 	//MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day

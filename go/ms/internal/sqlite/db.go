@@ -48,7 +48,8 @@ func NewFromDB(db *sql.DB) *DB {
 	}
 }
 
-//GetFullMap reads the full_map entries from the database and parses it to return a slice of FullMapRow objects
+//GetFullMap reads the full_map entries from the database and parses it
+//to return a slice of FullMapRow objects
 func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	e.RLock()
 	defer e.RUnlock()
@@ -110,7 +111,6 @@ func (e *executor) DeleteFullMapEntryById(ctx context.Context, id int) (sql.Resu
 	}
 	return res, nil
 }
-
 
 //InsertNewEntry inserts a row into the new_entries table
 func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result, error) {
