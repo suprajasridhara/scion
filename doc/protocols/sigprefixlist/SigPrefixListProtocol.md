@@ -1,15 +1,18 @@
 # SIG Prefix List Protocol
 
 ## Overview
-The protocol is designed to enable SIGs to automatically fetch IP prefix to AS ID mappings. It uses a distributed coordinated infrastructure with the following design and security goals. 
+The protocol is designed to enable SIGs to automatically fetch IP prefix to IA mappings. It uses a distributed coordinated infrastructure with the following design and security goals. 
 
 The system should
-- Be reselient to hijacking attacks 
-- Be resilient to flooding attacks on SIGs
-- Be resilient to downgrade attacks to IP internet where SCION connections are possible
-- Not be a single point of failure
+- Be resilient to hijacking attacks 
+    - an AS should not be able to add mappings for IP prefixes that it does not own
+- Be resilient to flooding attacks on SIGs 
+    - allowing an AS to only create mappings for IP prefixes it owns also ensures that malicious ASes cannot launch flooding attacks on SIGs by creating false mappings
+- Be resilient to downgrade attacks to IP Internet where SCION connections are possible
+- Not be a single point of failure 
+    - the system architecture should ensure high availability
 
-To acheive the above properties the following services are used
+To achieve the above properties the following services are used
 - Mapping Service (MS)
 - SCION Internet Gateway (SIG)
 
@@ -22,12 +25,12 @@ To acheive the above properties the following services are used
 The SIG can perform the following actions:
 
 - Get mapping from Mapping Service:
-    - A SIG that requires a mapping from an ASID to an IP prefix queries the Mapping Service in CoreASs. 
+    - A SIG that requires a mapping from an IA to an IP prefix queries the Mapping Service in Core ASes. 
 - Add mapping 
-    - To add a mapping for the AS that the SIG is deployed it, it submits the mapping to a Mapping Service in the CoreASs.
+    - To add a mapping for the AS that the SIG is deployed in, it submits the mapping to a Mapping Service in the Core ASes.
 
 ### Mapping Service (MS)
-A MS should be deployed in atleast one Core AS of an ISD that supports the use of SIGs.
+A MS should be deployed in at least one Core AS of an ISD that supports the use of SIGs.
 
 The Mapping services performs the following actions: 
 - Submit lists of mappings to Publishing Infrastructure  
@@ -49,7 +52,7 @@ It performs the following actions:
 - Reply to PCN list queries from MSs and PCNs
 
 #### Publishing Consensus Node (PCN)
-This service stores lists with mappings that it recieves from MSs and lists that it recieves from other PCNs through gossip. 
+This service stores lists with mappings that it receives from MSs and lists that it receives from other PCNs through gossip. 
 
 It performs the following actions:
 - Accepts mapping lists from MS and store it 
@@ -60,7 +63,7 @@ It performs the following actions:
 ## Security 
 To prevent hijacking attacks the protocol uses RPKI trust anchors to validate IP prefix - AS mappings and ascertain ownership of IP prefixes.
 
-To prevent flodding attacks against SIGs it is essential to enforce that an AS can create mappings only for itself. For this, the protocol uses the SCION control plane PKI.
+To prevent flooding attacks against SIGs it is essential to enforce that an AS can create mappings only for itself. For this, the protocol uses the SCION control plane PKI.
 
 To prevent downgrade attacks, a mapping entry in the system must always be returned and empty responses should be authenticated by a minimum number of PCNs. 
 
