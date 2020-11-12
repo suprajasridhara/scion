@@ -1,5 +1,5 @@
 # Publishing Consensus Node
-The Publishing Consensus Node (PCN) accepts mapping lists from [MSs](./MappingService.md) and stores them. It then uses gossip to propogate these lists to other PCNs near it. It responds to list queries from MSs. 
+The Publishing Consensus Node (PCN) accepts mapping lists from [MSs](./MappingService.md) and stores them. It then uses gossip to propagate these lists to other PCNs near it. It responds to list queries from MSs. 
 
 ## Deployment 
 To deploy a PCN instance run the following command from [go/pcn](../../../go/pcn) folder
@@ -25,10 +25,10 @@ It reuses existing packages to build up the service
 - [go/lib/infra](../../../go/pkg/trust) : Is used for the messenger to send and receive messages.
 
 ### Main folders in PCN
-- [go/pcn/internal](../../../go/pcn/internal): It contains functionality internal to the Mapping Service and required for its functioning. 
-    - [pcncmn](../../../go/pcn/internal/mscmn): performs actions common to all blocks of the mapping service. It initializes the network, establishes a connection to SCIOND, initializes an instance of the messenger and registers handlers. Additionally it saves some state to be used by other packages.
-    - [pcncrypto](../../../go/pcn/internal/mscrypto): this is a  wrapper for [go/pkg/trust](../../../go/pkg/trust) 
-    - [pcnmsgr](../../../go/pcn/internal/msmsgr):this is a wrapper for [go/pkg/infra](../../../go/pkg/infra) and also stores an instance of the messenger
+- [go/pcn/internal](../../../go/pcn/internal): It contains functionality internal to the PCN and required for its functioning. 
+    - [pcncmn](../../../go/pcn/internal/pcncmn): performs actions common to all blocks of the PCN. It initializes the network, establishes a connection to SCIOND, initializes an instance of the messenger and registers handlers. Additionally it saves some state to be used by other packages.
+    - [pcncrypto](../../../go/pcn/internal/pcncrypto): this is a  wrapper for [go/pkg/trust](../../../go/pkg/trust) 
+    - [pcnmsgr](../../../go/pcn/internal/pcnmsgr):this is a wrapper for [go/pkg/infra](../../../go/pkg/infra) and also stores an instance of the messenger
     - [sqlite](../../../go/pcn/internal/sqlite): handles all database operations for the PCN
 
 The other folders are meant for communication with other services in the protocol. They also contain the handlers for various messages. 
