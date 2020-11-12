@@ -1,5 +1,5 @@
 # Publishing List Node
-The Publishing List Node (PLN) is responsible for discovering [PCNs](./PublishingConsensusNode.md). It uses a gossip protocol with other PLN instances near it and accumulates a list of PCNs over time. PCNs register their persence with a PLN they are configured with on start up. [MSs](./MappingService.md) and PCNs pull these lists when they need to find a PCN to communicate with.
+The Publishing List Node (PLN) is responsible for discovering [PCNs](./PublishingConsensusNode.md). It uses a gossip protocol with other PLN instances near it and accumulates a list of PCNs over time. PCNs register their presence with a PLN they are configured with on start up. [MSs](./MappingService.md) and PCNs pull these lists when they need to find a PCN to communicate with.
 
 ## Deployment 
 To deploy a PLN instance run the following command from [go/pln](../../../go/pln) folder
@@ -26,7 +26,7 @@ It reuses existing packages to build up the service
 - [go/pcn/internal](../../../go/pln/internal): It contains functionality internal to the PLN and required for its functioning. 
     - [plncmn](../../../go/pln/internal/plncmn): performs actions common to all blocks of the PLN. It initializes the network, establishes a connection to SCIOND, initializes an instance of the messenger and registers handlers. Additionally it saves some state to be used by other packages.
     - [plncrypto](../../../go/pln/internal/plncrypto): this is a  wrapper for [go/pkg/trust](../../../go/pkg/trust) 
-    - [plnmsgr](../../../go/pln/internal/plnmsgr):this is a wrapper for [go/pkg/infra](../../../go/pkg/infra) and also stores an intance of the messenger
+    - [plnmsgr](../../../go/pln/internal/plnmsgr):this is a wrapper for [go/pkg/infra](../../../go/pkg/infra) and also stores an instance of the messenger
     - [sqlite](../../../go/pln/internal/sqlite): handles all database operations for the PLN
 
 The other folders are meant for communication with other services in the protocol. They also contain the handlers for various messages. 
