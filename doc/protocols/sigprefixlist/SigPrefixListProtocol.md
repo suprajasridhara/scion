@@ -10,7 +10,7 @@ The system should
     - allowing an AS to only create mappings for IP prefixes it owns also ensures that malicious ASes cannot launch flooding attacks on SIGs by creating false mappings
 - Be resilient to downgrade attacks to IP Internet where SCION connections are possible
 - Not be a single point of failure 
-    - the system architecture should ensure high availability
+    - the system architecture should ensure high availability i.e. the system should not have components that can be single points of failure
 
 To achieve the above properties the following services are used
 - Mapping Service (MS)
