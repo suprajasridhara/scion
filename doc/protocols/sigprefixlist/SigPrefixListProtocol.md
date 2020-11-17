@@ -3,7 +3,7 @@
 ## Overview
 
 The protocol is designed to enable SCION-IP gateways (SIGs) to automatically
-fetch mappings from IP prefixes to AS IDs. It uses a distributed coordinated
+fetch IP prefixes--IA mappings. It uses a distributed coordinated
 infrastructure with the following design and security goals.
 
 The system should
@@ -50,14 +50,14 @@ The MSes performs the following actions:
     - The MS responds to SIG mapping queries with IP prefix--IA mappings
 - Pull lists of mappings from Publishing Infrastructure.
     - The MS pulls lists of mappings from the Publishing Infrastructure and stores
-    it to be used to respond to SIG queries
+    it to be used to respond to SIG queries.
 - Reply to Publishing Infrastructure queries of mapping lists for the ISD
 
 ### Publishing Infrastructure Services
 
 #### Publishing List Node (PLN)
 
-This service allows MS and PCN to discover PCN locations on the network by maintaining
+This service allows MSes and PCNs to discover PCN locations on the network by maintaining
 a list of PCNs that it has discovered through gossip.
 
 It performs the following actions:
@@ -82,7 +82,7 @@ It performs the following actions:
 ## Security
 
 To prevent hijacking attacks the protocol uses RPKI trust anchors to
-validate IP prefix - AS mappings and ascertain ownership of IP prefixes.
+validate IP prefix--IA mappings and ascertain ownership of IP prefixes.
 
 To prevent flooding attacks against SIGs it is essential to enforce
 that an AS can create mappings only for itself. For this, the protocol
