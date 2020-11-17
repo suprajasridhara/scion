@@ -17,9 +17,10 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/scionproto/scion/go/lib/xtest"
 	"github.com/scionproto/scion/go/pkg/ms/config"
-	"github.com/stretchr/testify/assert"
 )
 
 func CheckTestMS(t *testing.T, cfg *config.MsConf, id string) {
