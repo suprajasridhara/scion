@@ -37,7 +37,7 @@ from the[go/ms](../../../go/ms) folder.
 
 ## General Structure
 
-It reuses existing packages to build up the service
+It reuses existing packages to build up the service;
 
 - [go/lib/env](../../../go/lib/env)--used for configuration and setup of the
     service.
@@ -48,18 +48,19 @@ It reuses existing packages to build up the service
 ### Main folders in MS
 
 - [go/ms/internal](../../../go/ms/internal)--contains functionality internal to the
-    MS and required for its functioning.
+    MS and required for its functioning
 
-    - [mscmn](../../../go/ms/internal/mscmn)--performs actions common to all blocks of the MS.
-    It initializes the network, establishes a connection to SCIOND, initializes an instance of
-    the messenger and registers handlers. Additionally it saves some state
-    to be used by other packages.
+    - [mscmn](../../../go/ms/internal/mscmn)--performs actions common to all blocks
+     of the MS. It initializes the network, establishes a connection to
+     SCIOND, initializes an instance of the messenger and registers handlers.
+     Additionally it saves some state to be used by other packages
     - [mscrypto](../../../go/ms/internal/mscrypto)--wrapper
     for [go/pkg/trust](../../../go/pkg/trust)
     - [msmsgr](../../../go/ms/internal/msmsgr)--wrapper
     for [go/pkg/infra](../../../go/pkg/infra)
     and also stores an instance of the messenger
-    - [sqlite3](../../../go/ms/internal/sqlite3)--handles all database operations for the MS
+    - [sqlite3](../../../go/ms/internal/sqlite3)--handles all database operations for
+    the MS
     - [validator](../../../go/ms/internal/validator)--defines an RPKI validator
 
 The other folders are meant for communication with other services in the protocol.
