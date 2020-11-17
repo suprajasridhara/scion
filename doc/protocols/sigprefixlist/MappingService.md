@@ -12,17 +12,17 @@ mappings.
 
 ## Deployment
 
-To deploy a Mapping Service instance run the following command from
+To deploy an MS instance run the following command from the
 [go/ms](../../../go/ms) folder
 
 ```sh
 go run main.go -config <path_to_config_file>
 ```
 
-For more information on the configuration see
+For more information on the configuration, see
 [Configuration](#Configuration)
 
-The Mapping Service connects to a [PLN](./PublishingListNode.md)
+The MS connects to a [PLN](./PublishingListNode.md)
 instance. The PLN instance must be running when starting a MS instance.
 
 ## Configuration
@@ -33,44 +33,46 @@ The sample configuration file can be generated using
 go run main.go -help-config
 ```
 
-from [go/ms](../../../go/ms)
+from the[go/ms](../../../go/ms) folder.
 
 ## General Structure
 
 It reuses existing packages to build up the service
 
-- [go/lib/env](../../../go/lib/env): Is used for configuration and setup of the service.
-- [go/pkg/trust](../../../go/pkg/trust): Is used for TRCs and other crypto material.
-- [go/lib/infra](../../../go/pkg/trust) : Is used for the messenger to send and receive messages.
+- [go/lib/env](../../../go/lib/env)--used for configuration and setup of the
+    service.
+- [go/pkg/trust](../../../go/pkg/trust)--used for TRCs and other crypto material.
+- [go/lib/infra](../../../go/pkg/trust)--used for the messenger to send and
+    receive messages.
 
 ### Main folders in MS
 
-- [go/ms/internal](../../../go/ms/internal): It contains functionality internal to the
-    Mapping Service and required for its functioning.
+- [go/ms/internal](../../../go/ms/internal)--contains functionality internal to the
+    MS and required for its functioning.
 
-    - [mscmn](../../../go/ms/internal/mscmn): performs actions common to all blocks of the MS.
+    - [mscmn](../../../go/ms/internal/mscmn)--performs actions common to all blocks of the MS.
     It initializes the network, establishes a connection to SCIOND, initializes an instance of
     the messenger and registers handlers. Additionally it saves some state
     to be used by other packages.
-    - [mscrypto](../../../go/ms/internal/mscrypto): this is a  wrapper
+    - [mscrypto](../../../go/ms/internal/mscrypto)--wrapper
     for [go/pkg/trust](../../../go/pkg/trust)
-    - [msmsgr](../../../go/ms/internal/msmsgr):this is a wrapper
+    - [msmsgr](../../../go/ms/internal/msmsgr)--wrapper
     for [go/pkg/infra](../../../go/pkg/infra)
     and also stores an instance of the messenger
-    - [sqlite3](../../../go/ms/internal/sqlite3): handles all database operations for the MS
-    - [validator](../../../go/ms/internal/validator): defines a RPKI validator
+    - [sqlite3](../../../go/ms/internal/sqlite3)--handles all database operations for the MS
+    - [validator](../../../go/ms/internal/validator)--defines an RPKI validator
 
 The other folders are meant for communication with other services in the protocol.
 They also contain the handlers for various messages.
 
 ## Database
 
-The database is a sqlite3 instance. To use an existing database the path can
+The database is an sqlite3 instance. To use an existing database the path can
 be specified in the configuration file during service start up. The service uses the
 databases if it exists, otherwise it creates one in the specified path.
 
 The schema of the database is defined in the sqlite3 package's
-[schema.go](../../../go/ms/internal/sqlite3/schema.go)
+[schema.go](../../../go/ms/internal/sqlite3/schema.go).
 
 
 
