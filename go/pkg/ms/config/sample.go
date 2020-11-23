@@ -31,7 +31,7 @@ isd_as = "1-ff00:0:110"
 #CfgDir directory to read crypto keys from (required)
 cfg_dir = "gen/ISD1/ASff00_0_110" 
 
-#Db to store ms cfg data (default ./ms.db will be created or read from)
+#Db to store MS cfg data (default ./ms.db will be created or read from)
 db = "./ms.db" 
 
 #QUIC address to listen to quic IP:Port (required)
@@ -53,7 +53,7 @@ rpki_entry_valid = "valid"
 #PLNIA IA of the PLN to contact for PCN lists (required)
 pln_isd_as = "1-ff00:0:110"
 
-#MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
+#MSListValidTime time for which a published MS list is valid in minutes (default = 10080) 1 week
 ms_list_valid_time = 10080
 
 #MSPullListInterval time interval to pull full MS list in minutes (default = 1440) 1 day

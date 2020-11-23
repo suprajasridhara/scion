@@ -179,10 +179,7 @@ func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld
 		}
 	}
 
-	/*
-		TODO (supraja): add more code to validate that only one id was
-		matches, now 0 because using this only for testing
-	*/
+	//can use index 0, we expect only one entry to be returned as id is the primary key
 	proto.ParseFromRaw(got, rawResult[0])
 	return got, nil
 }

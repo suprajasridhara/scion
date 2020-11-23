@@ -92,10 +92,10 @@ type MsConf struct {
 	//CfgDir directory to read crypto keys from (required)
 	CfgDir string `toml:"cfg_dir,omitempty"`
 
-	//Db to store ms cfg data (default ./ms.db will be created or read from)
+	//Db to store MS cfg data (default ./ms.db will be created or read from)
 	Db string `toml:"db,omitempty"`
 
-	//QUIC address to listen to quic IP:Port (required)
+	//QUIC address to listen to QUIC IP:Port (required)
 	QUICAddr string `toml:"quic_addr,omitempty"`
 
 	//CertFile for QUIC socket (required)
@@ -115,11 +115,11 @@ type MsConf struct {
 	//PLNIA IA of the PLN to contact for PCN lists (required)
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 
-	//MSListValidTime time for which a published ms list is
+	//MSListValidTime time for which a published MS list is
 	//valid in minutes (default = 10080) 1 week
 	MSListValidTime time.Duration `toml:"ms_list_valid_time,omitempty"`
 
-	//MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day
+	//MSPullListInterval time intervaal to pull full MS list in minutes (default = 1440) 1 day
 	MSPullListInterval time.Duration ` toml:"ms_pull_list_interval,omitempty"`
 }
 
@@ -151,19 +151,19 @@ func (cfg *MsConf) Validate() error {
 		return serrors.New("ip must be set")
 	}
 	if cfg.Port == 0 {
-		return serrors.New("Port must be set")
+		return serrors.New("port must be set")
 	}
 	if cfg.CfgDir == "" {
-		return serrors.New("ms cfg_dir should be set")
+		return serrors.New("MS cfg_dir should be set")
 	}
 	if cfg.QUICAddr == "" {
-		return serrors.New("quic addr should be set")
+		return serrors.New("QUIC addr should be set")
 	}
 	if cfg.CertFile == "" {
-		return serrors.New("CertFile must be set")
+		return serrors.New("cert_file must be set")
 	}
 	if cfg.KeyFile == "" {
-		return serrors.New("KeyFile must be set")
+		return serrors.New("key_file must be set")
 	}
 	if cfg.RPKIValidator == "" {
 		return serrors.New("rpki_validator should be set")
