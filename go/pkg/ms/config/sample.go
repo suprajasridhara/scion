@@ -56,6 +56,6 @@ pln_isd_as = "1-ff00:0:110"
 #MSListValidTime time for which a published ms list is valid in minutes (default = 10080) 1 week
 ms_list_valid_time = 10080
 
-#MSPullListInterval time intervaal to pull full ms list in minutes (default = 1440) 1 day
+#MSPullListInterval time interval to pull full MS list in minutes (default = 1440) 1 day
 ms_pull_list_interval = 1440
 `
