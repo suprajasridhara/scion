@@ -87,8 +87,8 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	return got, nil
 }
 
-//GetFullMapEntryByIp queries the full_map table by IP
-func (e *executor) GetFullMapEntryByIp(ctx context.Context, ip string) ([]FullMapRow, error) {
+//GetFullMapEntryByIP queries the full_map table by IP
+func (e *executor) GetFullMapEntryByIP(ctx context.Context, ip string) ([]FullMapRow, error) {
 	e.RLock()
 	defer e.RUnlock()
 	rows, err := e.db.QueryContext(ctx, FullMapEntryByIP, ip)
