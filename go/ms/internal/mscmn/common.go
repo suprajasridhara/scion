@@ -28,7 +28,6 @@ import (
 )
 
 var (
-	IA   addr.IA
 	Addr net.IP
 	Port int
 )
