@@ -98,6 +98,8 @@ func realMain() int {
 		return 1
 	}
 
+	defer sqlite.Db.Close()
+
 	defer msmsgr.Msgr.CloseServer()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{

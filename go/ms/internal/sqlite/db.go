@@ -61,6 +61,10 @@ func NewFromDB(db *sql.DB) *DB {
 	}
 }
 
+func (d *DB) Close() {
+	d.db.Close()
+}
+
 //GetFullMap reads the full_map entries from the database and parses it
 //to return a slice of FullMapRow objects
 func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
