@@ -78,7 +78,7 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	got := []FullMapRow{}
 	for rows.Next() {
 		var r FullMapRow
-		err = rows.Scan(&r.Id, &r.IP, &r.IA, &r.Timestamp)
+		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Timestamp)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -99,7 +99,7 @@ func (e *executor) GetFullMapEntryByIP(ctx context.Context, ip string) ([]FullMa
 	got := []FullMapRow{}
 	for rows.Next() {
 		var r FullMapRow
-		err = rows.Scan(&r.Id, &r.IP, &r.IA, &r.Timestamp)
+		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Timestamp)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -118,8 +118,8 @@ func (e *executor) InsertFullMapEntry(ctx context.Context, fmRow FullMapRow) (sq
 	return res, nil
 }
 
-//DeleteFullMapEntryById deletes a row in the full_map table by id
-func (e *executor) DeleteFullMapEntryById(ctx context.Context, id int) (sql.Result, error) {
+//DeleteFullMapEntryByID deletes a row in the full_map table by id
+func (e *executor) DeleteFullMapEntryByID(ctx context.Context, id int) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, DelFullMapEntry, id)
@@ -151,11 +151,11 @@ func (e *executor) InsertPCNRep(ctx context.Context, entry []byte) (sql.Result, 
 	return res, nil
 }
 
-//GetNewEntryById queries the new_entries table by id to return the signedPld stored in it
-func (e *executor) GetNewEntryById(ctx context.Context, id int) (*ctrl.SignedPld, error) {
+//GetNewEntryByID queries the new_entries table by id to return the signedPld stored in it
+func (e *executor) GetNewEntryByID(ctx context.Context, id int) (*ctrl.SignedPld, error) {
 	e.RLock()
 	defer e.RUnlock()
-	rows, err := e.db.QueryContext(ctx, NewEntryById, id)
+	rows, err := e.db.QueryContext(ctx, NewEntryByID, id)
 	if err != nil {
 		return nil, serrors.Wrap(db.ErrReadFailed, err)
 	}

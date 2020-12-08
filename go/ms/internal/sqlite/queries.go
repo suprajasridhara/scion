@@ -24,8 +24,8 @@ const (
 	SELECT * from full_map where ip = ?
 	`
 
-	//NewEntryById queries for all rows in the new_entries table that match the id
-	NewEntryById = `
+	//NewEntryByID queries for all rows in the new_entries table that match the id
+	NewEntryByID = `
 	SELECT entry FROM new_entries where id = ?
 	`
 
