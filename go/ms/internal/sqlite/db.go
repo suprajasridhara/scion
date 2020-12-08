@@ -161,26 +161,15 @@ func (e *executor) GetNewEntryByID(ctx context.Context, id int) (*ctrl.SignedPld
 	}
 	defer rows.Close()
 
-	cols, err := rows.Columns()
+	got := &ctrl.SignedPld{}
+
+	rawResult, err := getRawResultFromRows(rows)
+
 	if err != nil {
-		fmt.Println("Failed to get columns", err)
 		return nil, err
 	}
-
-	rawResult := make([][]byte, len(cols))
-	got := &ctrl.SignedPld{}
-	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-
-	for i := range rawResult {
-		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
-	}
-
-	for rows.Next() {
-		err = rows.Scan(dest...)
-		if err != nil {
-			fmt.Println("Failed to scan row", err)
-			return nil, err
-		}
+	if len(rawResult) != 1 {
+		return nil, serrors.Wrap(db.ErrDataInvalid, err)
 	}
 
 	//can use index 0, we expect only one entry to be returned as id is the primary key
@@ -198,6 +187,23 @@ func (e *executor) GetNewEntries(ctx context.Context) ([]*ctrl.SignedPld, error)
 	}
 	defer rows.Close()
 
+	rawResult, err := getRawResultFromRows(rows)
+
+	if err != nil {
+		return nil, err
+	}
+
+	l := []*ctrl.SignedPld{}
+
+	for _, rawResult := range rawResult {
+		got := &ctrl.SignedPld{}
+		proto.ParseFromRaw(got, rawResult)
+		l = append(l, got)
+	}
+	return l, nil
+}
+
+func getRawResultFromRows(rows *sql.Rows) ([][]byte, error) {
 	cols, err := rows.Columns()
 	if err != nil {
 		fmt.Println("Failed to get columns", err)
@@ -218,13 +224,5 @@ func (e *executor) GetNewEntries(ctx context.Context) ([]*ctrl.SignedPld, error)
 			return nil, err
 		}
 	}
-
-	l := []*ctrl.SignedPld{}
-
-	for _, rawResult := range rawResult {
-		got := &ctrl.SignedPld{}
-		proto.ParseFromRaw(got, rawResult)
-		l = append(l, got)
-	}
-	return l, nil
+	return rawResult, err
 }
