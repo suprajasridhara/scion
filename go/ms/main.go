@@ -77,7 +77,9 @@ func realMain() int {
 		return 1
 	}
 
-	cfg.Metrics.StartPrometheus()
+	if cfg.Metrics.Prometheus != "" {
+		cfg.Metrics.StartPrometheus()
+	}
 	_, err := setupTopo()
 	if err != nil {
 		log.Error("MS setupTopo failed", "err", err)
@@ -173,9 +175,6 @@ func setupBasic() error {
 func validateConfig() error {
 	if err := cfg.Validate(); err != nil {
 		return err
-	}
-	if cfg.Metrics.Prometheus == "" {
-		cfg.Metrics.Prometheus = "127.0.0.1:1285"
 	}
 	return nil
 }
