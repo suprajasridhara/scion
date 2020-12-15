@@ -28,8 +28,8 @@ import (
 
 const (
 	DefaultDb                 = "./ms.db"
-	DefaultMSListValidTime    = 10080
-	DefaultMSPullListInterval = 1440
+	DefaultMSListValidTime    = 7 * 24 * time.Hour //7 days
+	DefaultMSPullListInterval = 24 * time.Hour     //1 day
 )
 
 type Config struct {
