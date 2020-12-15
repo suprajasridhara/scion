@@ -161,8 +161,6 @@ func (e *executor) GetNewEntryByID(ctx context.Context, id int) (*ctrl.SignedPld
 	}
 	defer rows.Close()
 
-	got := &ctrl.SignedPld{}
-
 	rawResult, err := getRawResultFromRows(rows)
 	if err != nil {
 		return nil, err
@@ -172,6 +170,7 @@ func (e *executor) GetNewEntryByID(ctx context.Context, id int) (*ctrl.SignedPld
 	}
 
 	//can use index 0, we expect only one entry to be returned as id is the primary key
+	got := &ctrl.SignedPld{}
 	proto.ParseFromRaw(got, rawResult[0])
 	return got, nil
 }
