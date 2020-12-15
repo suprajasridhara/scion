@@ -164,7 +164,6 @@ func (e *executor) GetNewEntryByID(ctx context.Context, id int) (*ctrl.SignedPld
 	got := &ctrl.SignedPld{}
 
 	rawResult, err := getRawResultFromRows(rows)
-
 	if err != nil {
 		return nil, err
 	}
