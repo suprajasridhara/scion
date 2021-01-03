@@ -1,4 +1,4 @@
-// Copyright 2020 ETH Zurich
+// Copyright 2021 ETH Zurich
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/scionproto/scion/go/lib/xtest"
 	"github.com/scionproto/scion/go/pkg/pln/config"
-	"github.com/stretchr/testify/assert"
 )
 
 func CheckTestMS(t *testing.T, cfg *config.PlnConf, id string) {
