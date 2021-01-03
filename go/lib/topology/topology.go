@@ -67,7 +67,7 @@ type (
 
 		CS  IDAddrMap
 		SIG IDAddrMap
-		PLN  IDAddrMap
+		PLN IDAddrMap
 	}
 
 	// BRInfo is a list of AS-wide unique interface IDs for a router. These IDs are also used
@@ -125,7 +125,7 @@ func NewRWTopology() *RWTopology {
 		BR:        make(map[string]BRInfo),
 		CS:        make(IDAddrMap),
 		SIG:       make(IDAddrMap),
-		PLN:        make(IDAddrMap),
+		PLN:       make(IDAddrMap),
 		IFInfoMap: make(IfInfoMap),
 	}
 }
@@ -351,7 +351,7 @@ func (t *RWTopology) Copy() *RWTopology {
 
 		CS:  t.CS.copy(),
 		SIG: t.SIG.copy(),
-		PLN:  t.PLN.copy(),
+		PLN: t.PLN.copy(),
 	}
 }
 
