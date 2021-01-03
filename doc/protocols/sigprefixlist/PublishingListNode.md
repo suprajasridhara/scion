@@ -1,11 +1,11 @@
 # Publishing List Node
 
 The Publishing List Node (PLN) is responsible for discovering
-[PCNs](./PublishingConsensusNode.md). It uses a gossip protocol
-with other PLN instances near it and accumulates a list of PCNs
-over time. PCNs register their presence with a PLN they are
+[PGNs](./PublishingGossipNode.md). It uses a gossip protocol
+with other PLN instances near it and accumulates a list of PGNs
+over time. PGNs register their presence with a PLN they are
 configured with on start up. [MSes](./MappingService.md) and
-PCNs pull these lists when they need to find a PCN to communicate with.
+PGNs pull these lists when they need to find a PGN to communicate with.
 
 ## Deployment
 

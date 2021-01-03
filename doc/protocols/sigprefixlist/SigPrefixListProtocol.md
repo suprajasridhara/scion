@@ -24,7 +24,7 @@ To achieve the above properties the following services are used
 - SCION-IP Gateway (SIG)
 - Publishing Infrastructure Services
     - Publishing List Node ([PLN](./PublishingListNode.md))
-    - Publishing Consensus Node ([PCN](./PublishingConsensusNode.md))
+    - Publishing Gossip Node ([PGN](./PublishingGossipNode.md))
 
 ## Services
 
@@ -57,26 +57,26 @@ The MSes performs the following actions:
 
 #### Publishing List Node (PLN)
 
-This service allows MSes and PCNs to discover PCN locations on the network by maintaining
-a list of PCNs that it has discovered through gossip.
+This service allows MSes and PGNs to discover PGN locations on the network by maintaining
+a list of PGNs that it has discovered through gossip.
 
 It performs the following actions:
 
-- Accept PCN entries from PCNs and store it
-- Periodically broadcast the list of PCNs it has discovered to other PLNs
+- Accept PGN entries from PGNs and store it
+- Periodically broadcast the list of PGNs it has discovered to other PLNs
 - Accept broadcast list from other PLNs and update its list
-- Reply to PCN list queries from MSes and PCNs
+- Reply to PGN list queries from MSes and PGNs
 
-#### Publishing Consensus Node (PCN)
+#### Publishing Gossip Node (PGN)
 
 This service stores lists with mappings that it receives from MSes and lists that
-it receives from other PCNs through gossip.
+it receives from other PGNs through gossip.
 
 It performs the following actions:
 
 - Accepts mapping lists from MS and store it
-- Periodically broadcast mapping lists it has stored to other PCNs
-- Accept broadcast messages from other PCNs with mapping lists and update/add to its lists
+- Periodically broadcast mapping lists it has stored to other PGNs
+- Accept broadcast messages from other PGNs with mapping lists and update/add to its lists
 - Query MS in an ISD for the mapping list of the ISD
 
 ## Security
@@ -90,4 +90,4 @@ uses the SCION control plane PKI.
 
 To prevent downgrade attacks, a mapping entry in the system must always
 be returned and empty responses should be authenticated by a minimum
-number of PCNs.
+number of PGNs.
