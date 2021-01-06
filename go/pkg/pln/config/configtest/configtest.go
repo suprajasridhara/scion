@@ -24,8 +24,9 @@ import (
 	"github.com/scionproto/scion/go/pkg/pln/config"
 )
 
-func CheckTestMS(t *testing.T, cfg *config.PlnConf, id string) {
+func CheckTestPLN(t *testing.T, cfg *config.PlnConf, id string) {
 	assert.Equal(t, id, cfg.ID)
+	assert.Equal(t, "", cfg.DispatcherBypass)
 	assert.Equal(t, xtest.MustParseIA("1-ff00:0:110"), cfg.IA)
 	assert.Equal(t, net.ParseIP("127.0.0.65"), cfg.IP)
 	assert.Equal(t, 3009, int(cfg.Port))
