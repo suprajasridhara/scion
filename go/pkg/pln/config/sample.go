@@ -45,5 +45,5 @@ cert_file = "gen-certs/tls.pem"
 key_file = "gen-certs/tls.key" 
 
 #PropagateInterval is the time interval between PLN list propagations (default = 1 hour)
-prop_interval = 24
+prop_interval = 1
 `

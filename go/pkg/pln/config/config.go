@@ -29,7 +29,7 @@ import (
 
 const (
 	DefaultDb                = "./pln.db"
-	DefaultPropagateInterval = 1 * time.Hour //1 day
+	DefaultPropagateInterval = 1 * time.Hour //1 hour
 )
 
 type Config struct {
