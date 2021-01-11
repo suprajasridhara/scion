@@ -96,7 +96,7 @@ type PgnConf struct {
 	//Db to store PNG cfg data (default ./pgn.db will be created or read from)
 	Db string `toml:"db,omitempty"`
 
-	//QUIC address to listen to quic IP:Port (required)
+	//QUIC address to listen to QUIC IP:Port (required)
 	QUICAddr string `toml:"quic_addr,omitempty"`
 
 	//CertFile for QUIC socket (required)
