@@ -75,36 +75,26 @@ var _ config.Config = (*PgnConf)(nil)
 type PgnConf struct {
 	// ID of the PGN (required)
 	ID string `toml:"id,omitempty"`
-
 	// DispatcherBypass is the underlay address (e.g. ":30041") to use when bypassing SCION
 	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
 	// instead.
 	DispatcherBypass string `toml:"disaptcher_bypass,omitempty"`
-
 	// IP to listen on (required)
 	IP net.IP `toml:"ip,omitempty"`
-
 	// Port to listen on (required)
 	Port uint16 `toml:"port,omitempty"`
-
 	// IA the local IA (required)
 	IA addr.IA `toml:"isd_as,omitempty"`
-
 	//CfgDir directory to read crypto keys from (required)
 	CfgDir string `toml:"cfg_dir,omitempty"`
-
 	//Db to store PNG cfg data (default ./pgn.db will be created or read from)
 	Db string `toml:"db,omitempty"`
-
 	//QUIC address to listen to QUIC IP:Port (required)
 	QUICAddr string `toml:"quic_addr,omitempty"`
-
 	//CertFile for QUIC socket (required)
 	CertFile string `toml:"cert_file,omitempty"`
-
 	//KeyFile for QUIC socket (required)
 	KeyFile string `toml:"key_file,omitempty"`
-
 	//PLNIA IA of the PLN to contact for PGN lists (required)
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 }
