@@ -39,12 +39,12 @@ func TestConfigSample(t *testing.T) {
 }
 
 func InitTestConfig(cfg *config.Config) {
-	envtest.InitTest(nil, &cfg.Metrics, nil, &cfg.Sciond)
+	envtest.InitTest(nil, &cfg.Metrics, nil, &cfg.SD)
 	logtest.InitTestLogging(&cfg.Logging)
 }
 
 func CheckTestConfig(t *testing.T, cfg *config.Config, id string) {
-	envtest.CheckTest(t, nil, &cfg.Metrics, nil, &cfg.Sciond, id)
+	envtest.CheckTest(t, nil, &cfg.Metrics, nil, &cfg.SD, id)
 	logtest.CheckTestLogging(t, &cfg.Logging, id)
 	configtest.CheckTestPLN(t, &cfg.Pln, id)
 }

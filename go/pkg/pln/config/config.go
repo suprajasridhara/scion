@@ -37,7 +37,7 @@ type Config struct {
 	Features env.Features
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
-	Sciond   env.SCIONDClient `toml:"sciond_connection,omitempty"`
+	SD       env.SCIONDClient `toml:"sciond_connection,omitempty"`
 	Pln      PlnConf          `toml:"pln,omitempty"`
 }
 
@@ -46,7 +46,7 @@ func (cfg *Config) InitDefaults() {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pln,
 	)
 }
@@ -56,7 +56,7 @@ func (cfg *Config) Validate() error {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pln,
 	)
 }
@@ -67,7 +67,7 @@ func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pln,
 	)
 }
@@ -77,7 +77,6 @@ var _ config.Config = (*PlnConf)(nil)
 type PlnConf struct {
 	// ID of the PLN  (required)
 	ID string `toml:"id,omitempty"`
-
 	// DispatcherBypass is the underlay address (e.g. ":30041") to use when bypassing SCION
 	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
 	// instead.
@@ -88,22 +87,16 @@ type PlnConf struct {
 	Port uint16 `toml:"port,omitempty"`
 	// IA the local IA (required)
 	IA addr.IA `toml:"isd_as,omitempty"`
-
 	//CfgDir directory to read crypto keys from (required)
 	CfgDir string `toml:"cfg_dir,omitempty"`
-
 	//Db to store PLN cfg data (default ./pln.db will be created or read from)
 	Db string `toml:"db,omitempty"`
-
 	//QUIC address to listen to QUIC IP:Port (required)
 	QUICAddr string `toml:"quic_addr,omitempty"`
-
 	//CertFile for QUIC socket (required)
 	CertFile string `toml:"cert_file,omitempty"`
-
 	//KeyFile for QUIC socket (required)
 	KeyFile string `toml:"key_file,omitempty"`
-
 	//PropagateInterval is the time interval between PLN list propagations (default = 1 hour)
 	PropagateInterval time.Duration `toml:"prop_interval"`
 }

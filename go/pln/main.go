@@ -84,7 +84,7 @@ func realMain() int {
 		log.Error("PLN setupTopo failed", "err", err)
 		return 1
 	}
-	if err := plncmn.Init(cfg.Pln, cfg.Sciond, cfg.Features); err != nil {
+	if err := plncmn.Init(cfg.Pln, cfg.SD, cfg.Features); err != nil {
 		log.Error("PLN common initialization failed", "err", err)
 		return 1
 	}
