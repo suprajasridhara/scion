@@ -46,5 +46,5 @@ func InitTestConfig(cfg *config.Config) {
 func CheckTestConfig(t *testing.T, cfg *config.Config, id string) {
 	envtest.CheckTest(t, nil, &cfg.Metrics, nil, &cfg.SD, id)
 	logtest.CheckTestLogging(t, &cfg.Logging, id)
-	configtest.CheckTestPLN(t, &cfg.Pln, id)
+	configtest.CheckTestPLN(t, &cfg.PLN, id)
 }

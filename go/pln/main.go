@@ -68,7 +68,7 @@ func realMain() int {
 		return 1
 	}
 	defer log.Flush()
-	defer env.LogAppStopped("PLN", cfg.Pln.ID)
+	defer env.LogAppStopped("PLN", cfg.PLN.ID)
 	defer log.HandlePanic()
 	if err := validateConfig(); err != nil {
 		log.Error("Configuration validation failed", "err", err)
@@ -84,7 +84,7 @@ func realMain() int {
 		log.Error("PLN setupTopo failed", "err", err)
 		return 1
 	}
-	if err := plncmn.Init(cfg.Pln, cfg.SD, cfg.Features); err != nil {
+	if err := plncmn.Init(cfg.PLN, cfg.SD, cfg.Features); err != nil {
 		log.Error("PLN common initialization failed", "err", err)
 		return 1
 	}
@@ -108,7 +108,7 @@ func realMain() int {
 		"config": service.NewConfigHandler(cfg),
 	}
 
-	if err := statusPages.Register(http.DefaultServeMux, cfg.Pln.ID); err != nil {
+	if err := statusPages.Register(http.DefaultServeMux, cfg.PLN.ID); err != nil {
 		log.Error("registering status pages", "err", err)
 		return 1
 	}
@@ -123,7 +123,7 @@ func realMain() int {
 }
 
 func setupDb() error {
-	err := sqlite.New(cfg.Pln.Db, 1)
+	err := sqlite.New(cfg.PLN.Db, 1)
 	if err != nil {
 		return serrors.WrapStr("setting up database", err)
 	}
@@ -144,8 +144,8 @@ func setupBasic() error {
 	if err := log.Setup(cfg.Logging); err != nil {
 		return serrors.WrapStr("Failed to initialize logging", err)
 	}
-	prom.ExportElementID(cfg.Pln.ID)
-	return env.LogAppStarted("PLN", cfg.Pln.ID)
+	prom.ExportElementID(cfg.PLN.ID)
+	return env.LogAppStarted("PLN", cfg.PLN.ID)
 }
 
 func validateConfig() error {

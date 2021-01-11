@@ -38,7 +38,7 @@ type Config struct {
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
 	SD       env.SCIONDClient `toml:"sciond_connection,omitempty"`
-	Pln      PlnConf          `toml:"pln,omitempty"`
+	PLN      PLNConf          `toml:"pln,omitempty"`
 }
 
 func (cfg *Config) InitDefaults() {
@@ -47,7 +47,7 @@ func (cfg *Config) InitDefaults() {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pln,
+		&cfg.PLN,
 	)
 }
 
@@ -57,7 +57,7 @@ func (cfg *Config) Validate() error {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pln,
+		&cfg.PLN,
 	)
 }
 
@@ -68,13 +68,13 @@ func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pln,
+		&cfg.PLN,
 	)
 }
 
-var _ config.Config = (*PlnConf)(nil)
+var _ config.Config = (*PLNConf)(nil)
 
-type PlnConf struct {
+type PLNConf struct {
 	// ID of the PLN  (required)
 	ID string `toml:"id,omitempty"`
 	// DispatcherBypass is the underlay address (e.g. ":30041") to use when bypassing SCION
@@ -101,7 +101,7 @@ type PlnConf struct {
 	PropagateInterval time.Duration `toml:"prop_interval"`
 }
 
-func (cfg *PlnConf) InitDefaults() {
+func (cfg *PLNConf) InitDefaults() {
 	if cfg.Db == "" {
 		cfg.Db = DefaultDb
 	}
@@ -109,7 +109,7 @@ func (cfg *PlnConf) InitDefaults() {
 		cfg.PropagateInterval = DefaultPropagateInterval
 	}
 }
-func (cfg *PlnConf) Validate() error {
+func (cfg *PLNConf) Validate() error {
 
 	if cfg.ID == "" {
 		return serrors.New("id must be set!")
@@ -142,10 +142,10 @@ func (cfg *PlnConf) Validate() error {
 	return nil
 }
 
-func (cfg *PlnConf) ConfigName() string {
+func (cfg *PLNConf) ConfigName() string {
 	return "pln"
 }
 
-func (cfg *PlnConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
+func (cfg *PLNConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
 	config.WriteString(dst, fmt.Sprintf(plnSample, ctx[config.ID]))
 }

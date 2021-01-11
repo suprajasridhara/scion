@@ -27,7 +27,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 )
 
-func Init(cfg plnconfig.PlnConf, sdCfg env.SCIONDClient, features env.Features) error {
+func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) error {
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
 		return serrors.WrapStr("Error in Init plncmn", err)
