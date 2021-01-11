@@ -93,7 +93,7 @@ type PgnConf struct {
 	//CfgDir directory to read crypto keys from (required)
 	CfgDir string `toml:"cfg_dir,omitempty"`
 
-	//Db to store pgn cfg data (default ./pgn.db will be created or read from)
+	//Db to store PNG cfg data (default ./pgn.db will be created or read from)
 	Db string `toml:"db,omitempty"`
 
 	//QUIC address to listen to quic IP:Port (required)
