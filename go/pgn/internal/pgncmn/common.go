@@ -32,7 +32,7 @@ var (
 	PLNIA addr.IA
 )
 
-func Init(cfg pgnconfig.PgnConf, sdCfg env.SCIONDClient, features env.Features) error {
+func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) error {
 	router, err := infraenv.NewRouter(cfg.IA, sdCfg)
 	if err != nil {
 		return serrors.WrapStr("Error in Init mscmn", err)

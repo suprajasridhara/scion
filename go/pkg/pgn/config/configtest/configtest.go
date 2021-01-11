@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/scionproto/scion/go/lib/xtest"
-	"github.com/scionproto/scion/go/pkg/ms/config"
+	"github.com/scionproto/scion/go/pkg/pgn/config"
 )
 
-func CheckTestPGN(t *testing.T, cfg *config.PgnConf, id string) {
+func CheckTestPGN(t *testing.T, cfg *config.PGNConf, id string) {
 	assert.Equal(t, id, cfg.ID)
 	assert.Equal(t, xtest.MustParseIA("1-ff00:0:110"), cfg.IA)
 	assert.Equal(t, net.ParseIP("127.0.0.65"), cfg.IP)

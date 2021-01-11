@@ -36,7 +36,7 @@ type Config struct {
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
 	SD       env.SCIONDClient `toml:"sciond_connection,omitempty"`
-	Pgn      PgnConf          `toml:"pgn,omitempty"`
+	PGN      PGNConf          `toml:"pgn,omitempty"`
 }
 
 func (cfg *Config) InitDefaults() {
@@ -45,7 +45,7 @@ func (cfg *Config) InitDefaults() {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pgn,
+		&cfg.PGN,
 	)
 }
 
@@ -55,7 +55,7 @@ func (cfg *Config) Validate() error {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pgn,
+		&cfg.PGN,
 	)
 }
 
@@ -66,13 +66,13 @@ func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
 		&cfg.Logging,
 		&cfg.Metrics,
 		&cfg.SD,
-		&cfg.Pgn,
+		&cfg.PGN,
 	)
 }
 
-var _ config.Config = (*PgnConf)(nil)
+var _ config.Config = (*PGNConf)(nil)
 
-type PgnConf struct {
+type PGNConf struct {
 	// ID of the PGN (required)
 	ID string `toml:"id,omitempty"`
 	// DispatcherBypass is the underlay address (e.g. ":30041") to use when bypassing SCION
@@ -99,12 +99,12 @@ type PgnConf struct {
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
 }
 
-func (cfg *PgnConf) InitDefaults() {
+func (cfg *PGNConf) InitDefaults() {
 	if cfg.Db == "" {
 		cfg.Db = DefaultDb
 	}
 }
-func (cfg *PgnConf) Validate() error {
+func (cfg *PGNConf) Validate() error {
 	if cfg.ID == "" {
 		return serrors.New("id must be set!")
 	}
@@ -138,10 +138,10 @@ func (cfg *PgnConf) Validate() error {
 	return nil
 }
 
-func (cfg *PgnConf) ConfigName() string {
+func (cfg *PGNConf) ConfigName() string {
 	return "pgn"
 }
 
-func (cfg *PgnConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
+func (cfg *PGNConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
 	config.WriteString(dst, fmt.Sprintf(pgnSample, ctx[config.ID]))
 }
