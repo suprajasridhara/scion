@@ -134,10 +134,10 @@ func (cfg *PlnConf) Validate() error {
 		return serrors.New("port must be set")
 	}
 	if cfg.CfgDir == "" {
-		return serrors.New("MS cfg_dir should be set")
+		return serrors.New("PLN cfg_dir should be set")
 	}
 	if cfg.QUICAddr == "" {
-		return serrors.New("QUIC addr should be set")
+		return serrors.New("quic_addr should be set")
 	}
 	if cfg.CertFile == "" {
 		return serrors.New("cert_file must be set")
