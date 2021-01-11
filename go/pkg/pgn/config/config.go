@@ -134,13 +134,13 @@ func (cfg *PgnConf) Validate() error {
 		return serrors.New("pgn cfg_dir should be set")
 	}
 	if cfg.QUICAddr == "" {
-		return serrors.New("quic addr should be set")
+		return serrors.New("quic_addr should be set")
 	}
 	if cfg.CertFile == "" {
-		return serrors.New("CertFile must be set")
+		return serrors.New("cert_file must be set")
 	}
 	if cfg.KeyFile == "" {
-		return serrors.New("KeyFile must be set")
+		return serrors.New("key_file must be set")
 	}
 	if cfg.PLNIA.IsZero() {
 		return serrors.New("pln_isd_as must be set")
