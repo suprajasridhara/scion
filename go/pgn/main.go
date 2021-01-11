@@ -85,7 +85,7 @@ func realMain() int {
 		return 1
 	}
 
-	if err := pgncmn.Init(cfg.Pgn, cfg.Sciond, cfg.Features); err != nil {
+	if err := pgncmn.Init(cfg.Pgn, cfg.SD, cfg.Features); err != nil {
 		log.Error("PGN common initialization failed", "err", err)
 		return 1
 	}

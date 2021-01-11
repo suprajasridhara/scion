@@ -35,7 +35,7 @@ type Config struct {
 	Features env.Features
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
-	Sciond   env.SCIONDClient `toml:"sciond_connection,omitempty"`
+	SD       env.SCIONDClient `toml:"sciond_connection,omitempty"`
 	Pgn      PgnConf          `toml:"pgn,omitempty"`
 }
 
@@ -44,7 +44,7 @@ func (cfg *Config) InitDefaults() {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pgn,
 	)
 }
@@ -54,7 +54,7 @@ func (cfg *Config) Validate() error {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pgn,
 	)
 }
@@ -65,7 +65,7 @@ func (cfg *Config) Sample(dst io.Writer, path config.Path, _ config.CtxMap) {
 		&cfg.Features,
 		&cfg.Logging,
 		&cfg.Metrics,
-		&cfg.Sciond,
+		&cfg.SD,
 		&cfg.Pgn,
 	)
 }
