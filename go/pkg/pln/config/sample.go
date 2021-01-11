@@ -24,7 +24,7 @@ id = "%s"
 ip = "127.0.0.65"
 
 # Port to listen on (required)
-port = 3009 
+port = 3010
 
 # IA the local IA (required)
 isd_as = "1-ff00:0:110"
