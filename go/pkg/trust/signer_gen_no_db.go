@@ -25,7 +25,7 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust/internal/metrics"
 )
 
-//SignerGen uses a database.
+//SignerGenNoDB unlike SignerGen does need a database.
 //Since non CS services might not have a trust database
 //they can query the cs for trc and cert chains and generate signatures for messages.
 //SignerGenNoDB generates signers from the keys available in key dir.
@@ -76,7 +76,6 @@ func (s SignerGenNoDB) Generate(ctx context.Context) (Signer, error) {
 }
 
 func (s *SignerGenNoDB) bestForKey(ctx context.Context, key crypto.Signer) (*Signer, error) {
-
 	chains, _ := s.Chains[key]
 	chain := bestChainNoDB(&s.SignedTRCs[0].TRC, chains)
 	if chain == nil && len(s.SignedTRCs) == 1 {
