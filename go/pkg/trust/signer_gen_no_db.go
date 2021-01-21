@@ -25,7 +25,7 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust/internal/metrics"
 )
 
-//SignerGenNoDB unlike SignerGen does need a database.
+//SignerGenNoDB unlike SignerGen does not need a database.
 //Since non CS services might not have a trust database
 //they can query the cs for trc and cert chains and generate signatures for messages.
 //SignerGenNoDB generates signers from the keys available in key dir.
