@@ -40,4 +40,30 @@ tun = "sig"
 
 # Id of the routing table. (default 11)
 tun_routing_table_id = 11
+
+# CfgDir directory to read crypto keys from (required)
+cfg_dir = "gen/ISD1/AS1234" 
+
+# Db to store SIG  data (default ./sig.db will be created or read from)
+db = "./sig.db" 
+
+# Port to open a messenger connection on (required)
+udp_port = 30127
+
+# QUIC address to listen to quic IP:Port (required)
+quic_addr = "127.0.0.78:20955" 
+
+# Cert file for QUIC socket (required)
+cert_file = "gen-certs/tls.pem" 
+
+# Key file for QUIC socket (required)
+key_file = "gen-certs/tls.key" 
+
+# PrefixFile contains the list of prefixes that should be
+# pushed to a Mapping service in the ISD. This file is scanned periodically for changes (required)
+prefix_file = "./prefixes.json"
+
+# PrefixPushInterval in minutes is the interval between
+# 2 consecutive pushes of prefixes to the mapping service. default (1 hour)
+prefix_push_interval = 60
 `
