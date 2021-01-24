@@ -75,6 +75,7 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger,
 
 func (m *MSSigner) getChains(ctx context.Context,
 	key crypto.Signer) ([][]*x509.Certificate, error) {
+	
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid, _ := cppki.SubjectKeyID(key.Public())
