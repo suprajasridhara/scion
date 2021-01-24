@@ -208,6 +208,14 @@ func getRawResultFromRows(rows *sql.Rows) ([][]byte, error) {
 		return nil, err
 	}
 
+	/*
+		TODO: (from PR) Using interface{} in getRawResultFromRows should not be necessary and you could even avoid the copy, from the docs:
+
+		If a dest argument has type *[]byte, Scan saves in that argument a copy of the corresponding data. The copy is owned by the caller and can be modified and held indefinitely.
+		The copy can be avoided by using an argument of type *RawBytes instead; see the documentation for RawBytes for restrictions on its use.
+		https://golang.org/pkg/database/sql/#Rows.Scan
+	*/
+
 	rawResult := make([][]byte, len(cols))
 	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
 
