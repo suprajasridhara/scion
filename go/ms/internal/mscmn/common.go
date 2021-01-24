@@ -22,6 +22,7 @@ import (
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/validator"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
@@ -58,7 +59,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 	msmsgr.IA = cfg.IA
-	// mscrypto.CfgDir = cfg.CfgDir
+	mscrypto.CfgDir = cfg.CfgDir
 	validator.Path = cfg.RPKIValidator
 	validator.EntryValid = cfg.RPKIValidString
 
