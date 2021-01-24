@@ -73,6 +73,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -88,6 +89,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ctrl_msg"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -591,6 +593,31 @@ func (m *Messenger) SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr,
 	}
 }
 
+func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
+		"msg_id", id, "request", nil, "peer", a)
+	replyCtrlPld, err := m.getFallbackRequester(infra.ASActionRequest).
+		RequestWithSign(ctx, pld, a, false)
+	if err != nil {
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.ASActionRequest)
+	}
+	return replyCtrlPld, nil
+}
+
+func (m *Messenger) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64, messageType infra.MessageType) error {
+
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type",
+		infra.ASActionReply, "msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, messageType)
+}
+
 // sendMessage sends payload msg of type expectedType to address a, using id.
 // If waiting for Acks is disabled, sendMessage returns immediately after
 // sending the message on the network. If waiting for Acks is enabled,
@@ -892,6 +919,26 @@ func (pr *pathingRequester) Request(ctx context.Context, pld *ctrl.Pld,
 	return pld, err
 }
 
+func (pr *pathingRequester) RequestWithSign(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr, downgradeToNotify bool) (*ctrl.SignedPld, error) {
+
+	newAddr, redirect, err := pr.addressRewriter.RedirectToQUIC(ctx, a)
+	if err != nil {
+		return nil, err
+	}
+	logger := log.FromCtx(ctx)
+	if redirect && pr.quicRequester != nil {
+		logger.Debug("Request upgraded to QUIC", "remote", newAddr)
+		return pr.quicRequester.RequestSigned(ctx, pld, newAddr)
+	}
+	logger.Debug("Request could not be upgraded to QUIC, using UDP", "remote", newAddr)
+	if downgradeToNotify {
+		return nil, pr.requester.Notify(ctx, pld, newAddr)
+	}
+	spld, err := pr.requester.RequestWithSign(ctx, pld, newAddr)
+	return spld, err
+}
+
 func (pr *pathingRequester) Notify(ctx context.Context, pld *ctrl.Pld, a net.Addr) error {
 	newAddr, _, err := pr.addressRewriter.RedirectToQUIC(ctx, a)
 	if err != nil {
@@ -917,6 +964,36 @@ type QUICRequester struct {
 func (r *QUICRequester) Request(ctx context.Context, pld *ctrl.Pld,
 	a net.Addr) (*ctrl.Pld, error) {
 
+	reply, err := r.doReq(ctx, pld, a)
+	replySignedPld, err := MsgToSignedPld(reply.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	replyPld, err := replySignedPld.UnsafePld()
+	if err != nil {
+		return nil, err
+	}
+	return replyPld, nil
+}
+
+func (r *QUICRequester) RequestSigned(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*ctrl.SignedPld, error) {
+
+	reply, err := r.doReq(ctx, pld, a)
+	if err != nil {
+		return nil, err
+	}
+	replySignedPld, err := MsgToSignedPld(reply.Message)
+	if err != nil {
+		return nil, err
+	}
+	return replySignedPld, nil
+}
+
+func (r *QUICRequester) doReq(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*rpc.Reply, error) {
+
 	// FIXME(scrye): Rely on QUIC for security for now. This needs to do
 	// additional verifications in the future.
 	newAddr, _, err := r.AddressRewriter.RedirectToQUIC(ctx, a)
@@ -936,21 +1013,10 @@ func (r *QUICRequester) Request(ctx context.Context, pld *ctrl.Pld,
 
 	request := &rpc.Request{Message: msg}
 	reply, err := r.QUICClientConfig.Request(ctx, request, newAddr)
-	log.FromCtx(ctx).Debug("QUICRequester", "err", err)
 	if err != nil {
 		return nil, err
 	}
-
-	replySignedPld, err := MsgToSignedPld(reply.Message)
-	if err != nil {
-		return nil, err
-	}
-
-	replyPld, err := replySignedPld.UnsafePld()
-	if err != nil {
-		return nil, err
-	}
-	return replyPld, nil
+	return reply, nil
 }
 
 // Validate checks that msg is one of the acceptable message types for SCION
@@ -1012,6 +1078,17 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.PathMgmt.Xxx message type",
 					nil, "capnp_which", pld.PathMgmt.Which)
+		}
+	case proto.CtrlPld_Which_ms:
+		switch pld.Ms.Which {
+		case proto.MS_Which_asActionReq:
+			return infra.ASActionRequest, pld.Ms.AsActionReq, nil
+		case proto.MS_Which_asActionRep:
+			return infra.ASActionReply, pld.Ms.AsActionRep, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",
+					nil, "capnp_which", pld.Ms.Which)
 		}
 	case proto.CtrlPld_Which_ack:
 		return infra.Ack, pld.Ack, nil

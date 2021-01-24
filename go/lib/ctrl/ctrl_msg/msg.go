@@ -41,24 +41,40 @@ func NewRequester(signer ctrl.Signer, sigv ctrl.Verifier, d *disp.Dispatcher) *R
 
 func (r *Requester) Request(ctx context.Context, pld *ctrl.Pld,
 	a net.Addr) (*ctrl.Pld, *proto.SignS, error) {
-	spld, err := pld.SignedPld(ctx, r.signer)
+
+	rspld, err := r.doReq(ctx, pld, a)
 	if err != nil {
 		return nil, nil, err
-	}
-	reply, err := r.d.Request(ctx, spld, a)
-	if err != nil {
-		return nil, nil, err
-	}
-	rspld, ok := reply.(*ctrl.SignedPld)
-	if !ok {
-		return nil, nil, common.NewBasicError("ctrl_msg: reply is not a ctrl.SignedPld", nil,
-			"type", common.TypeOf(reply), "reply", reply)
 	}
 	rpld, err := rspld.GetVerifiedPld(ctx, r.sigv)
 	if err != nil {
 		return nil, rspld.Sign, err
 	}
 	return rpld, rspld.Sign, nil
+}
+
+func (r *Requester) RequestWithSign(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*ctrl.SignedPld, error) {
+
+	return r.doReq(ctx, pld, a)
+}
+
+func (r *Requester) doReq(ctx context.Context, pld *ctrl.Pld,
+	a net.Addr) (*ctrl.SignedPld, error) {
+	spld, err := pld.SignedPld(ctx, r.signer)
+	if err != nil {
+		return nil, err
+	}
+	reply, err := r.d.Request(ctx, spld, a)
+	if err != nil {
+		return nil, err
+	}
+	rspld, ok := reply.(*ctrl.SignedPld)
+	if !ok {
+		return nil, common.NewBasicError("ctrl_msg: reply is not a ctrl.SignedPld", nil,
+			"type", common.TypeOf(reply), "reply", reply)
+	}
+	return rspld, nil
 }
 
 func (r *Requester) Notify(ctx context.Context, pld *ctrl.Pld, a net.Addr) error {

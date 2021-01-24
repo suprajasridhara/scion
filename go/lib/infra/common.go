@@ -26,6 +26,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ack"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
@@ -144,6 +145,8 @@ const (
 	HPSegReply
 	HPCfgRequest
 	HPCfgReply
+	ASActionRequest
+	ASActionReply
 )
 
 func (mt MessageType) String() string {
@@ -190,6 +193,10 @@ func (mt MessageType) String() string {
 		return "HPCfgRequest"
 	case HPCfgReply:
 		return "HPCfgReply"
+	case ASActionRequest:
+		return "ASActionRequest"
+	case ASActionReply:
+		return "ASActionReply"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -241,6 +248,10 @@ func (mt MessageType) MetricLabel() string {
 		return "hp_cfg_req"
 	case HPCfgReply:
 		return "hp_cfg_push"
+	case ASActionRequest:
+		return "ms_as_action_req"
+	case ASActionReply:
+		return "ms_as_action_push"
 	default:
 		return "unknown_mt"
 	}
@@ -323,6 +334,11 @@ type Messenger interface {
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
+	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64, messageType MessageType) error
+
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
@@ -339,6 +355,7 @@ type ResponseWriter interface {
 	SendIfStateInfoReply(ctx context.Context, msg *path_mgmt.IFStateInfos) error
 	SendHPSegReply(ctx context.Context, msg *path_mgmt.HPSegReply) error
 	SendHPCfgReply(ctx context.Context, msg *path_mgmt.HPCfgReply) error
+	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, messageType MessageType) error
 }
 
 func ResponseWriterFromContext(ctx context.Context) (ResponseWriter, bool) {
