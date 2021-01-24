@@ -43,6 +43,7 @@ import (
 	"github.com/scionproto/scion/go/sig/internal/ingress"
 	"github.com/scionproto/scion/go/sig/internal/metrics"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
+	"github.com/scionproto/scion/go/sig/internal/sqlite"
 	"github.com/scionproto/scion/go/sig/internal/xnet"
 )
 
@@ -106,6 +107,13 @@ func realMain() int {
 	}()
 	egress.Init(tunIO)
 	ingress.Init(tunIO)
+
+	if err := setupDb(); err != nil {
+		log.Error("MS db initialization failed", "err", err)
+		return 1
+	}
+
+	defer sqlite.Db.Close()
 
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
@@ -217,4 +225,12 @@ func loadConfig(path string) bool {
 	}
 	atomic.StoreUint64(&metrics.ConfigVersion, cfg.ConfigVersion)
 	return true
+}
+
+func setupDb() error {
+	err := sqlite.New(cfg.Sig.Db, 1)
+	if err != nil {
+		return serrors.WrapStr("setting up database", err)
+	}
+	return nil
 }
