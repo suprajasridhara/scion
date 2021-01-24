@@ -78,15 +78,15 @@ func (s SignerGenNoDB) Generate(ctx context.Context) (Signer, error) {
 func (s *SignerGenNoDB) bestForKey(ctx context.Context, key crypto.Signer) (*Signer, error) {
 	chains, _ := s.Chains[key]
 	chain := bestChainNoDB(&s.SignedTRCs[0].TRC, chains)
-	if chain == nil && len(s.SignedTRCs) == 1 {
+	if (chain == nil || len(chain) == 0) && len(s.SignedTRCs) == 1 {
 		return nil, nil
 	}
 	var inGrace bool
 	// Attempt to find a chain that is verifiable only in grace period. If we
 	// have not found a chain yet.
-	if chain == nil && len(s.SignedTRCs) == 2 {
+	if (chain == nil || len(chain) == 0) && len(s.SignedTRCs) == 2 {
 		chain = bestChainNoDB(&s.SignedTRCs[1].TRC, chains)
-		if chain == nil {
+		if chain == nil || len(chain) == 0 {
 			return nil, nil
 		}
 		inGrace = true
