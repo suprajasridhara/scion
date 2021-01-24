@@ -65,12 +65,14 @@ var (
 )
 
 const (
-	SvcBS       HostSVC = 0x0000
-	SvcPS       HostSVC = 0x0001
-	SvcCS       HostSVC = 0x0002
-	SvcSB       HostSVC = 0x0003
-	SvcSIG      HostSVC = 0x0004
-	SvcHPS      HostSVC = 0x0005
+	SvcBS  HostSVC = 0x0000
+	SvcPS  HostSVC = 0x0001
+	SvcCS  HostSVC = 0x0002
+	SvcSB  HostSVC = 0x0003
+	SvcSIG HostSVC = 0x0004
+	SvcHPS HostSVC = 0x0005
+	SvcMS  HostSVC = 0x0006
+
 	SvcWildcard HostSVC = 0x0010
 	SvcNone     HostSVC = 0xffff
 
@@ -215,6 +217,8 @@ func HostSVCFromString(str string) HostSVC {
 		return SvcSB | m
 	case "SIG":
 		return SvcSIG | m
+	case "MS":
+		return SvcMS | m
 	case "Wildcard":
 		return SvcWildcard | m
 	default:
@@ -290,6 +294,8 @@ func (h HostSVC) BaseString() string {
 		return "SB"
 	case SvcSIG:
 		return "SIG"
+	case SvcMS:
+		return "MS"
 	case SvcWildcard:
 		return "Wildcard"
 	default:
