@@ -965,6 +965,9 @@ func (r *QUICRequester) Request(ctx context.Context, pld *ctrl.Pld,
 	a net.Addr) (*ctrl.Pld, error) {
 
 	reply, err := r.doReq(ctx, pld, a)
+	if err != nil {
+		return nil, err
+	}
 	replySignedPld, err := MsgToSignedPld(reply.Message)
 	if err != nil {
 		return nil, err

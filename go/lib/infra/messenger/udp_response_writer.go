@@ -69,6 +69,8 @@ func (rw *UDPResponseWriter) SendHPCfgReply(ctx context.Context, msg *path_mgmt.
 	return rw.Messenger.SendHPCfgReply(ctx, msg, rw.Remote, rw.ID)
 }
 
-func (rw *UDPResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, messageType infra.MessageType) error {
+func (rw *UDPResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
+	messageType infra.MessageType) error {
+
 	return rw.Messenger.SendMSRep(ctx, msg, rw.Remote, rw.ID, messageType)
 }

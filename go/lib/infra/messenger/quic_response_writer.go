@@ -138,7 +138,9 @@ func (rw *QUICResponseWriter) SendHPCfgReply(ctx context.Context, msg *path_mgmt
 	return rw.sendMessage(ctx, ctrlPld)
 }
 
-func (rw *QUICResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, messageType infra.MessageType) error {
+func (rw *QUICResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
+	messageType infra.MessageType) error {
+
 	go func() {
 		defer log.HandlePanic()
 		<-ctx.Done()
