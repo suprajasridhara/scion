@@ -41,6 +41,7 @@ func (m MSEngine) NotifyTRC(ctx context.Context, trcId cppki.TRCID,
 
 func (m MSEngine) GetChains(ctx context.Context, cq trust.ChainQuery,
 	o ...trust.Option) ([][]*x509.Certificate, error) {
+	
 	date := time.Now()
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	skid := cq.SubjectKeyID
