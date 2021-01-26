@@ -44,6 +44,7 @@ import (
 	"github.com/scionproto/scion/go/sig/egress"
 	"github.com/scionproto/scion/go/sig/internal/base"
 	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
+	"github.com/scionproto/scion/go/sig/internal/ingress"
 	"github.com/scionproto/scion/go/sig/internal/metrics"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
 	"github.com/scionproto/scion/go/sig/internal/sqlite"
@@ -81,11 +82,11 @@ func realMain() int {
 		return 1
 	}
 	// Setup tun early so that we can drop capabilities before interacting with network etc.
-	//tunIO, err := setupTun()
-	// if err != nil {
-	// 	log.Error("TUN device initialization failed", "err", err)
-	// 	return 1
-	// }
+	tunIO, err := setupTun()
+	if err != nil {
+		log.Error("TUN device initialization failed", "err", err)
+		return 1
+	}
 	if err := sigcmn.Init(cfg.Sig, cfg.Sciond, cfg.Features); err != nil {
 		log.Error("SIG common initialization failed", "err", err)
 		return 1
@@ -108,8 +109,8 @@ func realMain() int {
 		defer log.HandlePanic()
 		base.PollReqHdlr()
 	}()
-	// egress.Init(tunIO)
-	// ingress.Init(tunIO)
+	egress.Init(tunIO)
+	ingress.Init(tunIO)
 
 	if err := setupDb(); err != nil {
 		log.Error("MS db initialization failed", "err", err)
