@@ -178,6 +178,7 @@ func GetMgmtAddr() sig_mgmt.Addr {
 		addr.HostFromIP(DataAddr), uint16(DataPort))
 }
 
+//SetupMessenger initializes a messenger to be used for SIG-MS communications
 func SetupMessenger(cfg sigconfig.Config) error {
 	log.Info("Starting messenger initialization")
 	router, err := infraenv.NewRouter(cfg.Sig.IA, cfg.Sciond)

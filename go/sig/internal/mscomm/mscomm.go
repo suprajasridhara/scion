@@ -20,6 +20,9 @@ const (
 	ADD_AS_ENTRY = "add_as_entry"
 )
 
+//AddASMap creates a ms_mgmt.Pld with ms_mgmt.ASMapEntry and sends
+//it to a MS in sigcmn.CoreASes. It then reads ms_mgmt.MSRepToken
+//from the MS and stores it in ms_token table
 func AddASMap(ctx context.Context, ip string) error {
 	ia := addr.IA{
 		I: sigcmn.IA.I,

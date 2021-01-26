@@ -26,6 +26,7 @@ const (
 	max_ms_as_add_time = 10 //time is in minutes.
 )
 
+//ASActionHandler is a handler for messages from SIG
 type ASActionHandler struct {
 }
 
@@ -100,13 +101,13 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	mscrypt := &mscrypto.MSSigner{}
 	err = mscrypt.Init(ctx, msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
 	if err != nil {
-		log.Error("error initializing crypto", err)
+		log.Error("Error initializing crypto", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
 	signer, err := mscrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		log.Error("error getting signer", err)
+		log.Error("Error getting signer", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
