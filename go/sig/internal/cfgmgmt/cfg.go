@@ -52,7 +52,9 @@ func addPrefixes(ctx context.Context) {
 	read, _ := readPrefixes(prefixFile)
 	newPrefixes := listDiff(read, pushed) //performs read - pushed
 	for _, p := range newPrefixes {
-		mscomm.AddASMap(ctx, p)
+		if err := mscomm.AddASMap(ctx, p); err != nil {
+			log.Error("Error pushing prefix "+p, "Error: ", err)
+		}
 	}
 }
 

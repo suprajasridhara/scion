@@ -72,6 +72,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -127,6 +128,10 @@ type Config struct {
 	// QUIC defines whether the Messenger should also operate on top of QUIC
 	// instead of only on UDP.
 	QUIC *QUICConfig
+
+	//ConnectTimeout is the time allocated to send a message and wait for a
+	//response including the time to parse the response and verify it
+	ConnectTimeout time.Duration
 }
 
 type QUICConfig struct {
@@ -600,9 +605,14 @@ func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.ASActionRequest,
 		"msg_id", id, "request", nil, "peer", a)
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
 	replyCtrlPld, err := m.getFallbackRequester(infra.ASActionRequest).
-		RequestWithSign(ctx, pld, a, false)
+		RequestWithSign(ctxT, pld, a, false)
 	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return nil, ctxT.Err()
+		}
 		return nil, common.NewBasicError("[Messenger] Request error", err,
 			"req_type", infra.ASActionRequest)
 	}
