@@ -24,6 +24,7 @@ import (
 	"github.com/scionproto/scion/go/sig/egress/asmap"
 	"github.com/scionproto/scion/go/sig/egress/iface"
 	"github.com/scionproto/scion/go/sig/egress/reader"
+	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
 )
 
 func Init(tunIO io.ReadWriteCloser) {
@@ -37,7 +38,18 @@ func Init(tunIO io.ReadWriteCloser) {
 }
 
 func ReloadConfig(cfg *sigjson.Cfg) bool {
+	err := cfgmgmt.LoadCfg(cfg)
+	if err != nil {
+		return false
+	}
+	//TODO (supraja): the old file was to be use as a white/blacklist.
+	//with the new changes to the SIG this would be replaced by the
+	//policy file. Don't do anything here for now.
+
+	//If the sig_config was not empty, this cfg will have the mappings from
+	//that file as well
 	res := asmap.Map.ReloadConfig(cfg)
 	log.Info("Config reloaded")
+
 	return res
 }

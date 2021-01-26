@@ -3,10 +3,15 @@ package cfgmgmt
 import (
 	"bufio"
 	"context"
+	"errors"
+	"net"
 	"os"
 	"time"
 
+	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/log"
+	"github.com/scionproto/scion/go/lib/sigjson"
 	"github.com/scionproto/scion/go/sig/internal/mscomm"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
 	"github.com/scionproto/scion/go/sig/internal/sigcrypto"
@@ -34,6 +39,66 @@ func Init(ctx context.Context, cfgDir string, prefixFilePath string,
 	}(ctx, prefixPushInterval)
 
 	return nil
+}
+
+func LoadCfg(cfg *sigjson.Cfg) error {
+	log.Info("LodCfg: entering")
+	asList := sigcmn.CoreASes
+	success := false
+
+	if len(asList) == 0 {
+		return errors.New("No CoreASes found")
+	}
+
+	for _, as := range asList {
+		ia := addr.IA{
+			I: sigcmn.IA.I,
+			A: as,
+		}
+
+		fm, err := mscomm.GetFullMap(ia)
+		if err != nil {
+			log.Error("Error getting map from ", "IA", ia, "err", err)
+			continue //TRY next core AS
+		} else {
+			success = true
+		}
+
+		if fm.Fm == nil {
+			continue
+		}
+
+		for _, f := range fm.Fm {
+			log.Info(f.Ia, f.Ip, f.Id)
+			ia, err := addr.IAFromString(f.Ia)
+			if err != nil {
+				return common.NewBasicError("Unable to get IA from string", err, "raw", f.Ia)
+			}
+			ip, ipnet, err := net.ParseCIDR(f.Ip)
+			if err != nil {
+				return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)
+			}
+			if !ip.Equal(ipnet.IP) {
+				return common.NewBasicError(
+					"Network is not canonical (should not be host address).",
+					nil, "raw", f.Ip)
+			}
+
+			i := sigjson.IPNet(*ipnet)
+			s := make([]*sigjson.IPNet, 1)
+			s[0] = &i
+			//if IA already existed in the old cfg, it is rewritten with the new prefix
+			//fetched from MS
+			cfg.ASes[ia] = &sigjson.ASEntry{Nets: s}
+		}
+	}
+
+	if success {
+		return nil
+	} else {
+		return common.NewBasicError("Unable to fetch map from core ASes ", nil)
+	}
+
 }
 
 func pushPrefixes(ctx context.Context, interval time.Duration) {
