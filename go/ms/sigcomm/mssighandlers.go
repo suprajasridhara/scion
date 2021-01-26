@@ -29,6 +29,11 @@ const (
 type ASActionHandler struct {
 }
 
+//Handle handles an AS Action request from a SIG
+//The SIG sends ms_mgmt.Pld with ms_mgmt.ASMapEntry. This handler verifies signatures,
+//the ownership of the prefixes using RPKI and adds it to the
+//new_entries database for further processing. It also sends back a ms_mgmt.MSRepToken
+//to the SIG
 func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: ASActionHandler.Handle")
 	ctx := r.Context()
@@ -111,7 +116,6 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	rep := ms_mgmt.NewMSRepToken(packed, uint64(timestamp.Unix()))
 	pld, err := ms_mgmt.NewPld(1, rep)
 
-	//rw.SendFullMap(context.Background(), pld)
 	switch t := rw.(type) {
 	case *messenger.QUICResponseWriter:
 		t.Signer = signer
