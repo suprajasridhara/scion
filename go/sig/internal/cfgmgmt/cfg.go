@@ -21,6 +21,7 @@ var (
 //prefixes in prefixPushInterval intervals
 func Init(ctx context.Context, cfgDir string, prefixFilePath string,
 	prefixPushInterval time.Duration) error {
+
 	sigcrypto.CfgDir = cfgDir
 	sigSigner := &sigcrypto.SIGSigner{}
 	sigSigner.Init(ctx, sigcmn.Msgr, sigcmn.IA, sigcrypto.CfgDir)
