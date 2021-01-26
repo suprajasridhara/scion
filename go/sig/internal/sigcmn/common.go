@@ -198,6 +198,7 @@ func SetupMessenger(cfg sigconfig.Config) error {
 		Router:                router,
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
+		ConnectTimeout:        cfg.Sig.MSConnectTimeout,
 	}
 	Msgr, err = nc.Messenger()
 	if err != nil {
