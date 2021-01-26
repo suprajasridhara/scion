@@ -66,6 +66,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	validator.Path = cfg.RPKIValidator
 	validator.EntryValid = cfg.RPKIValidString
 
+	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
 	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
 
 	return nil
