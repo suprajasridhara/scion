@@ -33,6 +33,7 @@ const (
 	DefaultTunName            = "sig"
 	DefaultTunRTableId        = 11
 	DefaultPrefixPushInterval = 1 * time.Hour
+	DefaultMSConnectTimeout   = 1 * time.Minute
 	DefaultDb                 = "./sig.db"
 )
 
@@ -121,6 +122,9 @@ type SigConf struct {
 	//PrefixPushInterval in minutes is the interval between
 	//2 consecutive pushes of prefixes to the mapping service. default (1 hour)
 	PrefixPushInterval time.Duration `toml:"prefix_push_interval,omitempty"`
+	//ConnectTimeout in minutes is the amount of time the messenger waits for a reply
+	//from MS that it connects to. default (1 minute)
+	MSConnectTimeout time.Duration `toml:"ms_connect_timeout,omitempty"`
 }
 
 // InitDefaults sets the default values to unset values.
@@ -130,6 +134,9 @@ func (cfg *SigConf) InitDefaults() {
 	}
 	if cfg.PrefixPushInterval == 0 {
 		cfg.PrefixPushInterval = DefaultPrefixPushInterval
+	}
+	if cfg.MSConnectTimeout == 0 {
+		cfg.MSConnectTimeout = DefaultMSConnectTimeout
 	}
 }
 

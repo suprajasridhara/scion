@@ -40,5 +40,6 @@ func CheckTestSIG(t *testing.T, cfg *config.SigConf, id string) {
 	assert.Equal(t, "gen-certs/tls.pem", cfg.CertFile)
 	assert.Equal(t, "gen-certs/tls.key", cfg.KeyFile)
 	assert.Equal(t, "./prefixes.json", cfg.PrefixFile)
-	assert.Equal(t, config.DefaultPrefixPushInterval, int(cfg.PrefixPushInterval))
+	assert.Equal(t, config.DefaultPrefixPushInterval, cfg.PrefixPushInterval)
+	assert.Equal(t, config.DefaultMSConnectTimeout, cfg.MSConnectTimeout)
 }

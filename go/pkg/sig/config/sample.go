@@ -65,5 +65,9 @@ prefix_file = "./prefixes.json"
 
 # PrefixPushInterval in minutes is the interval between
 # 2 consecutive pushes of prefixes to the mapping service. default (1 hour)
-prefix_push_interval = 60
+prefix_push_interval = '1h'
+
+#ConnectTimeout is the amount of time the messenger waits for a reply
+#from MS that it connects to. default (1 minute)
+ms_connect_timeout = '1m'
 `
