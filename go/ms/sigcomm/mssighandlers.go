@@ -159,8 +159,8 @@ func (f FullMapReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		fs = append(fs, *ms_mgmt.NewFullMap(uint8(fm.ID), fm.IP.String, fm.IA.String))
 	}
 
-	fmrep := ms_mgmt.NewFullMapRep(fs)
-	pld, err := ms_mgmt.NewPld(1, fmrep)
+	fmRep := ms_mgmt.NewFullMapRep(fs)
+	pld, err := ms_mgmt.NewPld(1, fmRep)
 	err = rw.SendMSRep(context.Background(), pld, infra.MSFullMapReply)
 	if err != nil {
 		log.Error("Error sending fullMap", err)
