@@ -109,7 +109,10 @@ func insertIntoDB(prefix string) error {
 
 func registerSigner(msgType infra.MessageType) error {
 	sigcrypt := &sigcrypto.SIGSigner{}
-	sigcrypt.Init(context.Background(), sigcmn.Msgr, sigcmn.IA, sigcrypto.CfgDir)
+	err := sigcrypt.Init(context.Background(), sigcmn.Msgr, sigcmn.IA, sigcrypto.CfgDir)
+	if err != nil {
+		return serrors.WrapStr("Unable to initialize sig crypto", err)
+	}
 	signer, err := sigcrypt.SignerGen.Generate(context.Background())
 	if err != nil {
 		return serrors.WrapStr("Unable to create signer to AddASMap", err)
