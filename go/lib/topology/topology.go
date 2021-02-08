@@ -68,6 +68,8 @@ type (
 		CS  IDAddrMap
 		SIG IDAddrMap
 		PGN IDAddrMap
+		PLN IDAddrMap
+		MS  IDAddrMap
 	}
 
 	// BRInfo is a list of AS-wide unique interface IDs for a router. These IDs are also used
@@ -126,6 +128,8 @@ func NewRWTopology() *RWTopology {
 		CS:        make(IDAddrMap),
 		SIG:       make(IDAddrMap),
 		PGN:       make(IDAddrMap),
+		PLN:       make(IDAddrMap),
+		MS:        make(IDAddrMap),
 		IFInfoMap: make(IfInfoMap),
 	}
 }
@@ -278,12 +282,17 @@ func (t *RWTopology) populateServices(raw *jsontopo.Topology) error {
 	if err != nil {
 		return serrors.WrapStr("unable to extract SIG address", err)
 	}
-
 	t.PGN, err = svcMapFromRaw(raw.PGN)
 	if err != nil {
 		return serrors.WrapStr("unable to extract PGN address", err)
 	}
-
+	t.PLN, err = svcMapFromRaw(raw.PLN)
+	if err != nil {
+		return serrors.WrapStr("unable to extract PLN address", err)
+	t.MS, err = svcMapFromRaw(raw.MS)
+	if err != nil {
+		return serrors.WrapStr("unable to extract MS address", err)
+	}
 	return nil
 }
 
@@ -330,6 +339,10 @@ func (t *RWTopology) getSvcInfo(svc proto.ServiceType) (*svcInfo, error) {
 		return &svcInfo{idTopoAddrMap: t.SIG}, nil
 	case proto.ServiceType_pgn:
 		return &svcInfo{idTopoAddrMap: t.PGN}, nil
+	case proto.ServiceType_pln:
+		return &svcInfo{idTopoAddrMap: t.PLN}, nil
+	case proto.ServiceType_ms:
+		return &svcInfo{idTopoAddrMap: t.MS}, nil
 	default:
 		return nil, common.NewBasicError("Unsupported service type", nil, "type", svc)
 	}
@@ -353,6 +366,8 @@ func (t *RWTopology) Copy() *RWTopology {
 		CS:  t.CS.copy(),
 		SIG: t.SIG.copy(),
 		PGN: t.PGN.copy(),
+		PLN: t.PLN.copy(),
+		MS:  t.MS.copy(),
 	}
 }
 

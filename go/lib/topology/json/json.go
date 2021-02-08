@@ -72,6 +72,8 @@ type Topology struct {
 	ControlService map[string]*ServerInfo `json:"control_service,omitempty"`
 	SIG            map[string]*ServerInfo `json:"sigs,omitempty"`
 	PGN            map[string]*ServerInfo `json:"pgn,omitempty"`
+	PLN            map[string]*ServerInfo `json:"pln,omitempty"`
+	MS             map[string]*ServerInfo `json:"ms,omitempty"`
 }
 
 // ServerInfo contains the information for a SCION application running in the local AS.
