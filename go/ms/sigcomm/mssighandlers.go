@@ -64,9 +64,9 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	//Do RPKI validation with a shell script for now
 	//For now, the validator should take 2 arguments,
 	//ASN and prefix and return "valid" if the mapping is valid
-	cmdStr := validator.Path + " " + requester.IA.A.String() + " " + asMapEntry.Ip[0]
-	cmd := exec.Command("/bin/sh", "-c", cmdStr)
-	op, err := cmd.Output()
+	cmd := exec.Command("/bin/sh", validator.Path, requester.IA.A.String(), asMapEntry.Ip[0])
+
+	op, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Error(err.Error())
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
