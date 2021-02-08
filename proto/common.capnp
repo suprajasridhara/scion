@@ -23,4 +23,5 @@ enum ServiceType {
     hps @8;  # Hidden Path service
     ms  @9;  # Mapping service
     pln @10; # Publishing Infrastructure List Node
+    pgn @11; # Publishing Infrastructure Gossip Node
 }

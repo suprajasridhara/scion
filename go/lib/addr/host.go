@@ -73,6 +73,7 @@ const (
 	SvcHPS      HostSVC = 0x0005
   SvcMS       HostSVC = 0x0006
 	SvcPLN      HostSVC = 0x0007
+	SvcPGN      HostSVC = 0x0008
 	SvcWildcard HostSVC = 0x0010
 	SvcNone     HostSVC = 0xffff
 
@@ -217,6 +218,8 @@ func HostSVCFromString(str string) HostSVC {
 		return SvcSB | m
 	case "SIG":
 		return SvcSIG | m
+	case "PGN":
+		return SvcPGN | m
 	case "PLN":
 		return SvcPLN | m
 	case "MS":
@@ -296,6 +299,8 @@ func (h HostSVC) BaseString() string {
 		return "SB"
 	case SvcSIG:
 		return "SIG"
+	case SvcPGN:
+		return "PGN"
 	case SvcPLN:
 		return "PLN"
 	case SvcMS:
