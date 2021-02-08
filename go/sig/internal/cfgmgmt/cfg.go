@@ -59,7 +59,7 @@ func LoadCfg(cfg *sigjson.Cfg) error {
 		fm, err := mscomm.GetFullMap(ia)
 		if err != nil {
 			log.Error("Error getting map from ", "IA", ia, "err", err)
-			continue //TRY next core AS
+			continue // Try next core AS
 		} else {
 			success = true
 		}
