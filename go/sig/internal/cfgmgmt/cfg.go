@@ -74,17 +74,17 @@ func LoadCfg(cfg *sigjson.Cfg) error {
 			if err != nil {
 				return common.NewBasicError("Unable to get IA from string", err, "raw", f.Ia)
 			}
-			ip, ipnet, err := net.ParseCIDR(f.Ip)
+			ip, IPNet, err := net.ParseCIDR(f.Ip)
 			if err != nil {
 				return common.NewBasicError("Unable to parse IPnet string", err, "raw", f.Ip)
 			}
-			if !ip.Equal(ipnet.IP) {
+			if !ip.Equal(IPNet.IP) {
 				return common.NewBasicError(
 					"Network is not canonical (should not be host address).",
 					nil, "raw", f.Ip)
 			}
 
-			i := sigjson.IPNet(*ipnet)
+			i := sigjson.IPNet(*IPNet)
 			s := make([]*sigjson.IPNet, 1)
 			s[0] = &i
 			//if IA already existed in the old cfg, it is rewritten with the new prefix
