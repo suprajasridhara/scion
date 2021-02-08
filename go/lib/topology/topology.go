@@ -67,6 +67,7 @@ type (
 
 		CS  IDAddrMap
 		SIG IDAddrMap
+		PLN IDAddrMap
 		MS  IDAddrMap
 	}
 
@@ -125,6 +126,7 @@ func NewRWTopology() *RWTopology {
 		BR:        make(map[string]BRInfo),
 		CS:        make(IDAddrMap),
 		SIG:       make(IDAddrMap),
+		PLN:       make(IDAddrMap),
 		MS:        make(IDAddrMap),
 		IFInfoMap: make(IfInfoMap),
 	}
@@ -279,6 +281,9 @@ func (t *RWTopology) populateServices(raw *jsontopo.Topology) error {
 		return serrors.WrapStr("unable to extract SIG address", err)
 	}
 
+	t.PLN, err = svcMapFromRaw(raw.PLN)
+	if err != nil {
+		return serrors.WrapStr("unable to extract PLN address", err)
 	t.MS, err = svcMapFromRaw(raw.MS)
 	if err != nil {
 		return serrors.WrapStr("unable to extract MS address", err)
@@ -327,6 +332,8 @@ func (t *RWTopology) getSvcInfo(svc proto.ServiceType) (*svcInfo, error) {
 		return &svcInfo{idTopoAddrMap: t.CS}, nil
 	case proto.ServiceType_sig:
 		return &svcInfo{idTopoAddrMap: t.SIG}, nil
+	case proto.ServiceType_pln:
+		return &svcInfo{idTopoAddrMap: t.PLN}, nil
 	case proto.ServiceType_ms:
 		return &svcInfo{idTopoAddrMap: t.MS}, nil
 	default:
@@ -351,6 +358,7 @@ func (t *RWTopology) Copy() *RWTopology {
 
 		CS:  t.CS.copy(),
 		SIG: t.SIG.copy(),
+		PLN: t.PLN.copy(),
 		MS:  t.MS.copy(),
 	}
 }

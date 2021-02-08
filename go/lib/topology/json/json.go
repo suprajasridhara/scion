@@ -71,6 +71,7 @@ type Topology struct {
 	BorderRouters  map[string]*BRInfo     `json:"border_routers,omitempty"`
 	ControlService map[string]*ServerInfo `json:"control_service,omitempty"`
 	SIG            map[string]*ServerInfo `json:"sigs,omitempty"`
+	PLN            map[string]*ServerInfo `json:"pln,omitempty"`
 	MS             map[string]*ServerInfo `json:"ms,omitempty"`
 }
 
