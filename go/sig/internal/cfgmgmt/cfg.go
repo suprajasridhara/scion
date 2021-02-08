@@ -17,7 +17,7 @@ var (
 	prefixFile string
 )
 
-//Init intiialises the package and also starts a poll on the file in prefixFilePath to push
+//Init initialises the package and also starts a poll on the file in prefixFilePath to push
 //prefixes in prefixPushInterval intervals
 func Init(ctx context.Context, cfgDir string, prefixFilePath string,
 	prefixPushInterval time.Duration) error {
