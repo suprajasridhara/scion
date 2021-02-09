@@ -27,6 +27,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/proto"
@@ -144,6 +145,7 @@ const (
 	HPSegReply
 	HPCfgRequest
 	HPCfgReply
+	AddPLNEntryRequest
 )
 
 func (mt MessageType) String() string {
@@ -190,6 +192,8 @@ func (mt MessageType) String() string {
 		return "HPCfgRequest"
 	case HPCfgReply:
 		return "HPCfgReply"
+	case AddPLNEntryRequest:
+		return "AddPLNEntryRequest"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -241,6 +245,8 @@ func (mt MessageType) MetricLabel() string {
 		return "hp_cfg_req"
 	case HPCfgReply:
 		return "hp_cfg_push"
+	case AddPLNEntryRequest:
+		return "add_pln_entry_req"
 	default:
 		return "unknown_mt"
 	}
@@ -323,6 +329,7 @@ type Messenger interface {
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
+	SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld, a net.Addr, id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
