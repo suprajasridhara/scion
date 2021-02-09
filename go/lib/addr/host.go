@@ -71,7 +71,7 @@ const (
 	SvcSB       HostSVC = 0x0003
 	SvcSIG      HostSVC = 0x0004
 	SvcHPS      HostSVC = 0x0005
-  SvcMS       HostSVC = 0x0006
+	SvcMS       HostSVC = 0x0006
 	SvcPLN      HostSVC = 0x0007
 	SvcPGN      HostSVC = 0x0008
 	SvcWildcard HostSVC = 0x0010

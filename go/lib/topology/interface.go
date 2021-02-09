@@ -312,7 +312,8 @@ func (t *topologyS) UnderlayAnycast(svc addr.HostSVC) (*net.UDPAddr, error) {
 
 func supportedSVC(svc addr.HostSVC) bool {
 	b := svc.Base()
-	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG
+	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG ||
+		b == addr.SvcPLN || b == addr.SvcPGN
 }
 
 func (t *topologyS) UnderlayMulticast(svc addr.HostSVC) ([]*net.UDPAddr, error) {
@@ -372,6 +373,10 @@ func toProtoServiceType(svc addr.HostSVC) (proto.ServiceType, error) {
 		return proto.ServiceType_cs, nil
 	case addr.SvcSIG:
 		return proto.ServiceType_sig, nil
+	case addr.SvcPGN:
+		return proto.ServiceType_pgn, nil
+	case addr.SvcPLN:
+		return proto.ServiceType_pln, nil
 	default:
 		// FIXME(scrye): Return this error because some calling code in the BR searches for it.
 		// Ideally, the error should be communicated in a more explicit way.
@@ -407,6 +412,10 @@ func (t *topologyS) SVCNames(svc addr.HostSVC) ServiceNames {
 		m = t.Topology.CS
 	case addr.SvcSIG:
 		m = t.Topology.SIG
+	case addr.SvcPLN:
+		m = t.Topology.PLN
+	case addr.SvcPGN:
+		m = t.Topology.PGN
 	}
 
 	var names ServiceNames
