@@ -15,16 +15,11 @@
 package sqlite
 
 const (
-	/*Schema PLN database contains the following tables:
-	- pln_entries: these are entries of the PGNs that the PLN has discovered through gossip
-	*/
-	Schema = `
-	CREATE TABLE IF NOT EXISTS pln_entries(
-		id INTEGER PRIMARY KEY,
-		pgnID DATA NOT NULL,
-		ia INTEGER NOT NULL,
-		raw BLOB,
-		UNIQUE (pgnID)
-		);
+	//UpdatePLNListEntry is the query used to update a row in pln_entries by pgnID
+	UpdatePLNListEntry = `
+	Update pln_entries SET 
+	ia = ?,
+	raw = ?
+	WHERE pgnID = ?
 	`
 )
