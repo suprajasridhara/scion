@@ -19,4 +19,9 @@ const (
 	PLNList = `
 	SELECT * FROM pln_entries
 	`
+
+	//PLNEntryByPgnID queries for rows in pln_entries with the pgnID
+	PLNEntryByPgnID = `
+	SELECT * from pln_entries where pgnID = ?
+	`
 )
