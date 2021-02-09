@@ -19,12 +19,15 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
 	plnconfig "github.com/scionproto/scion/go/pkg/pln/config"
+	"github.com/scionproto/scion/go/pln/internal/plncrypto"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
+	"github.com/scionproto/scion/go/pln/pgncomm"
 )
 
 func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -42,8 +45,9 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 			CertFile: cfg.CertFile,
 			KeyFile:  cfg.KeyFile,
 		},
-		Router:    router,
-		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
+		Router:                router,
+		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
+		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
 	}
 	plnmsgr.Msgr, err = nc.Messenger()
 
@@ -52,6 +56,9 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 
 	plnmsgr.IA = cfg.IA
-	//plncrypto.CfgDir = cfg.CfgDir
+	plncrypto.CfgDir = cfg.CfgDir
+
+	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pgncomm.AddPLNEntryHandler{})
+
 	return nil
 }
