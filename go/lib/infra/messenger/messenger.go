@@ -519,6 +519,7 @@ func (m *Messenger) SendHPCfgReply(ctx context.Context, msg *path_mgmt.HPCfgRepl
 
 func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld,
 	a net.Addr, id uint64) error {
+
 	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending request", "req_type", infra.AddPLNEntryRequest,

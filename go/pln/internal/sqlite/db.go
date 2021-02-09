@@ -86,7 +86,9 @@ func (e *executor) GetPLNList(ctx context.Context) ([]PLNListEntry, error) {
 }
 
 //GetPLNList reads all rows in pln_entries and returns it
-func (e *executor) GetPLNListEntryByPGNID(ctx context.Context, pgnID string) ([]PLNListEntry, error) {
+func (e *executor) GetPLNListEntryByPGNID(ctx context.Context,
+	pgnID string) ([]PLNListEntry, error) {
+
 	e.RLock()
 	defer e.RUnlock()
 	rows, err := e.db.QueryContext(ctx, PLNEntryByPgnID, pgnID)
@@ -109,6 +111,7 @@ func (e *executor) GetPLNListEntryByPGNID(ctx context.Context, pgnID string) ([]
 //InsertNewPLNEntry inserts a new row into pln_entries
 func (e *executor) InsertNewPLNEntry(ctx context.Context,
 	pgnID string, entry uint64, raw []byte) (sql.Result, error) {
+
 	var res sql.Result
 	entries, err := e.GetPLNListEntryByPGNID(ctx, pgnID)
 	if err != nil {
@@ -132,6 +135,7 @@ func (e *executor) InsertNewPLNEntry(ctx context.Context,
 //UpdatePLNListEntry updates a row in node_list_entries based on msIA
 func (e *executor) UpdatePLNListEntry(ctx context.Context, pgnID string,
 	ia uint64, raw []byte) (sql.Result, error) {
+
 	res, err := e.db.ExecContext(ctx, UpdatePLNListEntry, ia, raw, pgnID)
 	if err != nil {
 		return nil, err
