@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -24,6 +25,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/scionproto/scion/go/cs/ifstate"
+	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
@@ -35,6 +37,7 @@ import (
 	"github.com/scionproto/scion/go/pgn/internal/pgncmn"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
+	"github.com/scionproto/scion/go/pgn/plncomm"
 	pgnconfig "github.com/scionproto/scion/go/pkg/pgn/config"
 	"github.com/scionproto/scion/go/pkg/service"
 	"github.com/scionproto/scion/go/proto"
@@ -102,6 +105,11 @@ func realMain() int {
 		return 1
 	}
 	defer sqlite.Db.Close()
+
+	go func(ctx context.Context, pgnId string, ia addr.IA, plnIA addr.IA) {
+		defer log.HandlePanic()
+		plncomm.AddPGNEntry(ctx, pgnId, ia, plnIA)
+	}(context.Background(), cfg.General.ID, pgncmn.IA, pgncmn.PLNIA)
 
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
