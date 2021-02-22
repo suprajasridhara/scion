@@ -37,4 +37,5 @@ func CheckTestPLN(t *testing.T, cfg *config.PLNConf, id string) {
 	assert.Equal(t, "gen-certs/tls.pem", cfg.CertFile)
 	assert.Equal(t, "gen-certs/tls.key", cfg.KeyFile)
 	assert.Equal(t, config.DefaultPropagateInterval, time.Duration(cfg.PropagateInterval)*time.Hour)
+	assert.Equal(t, config.DefaultHops, cfg.Hops)
 }

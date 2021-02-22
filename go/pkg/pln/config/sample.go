@@ -46,4 +46,7 @@ key_file = "gen-certs/tls.key"
 
 #PropagateInterval is the time interval between PLN list propagations (default = 1 hour)
 prop_interval = 1
+
+#Hops is the number of hops that the PLN list is propagated to in every interval (default = 3)
+hops = 3
 `
