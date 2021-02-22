@@ -17,7 +17,6 @@ package configtest
 import (
 	"net"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -30,12 +29,13 @@ func CheckTestPLN(t *testing.T, cfg *config.PLNConf, id string) {
 	assert.Equal(t, "", cfg.DispatcherBypass)
 	assert.Equal(t, xtest.MustParseIA("1-ff00:0:110"), cfg.IA)
 	assert.Equal(t, net.ParseIP("127.0.0.65"), cfg.IP)
-	assert.Equal(t, 3009, int(cfg.Port))
+	assert.Equal(t, 3010, int(cfg.Port))
 	assert.Equal(t, "gen/ISD1/ASff00_0_110", cfg.CfgDir)
 	assert.Equal(t, config.DefaultDb, cfg.Db)
 	assert.Equal(t, "127.0.0.27:20655", cfg.QUICAddr)
 	assert.Equal(t, "gen-certs/tls.pem", cfg.CertFile)
 	assert.Equal(t, "gen-certs/tls.key", cfg.KeyFile)
-	assert.Equal(t, config.DefaultPropagateInterval, time.Duration(cfg.PropagateInterval)*time.Hour)
-	assert.Equal(t, config.DefaultHops, cfg.Hops)
+	assert.Equal(t, config.DefaultPropagateInterval.Duration, cfg.PropagateInterval.Duration)
+	assert.Equal(t, config.DefaultHops, int(cfg.Hops))
+	assert.Equal(t, config.DefaultConnectTimeout.Duration, cfg.ConnectTimeout.Duration)
 }
