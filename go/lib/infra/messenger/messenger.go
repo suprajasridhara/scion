@@ -619,6 +619,28 @@ func (m *Messenger) SendASAction(ctx context.Context, msg *ms_mgmt.Pld,
 	return replyCtrlPld, nil
 }
 
+func (m *Messenger) GetFullMap(ctx context.Context, msg *ms_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.MSFullMapRequest,
+		"msg_id", id, "request", nil, "peer", a)
+
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
+	replyCtrlPld, err := m.getFallbackRequester(infra.MSFullMapRequest).
+		RequestWithSign(ctxT, pld, a, false)
+	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return nil, ctxT.Err()
+		}
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.MSFullMapRequest)
+	}
+	return replyCtrlPld, nil
+}
+
 func (m *Messenger) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
 	a net.Addr, id uint64, messageType infra.MessageType) error {
 
@@ -1098,6 +1120,10 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.ASActionRequest, pld.Ms.AsActionReq, nil
 		case proto.MS_Which_asActionRep:
 			return infra.ASActionReply, pld.Ms.AsActionRep, nil
+		case proto.MS_Which_fullMapReq:
+			return infra.MSFullMapRequest, pld.Ms.FullMapReq, nil
+		case proto.MS_Which_fullMapRep:
+			return infra.MSFullMapReply, pld.Ms.FullMapRep, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Ms.Xxx message type",

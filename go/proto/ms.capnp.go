@@ -16,10 +16,12 @@ const (
 	MS_Which_unset       MS_Which = 0
 	MS_Which_asActionReq MS_Which = 1
 	MS_Which_asActionRep MS_Which = 2
+	MS_Which_fullMapReq  MS_Which = 3
+	MS_Which_fullMapRep  MS_Which = 4
 )
 
 func (w MS_Which) String() string {
-	const s = "unsetasActionReqasActionRep"
+	const s = "unsetasActionReqasActionRepfullMapReqfullMapRep"
 	switch w {
 	case MS_Which_unset:
 		return s[0:5]
@@ -27,6 +29,10 @@ func (w MS_Which) String() string {
 		return s[5:16]
 	case MS_Which_asActionRep:
 		return s[16:27]
+	case MS_Which_fullMapReq:
+		return s[27:37]
+	case MS_Which_fullMapRep:
+		return s[37:47]
 
 	}
 	return "MS_Which(" + strconv.FormatUint(uint64(w), 10) + ")"
@@ -137,6 +143,72 @@ func (s MS) NewAsActionRep() (MSRepToken, error) {
 	return ss, err
 }
 
+func (s MS) FullMapReq() (FullMapReq, error) {
+	if s.Struct.Uint16(8) != 3 {
+		panic("Which() != fullMapReq")
+	}
+	p, err := s.Struct.Ptr(0)
+	return FullMapReq{Struct: p.Struct()}, err
+}
+
+func (s MS) HasFullMapReq() bool {
+	if s.Struct.Uint16(8) != 3 {
+		return false
+	}
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s MS) SetFullMapReq(v FullMapReq) error {
+	s.Struct.SetUint16(8, 3)
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewFullMapReq sets the fullMapReq field to a newly
+// allocated FullMapReq struct, preferring placement in s's segment.
+func (s MS) NewFullMapReq() (FullMapReq, error) {
+	s.Struct.SetUint16(8, 3)
+	ss, err := NewFullMapReq(s.Struct.Segment())
+	if err != nil {
+		return FullMapReq{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
+func (s MS) FullMapRep() (FullMapRep, error) {
+	if s.Struct.Uint16(8) != 4 {
+		panic("Which() != fullMapRep")
+	}
+	p, err := s.Struct.Ptr(0)
+	return FullMapRep{Struct: p.Struct()}, err
+}
+
+func (s MS) HasFullMapRep() bool {
+	if s.Struct.Uint16(8) != 4 {
+		return false
+	}
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s MS) SetFullMapRep(v FullMapRep) error {
+	s.Struct.SetUint16(8, 4)
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewFullMapRep sets the fullMapRep field to a newly
+// allocated FullMapRep struct, preferring placement in s's segment.
+func (s MS) NewFullMapRep() (FullMapRep, error) {
+	s.Struct.SetUint16(8, 4)
+	ss, err := NewFullMapRep(s.Struct.Segment())
+	if err != nil {
+		return FullMapRep{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
 // MS_List is a list of MS.
 type MS_List struct{ capnp.List }
 
@@ -169,6 +241,14 @@ func (p MS_Promise) AsActionReq() ASMapEntry_Promise {
 
 func (p MS_Promise) AsActionRep() MSRepToken_Promise {
 	return MSRepToken_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+func (p MS_Promise) FullMapReq() FullMapReq_Promise {
+	return FullMapReq_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+func (p MS_Promise) FullMapRep() FullMapRep_Promise {
+	return FullMapRep_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
 }
 
 type ASMapEntry struct{ capnp.Struct }
@@ -366,37 +446,287 @@ func (p MSRepToken_Promise) Struct() (MSRepToken, error) {
 	return MSRepToken{s}, err
 }
 
-const schema_de42b02816bdc1bf = "x\xdat\x921\x8b\x13Q\x14\x85\xcf\xb97\xd91\x90" +
-	"Yg\x98\xb8\x85\xcdj#k#\xaeXH\x104B" +
-	"\xca\xc0\xbe\xc4FPtvwp\x077\xb3/\x99Y" +
-	"4\x92F\xb0\xf0\x1f\xd8\xef/\xb0\xb0\x95%\x85`m" +
-	"#Xh\xb9\xad\xad\x85>\x99d\x93\xa8h5\xc3\xb9" +
-	"\xe7\xbds\xde\xc7\x0d>\xde\x96\xcd\xeaY\x02\xa6^]" +
-	"qo\xa3\x93\xee\xd7\xd7\x17\x8faj\xa4;\x9e\xbc[" +
-	"\xdbxs\xe7\x0b\xaa\xea\x01a\xff(<,\xbf\x83\x13" +
-	"\xd0]\x08\xf6?\xac=\xbf\xf1\xe9o'= \xba\xc7" +
-	"\xa3(\x9e\xfe=\xe0S\xd0\x8d/\xd9o\xdf\x1f\x9e\xfb" +
-	"\\\x9aein\xd3SV\xa2\x09\xb7\xa3\xf7S\xf7\x84" +
-	"\xe5\xd5\xfd\xfc\xcaNl3\xcbf\xab\xd7\x89m;\xf3" +
-	"\x8a\xe1h\x8b4\x81V\x80\x0a\x810>\x0f\x98\xfbJ" +
-	"\xb3'\x0c\xc9\x06K1)\xc5GJ3\x16R\x1a\x14" +
-	" \x1cu\x01\xf3Li^\x0aC\x95\x06\x15\x08_4" +
-	"\x013V\x9aWBMc\xd6!\xac\x83\x9aZ\xae\x82" +
-	"[\xca\xa9\xb2\x0a\xba\"\xed'y\x11\xf7A\xcb\x1a\x84" +
-	"5\xf0V\xbcS\xa4\x07\xd9\xfc\xd0om;\xbdnb" +
-	"\xef\x1exO\x92\xacl{f\xd1\xf6\xf2\x100\x1bJ" +
-	"s]8/\xbbY\x16\xbb\xaa47\x85.O\x1fg" +
-	"\xc9n\xab\x87\xf5vV\x0cG\xf4!\xf4\xff\x1d\xbf\xc8" +
-	"\x83\xd7\xec\xf4\xfeO\xc5\xa7s\xa7X\xae\x9db\xd9\x17" +
-	"\xfa\xf2\xd3\xcd\xc0\xa4\xdb\x80\xd9S\x9aB\xe8\xeb\x0f7" +
-	"#3(U;C\xa8\xe9\xee<t\xfd0\xcb\x93\x02" +
-	"+.\xce[\xd3\xd7\xc3\xeb&\x03\x06\xcb}\x01\x19\x80" +
-	"\x7f\xcc-\x83\xe5\x96\xcc\xe6\xbf\x02\x00\x00\xff\xff,\x84" +
-	"\x8b\xeb"
+type FullMapReq struct{ capnp.Struct }
+
+// FullMapReq_TypeID is the unique identifier for the type FullMapReq.
+const FullMapReq_TypeID = 0x9f79403fb2002d32
+
+func NewFullMapReq(s *capnp.Segment) (FullMapReq, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return FullMapReq{st}, err
+}
+
+func NewRootFullMapReq(s *capnp.Segment) (FullMapReq, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return FullMapReq{st}, err
+}
+
+func ReadRootFullMapReq(msg *capnp.Message) (FullMapReq, error) {
+	root, err := msg.RootPtr()
+	return FullMapReq{root.Struct()}, err
+}
+
+func (s FullMapReq) String() string {
+	str, _ := text.Marshal(0x9f79403fb2002d32, s.Struct)
+	return str
+}
+
+func (s FullMapReq) Id() uint8 {
+	return s.Struct.Uint8(0)
+}
+
+func (s FullMapReq) SetId(v uint8) {
+	s.Struct.SetUint8(0, v)
+}
+
+// FullMapReq_List is a list of FullMapReq.
+type FullMapReq_List struct{ capnp.List }
+
+// NewFullMapReq creates a new list of FullMapReq.
+func NewFullMapReq_List(s *capnp.Segment, sz int32) (FullMapReq_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return FullMapReq_List{l}, err
+}
+
+func (s FullMapReq_List) At(i int) FullMapReq { return FullMapReq{s.List.Struct(i)} }
+
+func (s FullMapReq_List) Set(i int, v FullMapReq) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s FullMapReq_List) String() string {
+	str, _ := text.MarshalList(0x9f79403fb2002d32, s.List)
+	return str
+}
+
+// FullMapReq_Promise is a wrapper for a FullMapReq promised by a client call.
+type FullMapReq_Promise struct{ *capnp.Pipeline }
+
+func (p FullMapReq_Promise) Struct() (FullMapReq, error) {
+	s, err := p.Pipeline.Struct()
+	return FullMapReq{s}, err
+}
+
+type FullMap struct{ capnp.Struct }
+
+// FullMap_TypeID is the unique identifier for the type FullMap.
+const FullMap_TypeID = 0xc7b2da00ffda93d6
+
+func NewFullMap(s *capnp.Segment) (FullMap, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return FullMap{st}, err
+}
+
+func NewRootFullMap(s *capnp.Segment) (FullMap, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return FullMap{st}, err
+}
+
+func ReadRootFullMap(msg *capnp.Message) (FullMap, error) {
+	root, err := msg.RootPtr()
+	return FullMap{root.Struct()}, err
+}
+
+func (s FullMap) String() string {
+	str, _ := text.Marshal(0xc7b2da00ffda93d6, s.Struct)
+	return str
+}
+
+func (s FullMap) Id() uint8 {
+	return s.Struct.Uint8(0)
+}
+
+func (s FullMap) SetId(v uint8) {
+	s.Struct.SetUint8(0, v)
+}
+
+func (s FullMap) Ip() (string, error) {
+	p, err := s.Struct.Ptr(0)
+	return p.Text(), err
+}
+
+func (s FullMap) HasIp() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s FullMap) IpBytes() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s FullMap) SetIp(v string) error {
+	return s.Struct.SetText(0, v)
+}
+
+func (s FullMap) Ia() (string, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.Text(), err
+}
+
+func (s FullMap) HasIa() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s FullMap) IaBytes() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s FullMap) SetIa(v string) error {
+	return s.Struct.SetText(1, v)
+}
+
+// FullMap_List is a list of FullMap.
+type FullMap_List struct{ capnp.List }
+
+// NewFullMap creates a new list of FullMap.
+func NewFullMap_List(s *capnp.Segment, sz int32) (FullMap_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
+	return FullMap_List{l}, err
+}
+
+func (s FullMap_List) At(i int) FullMap { return FullMap{s.List.Struct(i)} }
+
+func (s FullMap_List) Set(i int, v FullMap) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s FullMap_List) String() string {
+	str, _ := text.MarshalList(0xc7b2da00ffda93d6, s.List)
+	return str
+}
+
+// FullMap_Promise is a wrapper for a FullMap promised by a client call.
+type FullMap_Promise struct{ *capnp.Pipeline }
+
+func (p FullMap_Promise) Struct() (FullMap, error) {
+	s, err := p.Pipeline.Struct()
+	return FullMap{s}, err
+}
+
+type FullMapRep struct{ capnp.Struct }
+
+// FullMapRep_TypeID is the unique identifier for the type FullMapRep.
+const FullMapRep_TypeID = 0xb0f5e5a599f7ce14
+
+func NewFullMapRep(s *capnp.Segment) (FullMapRep, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return FullMapRep{st}, err
+}
+
+func NewRootFullMapRep(s *capnp.Segment) (FullMapRep, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return FullMapRep{st}, err
+}
+
+func ReadRootFullMapRep(msg *capnp.Message) (FullMapRep, error) {
+	root, err := msg.RootPtr()
+	return FullMapRep{root.Struct()}, err
+}
+
+func (s FullMapRep) String() string {
+	str, _ := text.Marshal(0xb0f5e5a599f7ce14, s.Struct)
+	return str
+}
+
+func (s FullMapRep) Fm() (FullMap_List, error) {
+	p, err := s.Struct.Ptr(0)
+	return FullMap_List{List: p.List()}, err
+}
+
+func (s FullMapRep) HasFm() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s FullMapRep) SetFm(v FullMap_List) error {
+	return s.Struct.SetPtr(0, v.List.ToPtr())
+}
+
+// NewFm sets the fm field to a newly
+// allocated FullMap_List, preferring placement in s's segment.
+func (s FullMapRep) NewFm(n int32) (FullMap_List, error) {
+	l, err := NewFullMap_List(s.Struct.Segment(), n)
+	if err != nil {
+		return FullMap_List{}, err
+	}
+	err = s.Struct.SetPtr(0, l.List.ToPtr())
+	return l, err
+}
+
+// FullMapRep_List is a list of FullMapRep.
+type FullMapRep_List struct{ capnp.List }
+
+// NewFullMapRep creates a new list of FullMapRep.
+func NewFullMapRep_List(s *capnp.Segment, sz int32) (FullMapRep_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return FullMapRep_List{l}, err
+}
+
+func (s FullMapRep_List) At(i int) FullMapRep { return FullMapRep{s.List.Struct(i)} }
+
+func (s FullMapRep_List) Set(i int, v FullMapRep) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s FullMapRep_List) String() string {
+	str, _ := text.MarshalList(0xb0f5e5a599f7ce14, s.List)
+	return str
+}
+
+// FullMapRep_Promise is a wrapper for a FullMapRep promised by a client call.
+type FullMapRep_Promise struct{ *capnp.Pipeline }
+
+func (p FullMapRep_Promise) Struct() (FullMapRep, error) {
+	s, err := p.Pipeline.Struct()
+	return FullMapRep{s}, err
+}
+
+const schema_de42b02816bdc1bf = "x\xdatTMhSY\x18=\xe7\xbb\xf9i\xa0o" +
+	"\xc8\xe3\xa5\x9d\xce\xc0\xd0\x19\x18\x86\xceb\x86\xb63\x03" +
+	"\xd32\xa5\xed0\x19,\x18\xe8M\x0a\x82\x08\xfa\xda\xa6" +
+	"\x1al\xd2\xd7&E#\xdd\x08.\xc4\xad\x82v!\xd6" +
+	"\xa0\xa0 XK\x17\x0aJ\x11\x04]\x09.T\xecB" +
+	"W\xd2\xa5\xba(R\xaa>\xb9I\x93\xf4w\xf5.\xe7" +
+	";\xdf9\xe7\xbb\xf7\xdd\xdb>\xc9>\xe9\x08~+\x80" +
+	"n\x09\x86\xd6;\x7f[\xe8\xed+^\xd1\x11\xd2_z" +
+	"\xf8\xa0\xb9m\xfe\xdf\xd7\x08\x84\x01\xfbC\xc9^3\xdf" +
+	"\xd5^\xd0\x8f=\xfd8{\xfd\xed\xea<\xec\xc8&^" +
+	"\x90a\xc0ib\xc9\xf9\xa1\xbc\xfa\x8e\x86\xbb\xe8\xac$" +
+	"\xdf\\\xfci\x09[E\x83\xcaP\x06Xrt\x99\x9c" +
+	"\xe0\x0a\xf8\xee\xc5\xf9e\x7fy\xe1\xf16\xaa\x18\xc2_" +
+	"r\xce\xe9)\xaf\xba\xe46\xe8\xff\x18\x1d\x7f\xd2|\xea" +
+	"\xef\x97\xdbu\xcbj\xcf\xa4\xe4\xbc*\x93\x9f\xcb\x09\xd0" +
+	"\x9f\xf9\xc5{\xbfv\xb8i\xd9\x90\xa5N\x8e3\x1cd" +
+	"\xc0\xe9R\xc3N\x8f\xc9\xf3G\x97:@\xd0\xcf\xe6\x7f" +
+	"\x1fq\xbd\x9c\xc7\xee\xff\xa7\xc7\xc7\x13\xae\x17N\xa6'" +
+	"\x07I\x1dP\x01 @\xc0\xb6\xbe\x07t\x83\xa2\x8e\x09" +
+	"Uf\x94!\x08C{\xb4z{\xb4\xfe,TcY" +
+	"~\x03\x0e*2Z\x9d\x1e4\xd0&\xa5\xfeT\xc2\xf5" +
+	"\xe2\xb9pa\xaah\x94\xa25%\xd7(\x1dR\xd4\xc7" +
+	"\x846\x19\xa3\x01\xd3\x06<\xa2\xa8g\x84\x94\x18\x05\xb0" +
+	"\x8bI@\x9fT\xd4g\x84\xb6\x92\x18\x15`\x9f\xee\x06" +
+	"\xf4\x8c\xa2>kFp\xd9\x08a#\xa82^5\x92" +
+	"AL\x94B&\x9b\xce\x17\xdc,\xe81\x02a\x04\xec" +
+	"uG\x0a\x99\x89\\\xb5i\xe7\xdc\x80\xc9\xdaX\xcb\x1a" +
+	"7\xb1\xfa\x14\xf5~a5\xea\x80\xc1\xfeS\xd4\x83B" +
+	"[X\xc9\x9a0\xe0>E=\xb4egM\xacZB" +
+	"w\x17\xdfD*\x99\xf6\x86&\xc2\xc7\xd39\xe3\xdcP" +
+	"s\xfeu\x0a\xd0m\x8a\xfa\xcf\xbas\x87\xd9\x90vE" +
+	"\xfd\x8f\xd0\xcfg\x8e\xe6\xd2\xa3\xfd)\xb4\xc6s\x85\xa9" +
+	"\"-\x08\xad\xdd\xc7\xae\xf9!\xdc\x9dH\x19\x9f\x96\x9a" +
+	"\xcf\xac\x09~AQ\xcf\x09-\xfa~\xc5\xe9r'\xa0" +
+	"/)\xeakBK\xbe\xf8\x95!\xaf\x0e\x03zNQ" +
+	"\xdf\x12Z\xea\xb3_9\x91\x9b\x06\xbd\xa1\xa8\x17\x85V" +
+	"\xe0\x93\x1fc\x00\xb0\xef\x1c\x04\xf4\xbc\xa2\xbe/\xb4\x82" +
+	"\xeb~\x8cA\xc0\xbeg\xd0\xbb\x8a\xfaQe\x9b6\x02" +
+	"\xb6N\xe7\xf2\xe9\x02B\xbe\x9b\xef/\x9f\x10\xcc\xbf\xcb" +
+	"h\xfd\x1e\x82\x8c\x82[\xea\x1e\xa3\xf5\xfb\xb4Q\x1f\xab" +
+	"\x1cc\x12\xca\xb4W_\x86\x9dE\xd3[{\x0f*\xe5" +
+	"\xaf\x01\x00\x00\xff\xffE\x0a\x02}"
 
 func init() {
 	schemas.Register(schema_de42b02816bdc1bf,
+		0x9f79403fb2002d32,
+		0xb0f5e5a599f7ce14,
 		0xbf2197df52e713b4,
+		0xc7b2da00ffda93d6,
 		0xd7387a16c86c1020,
 		0xda155ff9f070267c)
 }

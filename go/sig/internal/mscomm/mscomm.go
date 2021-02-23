@@ -14,6 +14,7 @@ import (
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pkg/trust"
+	"github.com/scionproto/scion/go/pkg/trust/compat"
 	"github.com/scionproto/scion/go/proto"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
 	"github.com/scionproto/scion/go/sig/internal/sigcrypto"
@@ -76,12 +77,48 @@ func AddASMap(ctx context.Context, ip string) error {
 		very small configured connect_period or no MS instance deployed in any core AS`))
 }
 
-func doSuccess(rep *ctrl.SignedPld, ia addr.IA, ip string) error {
-	e := sigcrypto.SIGEngine{Msgr: sigcmn.Msgr, IA: sigcmn.IA}
-	verifier := trust.Verifier{BoundIA: ia, Engine: e}
-	err := verifier.Verify(context.Background(), rep.Blob, rep.Sign)
+func GetFullMap(ia addr.IA) (*ms_mgmt.FullMapRep, error) {
+	addr := &snet.SVCAddr{IA: ia, SVC: addr.SvcMS}
+	pld, err := ms_mgmt.NewPld(1, ms_mgmt.NewFullMapReq(1))
 	if err != nil {
-		return serrors.WrapStr("Invalid signature", err)
+		return nil, serrors.WrapStr("Unable to create payload", err)
+	}
+
+	if err := registerSigner(infra.MSFullMapRequest); err != nil {
+		return nil, err
+	}
+
+	rep, err := sigcmn.Msgr.GetFullMap(context.Background(), pld, addr, rand.Uint64())
+
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			//The messenger was not able to establish a connection with a MS in the IA.
+			//This could be because there is no MS registered with the dispatcher in the IA
+			//Or the MS is down. Try again with a different core AS
+			log.Error("Not able to connect to MS", "IA ", ia.String())
+		}
+		//If the error is something other than not being able to reach a MS. Break and report
+		//that the sending failed. This will be retried in the next time interval
+		return nil, serrors.WrapStr("Error sending AS Action", err)
+	}
+	//Validate and Parse signed payload now
+	repPld, err := verify(ia, rep)
+	if err != nil {
+		return nil, err
+	}
+
+	if fm := repPld.Ms.FullMapRep; fm != nil {
+		return fm, nil
+	}
+
+	return nil, serrors.WrapStr("Failed to get full Map from AS",
+		errors.New("Unknown response type"))
+
+}
+
+func doSuccess(rep *ctrl.SignedPld, ia addr.IA, ip string) error {
+	if _, err := verify(ia, rep); err != nil {
+		return err
 	}
 
 	//The signature is validated. Store the MSToken for future use
@@ -105,6 +142,16 @@ func doSuccess(rep *ctrl.SignedPld, ia addr.IA, ip string) error {
 func insertIntoDB(prefix string) error {
 	_, err := sqlite.Db.InsertNewPushedPrefix(context.Background(), prefix)
 	return err
+}
+
+func verify(ia addr.IA, spld *ctrl.SignedPld) (*ctrl.Pld, error) {
+	e := sigcrypto.SIGEngine{Msgr: sigcmn.Msgr, IA: sigcmn.IA}
+	verifier := trust.Verifier{BoundIA: ia, Engine: e}
+	pld, err := compat.Verifier{Verifier: verifier}.VerifyPld(context.Background(), spld)
+	if err != nil {
+		return nil, serrors.WrapStr("Invalid signature", err)
+	}
+	return pld, nil
 }
 
 func registerSigner(msgType infra.MessageType) error {

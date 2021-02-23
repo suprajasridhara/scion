@@ -99,18 +99,6 @@ func realMain() int {
 		},
 	)
 	sigdisp.Init(sigcmn.CtrlConn, false)
-	// Parse sig config
-	if loadConfig(cfg.Sig.SIGConfig) != true {
-		log.Error("SIG configuration loading failed")
-		return 1
-	}
-	// Reply to probes from other SIGs.
-	go func() {
-		defer log.HandlePanic()
-		base.PollReqHdlr()
-	}()
-	egress.Init(tunIO)
-	ingress.Init(tunIO)
 
 	if err := setupDb(); err != nil {
 		log.Error("MS db initialization failed", "err", err)
@@ -131,6 +119,20 @@ func realMain() int {
 		log.Error("", "Sig configuration initialization failed", err)
 		return 1
 	}
+
+	// Parse sig config
+	if loadConfig(cfg.Sig.SIGConfig) != true {
+		log.Error("SIG configuration loading failed")
+		return 1
+	}
+	// Reply to probes from other SIGs.
+	go func() {
+		defer log.HandlePanic()
+		base.PollReqHdlr()
+	}()
+	egress.Init(tunIO)
+	ingress.Init(tunIO)
+
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),
