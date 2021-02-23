@@ -84,6 +84,10 @@ type NetworkConfig struct {
 
 	// Version2 switches packets to SCION header format version 2.
 	Version2 bool
+
+	//ConnectTimeout is the duration that can be used by the messenger
+	//to wait for responses to requests it sends out.
+	ConnectTimeout time.Duration
 }
 
 // Messenger initializes a SCION control-plane RPC endpoint using the specified
@@ -109,6 +113,7 @@ func (nc *NetworkConfig) Messenger() (infra.Messenger, error) {
 	msgerCfg := &messenger.Config{
 		IA:              nc.IA,
 		AddressRewriter: nc.AddressRewriter(nil),
+		ConnectTimeout:  nc.ConnectTimeout,
 	}
 	msgerCfg.Dispatcher = disp.New(
 		conn,
