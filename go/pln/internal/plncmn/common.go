@@ -28,6 +28,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plncrypto"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/pgncomm"
+	"github.com/scionproto/scion/go/pln/plncomm"
 )
 
 func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -48,6 +49,7 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 		Router:                router,
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
+		ConnectTimeout:        cfg.ConnectTimeout.Duration,
 	}
 	plnmsgr.Msgr, err = nc.Messenger()
 
@@ -59,6 +61,7 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 	plncrypto.CfgDir = cfg.CfgDir
 
 	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pgncomm.AddPLNEntryHandler{})
+	plnmsgr.Msgr.AddHandler(infra.PlnListReply, plncomm.PLNListHandler{})
 
 	return nil
 }
