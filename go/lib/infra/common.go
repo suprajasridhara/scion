@@ -336,7 +336,7 @@ type Messenger interface {
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
 	SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld, a net.Addr, id uint64) error
-	SendPlnList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
+	SendPLNList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
 		id uint64) error
 	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)

@@ -61,7 +61,7 @@ func SendPLNList(addr net.Addr, id uint64) error {
 		if err != nil {
 			return err
 		}
-		err = Msgr.SendPlnList(context.Background(), pld, addr, id)
+		err = Msgr.SendPLNList(context.Background(), pld, addr, id)
 		if err != nil {
 			return err
 		}

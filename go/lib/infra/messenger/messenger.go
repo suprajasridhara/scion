@@ -547,7 +547,7 @@ func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld,
 	return nil
 }
 
-func (m *Messenger) SendPlnList(ctx context.Context, msg *pln_mgmt.Pld,
+func (m *Messenger) SendPLNList(ctx context.Context, msg *pln_mgmt.Pld,
 	a net.Addr, id uint64) error {
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending message", "req_type", infra.PlnListReply,
