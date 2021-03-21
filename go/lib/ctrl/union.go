@@ -21,6 +21,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/extn"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/ctrl/sig_mgmt"
@@ -37,6 +38,7 @@ type union struct {
 	Sibra     []byte `capnp:"-"` // Omit for now
 	DRKeyMgmt []byte `capnp:"-"` // Omit for now
 	Sig       *sig_mgmt.Pld
+	Ms        *ms_mgmt.Pld
 	Extn      *extn.CtrlExtnDataList
 	Ack       *ack.Ack
 }
@@ -55,6 +57,9 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *sig_mgmt.Pld:
 		u.Which = proto.CtrlPld_Which_sig
 		u.Sig = p
+	case *ms_mgmt.Pld:
+		u.Which = proto.CtrlPld_Which_ms
+		u.Ms = p
 	case *cert_mgmt.Pld:
 		u.Which = proto.CtrlPld_Which_certMgmt
 		u.CertMgmt = p
