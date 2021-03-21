@@ -59,8 +59,8 @@ func AddASMap(ctx context.Context, ip string) error {
 				//Or the MS is down. Try again with a different core AS
 				log.Error("Not able to connect to MS", "IA ", ia.String())
 			} else {
-				//If the error is something other than not being able to reach a MS. Break and report
-				//that the sending failed. This will be retried in the next time interval
+				//If the error is something other than not being able to reach a MS. Break and
+				//report that the sending failed. This will be retried in the next time interval
 				return serrors.WrapStr("Error sending AS Action", err)
 			}
 		} else {
@@ -72,7 +72,7 @@ func AddASMap(ctx context.Context, ip string) error {
 		return doSuccess(rep, ia, ip)
 	}
 
-	return serrors.WrapStr("Pushing to MS was unsuccessfull",
+	return serrors.WrapStr("Pushing to MS was unsuccessful",
 		errors.New(`Could not connect to any MS in the core ASes. This could be because of 
 		very small configured connect_period or no MS instance deployed in any core AS`))
 }

@@ -39,9 +39,9 @@ type PGN struct {
 	PGNIA addr.IA
 }
 
-/*GetPLNList The Mapping Service sends the request using the infra.Messenger instance in msmsgr package and
-verifies the origin of the response before processing it. It then returns the processed list of
-PGN Id and IA objects to the calling function
+/*GetPLNList The Mapping Service sends the request using the infra.Messenger instance in msmsgr
+package and verifies the origin of the response before processing it. It then returns the processed
+list of PGN Id and IA objects to the calling function
 */
 func GetPLNList(ctx context.Context) ([]PGN, error) {
 	address := &snet.SVCAddr{IA: PLNAddr, SVC: addr.SvcPLN}
