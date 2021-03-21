@@ -21,6 +21,7 @@ import (
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
+	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/pln/internal/plncrypto"
@@ -55,6 +56,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	if plnEntry.IA != uint64(requester.IA.IAInt()) {
 		//IA in the entry is not the same as the requester IA, reject
 		log.Error("IA in the entry is not the same as the requester IA")
+		err = serrors.New("IA in the entry is not the same as the requester IA")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
