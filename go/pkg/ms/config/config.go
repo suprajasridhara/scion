@@ -27,9 +27,13 @@ import (
 )
 
 const (
-	DefaultDb                 = "./ms.db"
-	DefaultMSListValidTime    = 7 * 24 * time.Hour //7 days
-	DefaultMSPullListInterval = 24 * time.Hour     //1 day
+	DefaultDb = "./ms.db"
+)
+
+var (
+	DefaultMSListValidTime    = duration{7 * 24 * time.Hour} //7 days
+	DefaultMSPullListInterval = duration{24 * time.Hour}     //1 day
+	DefaultConnectTimeout     = duration{1 * time.Minute}
 )
 
 type Config struct {
@@ -117,10 +121,14 @@ type MsConf struct {
 
 	//MSListValidTime time for which a published MS list is
 	//valid in minutes (default = 10080) 1 week
-	MSListValidTime time.Duration `toml:"ms_list_valid_time,omitempty"`
+	MSListValidTime duration `toml:"ms_list_valid_time,omitempty"`
 
 	//MSPullListInterval time intervaal to pull full MS list in minutes (default = 1440) 1 day
-	MSPullListInterval time.Duration ` toml:"ms_pull_list_interval,omitempty"`
+	MSPullListInterval duration ` toml:"ms_pull_list_interval,omitempty"`
+
+	//ConnectTimeout is the amount of time the messenger waits for a reply
+	//from the other service that it connects to. default (1 minute)
+	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {
@@ -128,12 +136,16 @@ func (cfg *MsConf) InitDefaults() {
 		cfg.Db = DefaultDb
 	}
 
-	if cfg.MSListValidTime == 0 {
+	if cfg.MSListValidTime.Duration == 0 {
 		cfg.MSListValidTime = DefaultMSListValidTime
 	}
 
-	if cfg.MSPullListInterval == 0 {
+	if cfg.MSPullListInterval.Duration == 0 {
 		cfg.MSPullListInterval = DefaultMSPullListInterval
+	}
+
+	if cfg.ConnectTimeout.Duration == 0 {
+		cfg.ConnectTimeout = DefaultConnectTimeout
 	}
 }
 func (cfg *MsConf) Validate() error {
@@ -184,4 +196,14 @@ func (cfg *MsConf) ConfigName() string {
 
 func (cfg *MsConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
 	config.WriteString(dst, fmt.Sprintf(msSample, ctx[config.ID]))
+}
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
 }

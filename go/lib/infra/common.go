@@ -153,6 +153,7 @@ const (
 	ASActionReply
 	MSFullMapRequest
 	MSFullMapReply
+	PlnListRequest
 )
 
 func (mt MessageType) String() string {
@@ -211,6 +212,8 @@ func (mt MessageType) String() string {
 		return "MSFullMapRequest"
 	case MSFullMapReply:
 		return "MSFullMapReply"
+	case PlnListRequest:
+		return "PlnListRequest"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -274,6 +277,8 @@ func (mt MessageType) MetricLabel() string {
 		return "ms_full_map_req"
 	case MSFullMapReply:
 		return "ms_full_map_push"
+	case PlnListRequest:
+		return "pln_list_req"
 	default:
 		return "unknown_mt"
 	}
@@ -365,7 +370,9 @@ type Messenger interface {
 		id uint64, messageType MessageType) error
 	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
 		id uint64) (*ctrl.SignedPld, error)
-  UpdateSigner(signer ctrl.Signer, types []MessageType)
+	GetPLNList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
 	ListenAndServe()
@@ -382,6 +389,7 @@ type ResponseWriter interface {
 	SendHPSegReply(ctx context.Context, msg *path_mgmt.HPSegReply) error
 	SendHPCfgReply(ctx context.Context, msg *path_mgmt.HPCfgReply) error
 	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, messageType MessageType) error
+	SendPLNList(ctx context.Context, msg *pln_mgmt.Pld) error
 }
 
 func ResponseWriterFromContext(ctx context.Context) (ResponseWriter, bool) {

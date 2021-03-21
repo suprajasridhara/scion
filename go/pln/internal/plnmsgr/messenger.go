@@ -29,11 +29,11 @@ import (
 var Msgr infra.Messenger
 var IA addr.IA
 
-//SendPLNList sends PLNList to addr
-func SendPLNList(addr net.Addr, id uint64) error {
+func GetPLNListAsPld(id uint64) (*pln_mgmt.Pld, error) {
+	var pld *pln_mgmt.Pld
 	plnList, err := sqlite.Db.GetPLNList(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var l []pln_mgmt.PlnListEntry
 	added := make(map[string]bool)
@@ -52,15 +52,26 @@ func SendPLNList(addr net.Addr, id uint64) error {
 		signer, err := plncrypt.SignerGen.Generate(context.Background())
 		if err != nil {
 			log.Error("Error getting signer", "error: ", err)
-			return err
+			return nil, err
 		}
 
 		plncrypt.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PlnListReply})
 
-		pld, err := pln_mgmt.NewPld(1, plnL)
+		pld, err = pln_mgmt.NewPld(1, plnL)
 		if err != nil {
-			return err
+			return nil, err
 		}
+	}
+	return pld, nil
+}
+
+//SendPLNList sends PLNList to addr
+func SendPLNList(addr net.Addr, id uint64) error {
+	pld, err := GetPLNListAsPld(id)
+	if err != nil {
+		return err
+	}
+	if pld != nil {
 		err = Msgr.SendPLNList(context.Background(), pld, addr, id)
 		if err != nil {
 			return err

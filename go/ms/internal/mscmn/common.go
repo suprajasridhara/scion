@@ -26,6 +26,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/validator"
+	"github.com/scionproto/scion/go/ms/plncomm"
 	"github.com/scionproto/scion/go/ms/sigcomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 )
@@ -56,6 +57,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		Router:                router,
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
+		ConnectTimeout:        cfg.ConnectTimeout.Duration,
 	}
 	msmsgr.Msgr, err = nc.Messenger()
 	if err != nil {
@@ -65,6 +67,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	mscrypto.CfgDir = cfg.CfgDir
 	validator.Path = cfg.RPKIValidator
 	validator.EntryValid = cfg.RPKIValidString
+	plncomm.PLNAddr = cfg.PLNIA
 
 	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
 	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})

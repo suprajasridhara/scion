@@ -36,6 +36,8 @@ func CheckTestMS(t *testing.T, cfg *config.MsConf, id string) {
 	assert.Equal(t, "validator.sh", cfg.RPKIValidator)
 	assert.Equal(t, "valid", cfg.RPKIValidString)
 	assert.Equal(t, xtest.MustParseIA("1-ff00:0:110"), cfg.PLNIA)
-	assert.Equal(t, config.DefaultMSListValidTime, int(cfg.MSListValidTime))
-	assert.Equal(t, config.DefaultMSPullListInterval, int(cfg.MSPullListInterval))
+	assert.Equal(t, config.DefaultMSListValidTime.Duration, cfg.MSListValidTime.Duration)
+	assert.Equal(t, config.DefaultMSPullListInterval.Duration, cfg.MSPullListInterval.Duration)
+	assert.Equal(t, config.DefaultConnectTimeout.Duration, cfg.ConnectTimeout.Duration)
+
 }

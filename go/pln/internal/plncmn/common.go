@@ -62,6 +62,7 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 
 	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pgncomm.AddPLNEntryHandler{})
 	plnmsgr.Msgr.AddHandler(infra.PlnListReply, plncomm.PLNListHandler{})
+	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, svccomm.PlnListHandler{})
 
 	return nil
 }
