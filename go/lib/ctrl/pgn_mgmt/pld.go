@@ -30,7 +30,7 @@ func (m MsgIdType) String() string {
 }
 
 func (m MsgIdType) Time() time.Time {
-	return time.Unix(int64(m)/1000000000, int64(m)%1000000000)
+	return time.Unix(int64(m)/1e9, int64(m)%1e9)
 }
 
 type Pld struct {
