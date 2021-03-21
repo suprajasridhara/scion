@@ -28,6 +28,8 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/proto"
@@ -145,6 +147,8 @@ const (
 	HPSegReply
 	HPCfgRequest
 	HPCfgReply
+	AddPLNEntryRequest
+	PlnListReply
 	ASActionRequest
 	ASActionReply
 	MSFullMapRequest
@@ -195,6 +199,10 @@ func (mt MessageType) String() string {
 		return "HPCfgRequest"
 	case HPCfgReply:
 		return "HPCfgReply"
+	case AddPLNEntryRequest:
+		return "AddPLNEntryRequest"
+	case PlnListReply:
+		return "PlnListReply"
 	case ASActionRequest:
 		return "ASActionRequest"
 	case ASActionReply:
@@ -254,6 +262,10 @@ func (mt MessageType) MetricLabel() string {
 		return "hp_cfg_req"
 	case HPCfgReply:
 		return "hp_cfg_push"
+	case AddPLNEntryRequest:
+		return "add_pln_entry_req"
+	case PlnListReply:
+		return "pln_list_rep"
 	case ASActionRequest:
 		return "ms_as_action_req"
 	case ASActionReply:
@@ -344,13 +356,16 @@ type Messenger interface {
 	SendChainRenewalReply(ctx context.Context, msg *cert_mgmt.ChainRenewalReply, a net.Addr,
 		id uint64) error
 	SendBeacon(ctx context.Context, msg *seg.Beacon, a net.Addr, id uint64) error
+	SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld, a net.Addr, id uint64) error
+	SendPLNList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
+		id uint64) error
 	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
 		id uint64) (*ctrl.SignedPld, error)
 	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
 		id uint64, messageType MessageType) error
 	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
 		id uint64) (*ctrl.SignedPld, error)
-	UpdateSigner(signer ctrl.Signer, types []MessageType)
+  UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
 	ListenAndServe()

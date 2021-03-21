@@ -23,6 +23,8 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/ctrl/sig_mgmt"
 	"github.com/scionproto/scion/go/proto"
@@ -38,6 +40,8 @@ type union struct {
 	Sibra     []byte `capnp:"-"` // Omit for now
 	DRKeyMgmt []byte `capnp:"-"` // Omit for now
 	Sig       *sig_mgmt.Pld
+	Pln       *pln_mgmt.Pld
+	Pgn       *pgn_mgmt.Pld
 	Ms        *ms_mgmt.Pld
 	Extn      *extn.CtrlExtnDataList
 	Ack       *ack.Ack
@@ -69,6 +73,12 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *ack.Ack:
 		u.Which = proto.CtrlPld_Which_ack
 		u.Ack = p
+	case *pln_mgmt.Pld:
+		u.Which = proto.CtrlPld_Which_pln
+		u.Pln = p
+	case *pgn_mgmt.Pld:
+		u.Which = proto.CtrlPld_Which_pgn
+		u.Pgn = p
 	default:
 		return common.NewBasicError("Unsupported ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -86,6 +96,10 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.PathMgmt, nil
 	case proto.CtrlPld_Which_sig:
 		return u.Sig, nil
+	case proto.CtrlPld_Which_pln:
+		return u.Pln, nil
+	case proto.CtrlPld_Which_pgn:
+		return u.Pgn, nil
 	case proto.CtrlPld_Which_certMgmt:
 		return u.CertMgmt, nil
 	case proto.CtrlPld_Which_extn:

@@ -289,6 +289,7 @@ func (t *RWTopology) populateServices(raw *jsontopo.Topology) error {
 	t.PLN, err = svcMapFromRaw(raw.PLN)
 	if err != nil {
 		return serrors.WrapStr("unable to extract PLN address", err)
+	}
 	t.MS, err = svcMapFromRaw(raw.MS)
 	if err != nil {
 		return serrors.WrapStr("unable to extract MS address", err)

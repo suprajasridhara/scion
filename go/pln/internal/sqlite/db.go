@@ -76,7 +76,7 @@ func (e *executor) GetPLNList(ctx context.Context) ([]PLNListEntry, error) {
 	got := []PLNListEntry{}
 	for rows.Next() {
 		var r PLNListEntry
-		err = rows.Scan(&r.ID, &r.PcnID, &r.IA, &r.Raw)
+		err = rows.Scan(&r.ID, &r.PgnID, &r.IA, &r.Raw)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -85,11 +85,59 @@ func (e *executor) GetPLNList(ctx context.Context) ([]PLNListEntry, error) {
 	return got, nil
 }
 
-//InsertNewPLNEntry inserts a new row into pln_entries
-func (e *executor) InsertNewPLNEntry(ctx context.Context,
-	pcnID string, entry uint64, raw []byte) (sql.Result, error) {
+//GetPLNList reads all rows in pln_entries and returns it
+func (e *executor) GetPLNListEntryByPGNID(ctx context.Context,
+	pgnID string) ([]PLNListEntry, error) {
 
-	res, err := e.db.ExecContext(ctx, InsertPLNEntry, pcnID, entry, raw)
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, PLNEntryByPgnID, pgnID)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []PLNListEntry{}
+	for rows.Next() {
+		var r PLNListEntry
+		err = rows.Scan(&r.ID, &r.PgnID, &r.IA, &r.Raw)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
+}
+
+//InsertNewPLNEntry inserts a new row into pln_entries.
+//If an entry for the pgnID already exists, it updates it
+func (e *executor) InsertNewPLNEntry(ctx context.Context,
+	pgnID string, entry uint64, raw []byte) (sql.Result, error) {
+
+	var res sql.Result
+	entries, err := e.GetPLNListEntryByPGNID(ctx, pgnID)
+	if err != nil {
+		return nil, err
+	}
+	if len(entries) == 0 { //pgnID does not exist. Insert new row
+		res, err = e.db.ExecContext(ctx, InsertPLNEntry, pgnID, entry, raw)
+		if err != nil {
+			return nil, err
+		}
+	} else { //pgnID exists. Update row
+		res, err = e.UpdatePLNListEntry(ctx, pgnID, entry, raw)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return res, nil
+}
+
+//UpdatePLNListEntry updates a row in node_list_entries based on msIA
+func (e *executor) UpdatePLNListEntry(ctx context.Context, pgnID string,
+	ia uint64, raw []byte) (sql.Result, error) {
+
+	res, err := e.db.ExecContext(ctx, UpdatePLNListEntry, ia, raw, pgnID)
 	if err != nil {
 		return nil, err
 	}

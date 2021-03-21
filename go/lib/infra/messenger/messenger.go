@@ -92,12 +92,15 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/seg"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/disp"
 	"github.com/scionproto/scion/go/lib/infra/messenger/internal/metrics"
 	"github.com/scionproto/scion/go/lib/infra/rpc"
 	"github.com/scionproto/scion/go/lib/log"
+	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/lib/tracing"
 	"github.com/scionproto/scion/go/proto"
@@ -514,6 +517,53 @@ func (m *Messenger) SendHPCfgReply(ctx context.Context, msg *path_mgmt.HPCfgRepl
 	logger := log.FromCtx(ctx)
 	logger.Debug("[Messenger] Sending Notify", "type", infra.HPCfgReply, "to", a, "id", id)
 	return m.getFallbackRequester(infra.HPCfgReply).Notify(ctx, pld, a)
+}
+
+func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld,
+	a net.Addr, id uint64) error {
+
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.AddPLNEntryRequest,
+		"msg_id", id, "request", nil, "peer", a)
+
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
+
+	rep, err := m.getFallbackRequester(infra.AddPLNEntryRequest).Request(ctxT, pld, a, false)
+	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return ctxT.Err()
+		}
+		return common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.AddPLNEntryRequest)
+	}
+	if rep.Ack.Err == proto.Ack_ErrCode_ok {
+		logger.Info("[Messenger] Got success response", "req_type", infra.AddPLNEntryRequest,
+			"msg_id", id, "request", nil, "peer", a)
+	} else {
+		return common.NewBasicError("[Messenger] Response error recvd",
+			serrors.New(rep.Ack.Err.String()), "req_type", infra.AddPLNEntryRequest)
+	}
+	return nil
+}
+
+func (m *Messenger) SendPLNList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending message", "req_type", infra.PlnListReply,
+		"msg_id", id, "request", nil, "peer", a)
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
+	err := m.sendMessage(ctxT, msg, a, id, infra.PlnListReply)
+	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return ctxT.Err()
+		}
+		return common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.AddPLNEntryRequest)
+	}
+	return nil
 }
 
 func (m *Messenger) RequestChainRenewal(ctx context.Context,
@@ -1131,6 +1181,24 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		}
 	case proto.CtrlPld_Which_ack:
 		return infra.Ack, pld.Ack, nil
+	case proto.CtrlPld_Which_pln:
+		switch pld.Pln.Which {
+		case proto.PLN_Which_plnList:
+			return infra.PlnListReply, pld.Pln.PlnList, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pln.Xxx message type",
+					nil, "capnp_which", pld.Pln.Which)
+		}
+	case proto.CtrlPld_Which_pgn:
+		switch pld.Pgn.Which {
+		case proto.PGN_Which_addPLNEntryRequest:
+			return infra.AddPLNEntryRequest, pld.Pgn.AddPLNEntryRequest, nil
+		default:
+			return infra.None, nil,
+				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pgn.Xxx message type",
+					nil, "capnp_which", pld.Pln.Which)
+		}
 	default:
 		return infra.None, nil, common.NewBasicError("Unsupported SignedPld.Pld.Xxx message type",
 			nil, "capnp_which", pld.Which)

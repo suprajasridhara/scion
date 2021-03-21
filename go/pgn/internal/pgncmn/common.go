@@ -23,6 +23,7 @@ import (
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	pgnconfig "github.com/scionproto/scion/go/pkg/pgn/config"
 )
@@ -47,8 +48,9 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 			CertFile: cfg.CertFile,
 			KeyFile:  cfg.KeyFile,
 		},
-		Router:    router,
-		SVCRouter: messenger.NewSVCRouter(itopo.Provider()),
+		Router:                router,
+		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
+		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
 	}
 	IA = cfg.IA
 	PLNIA = cfg.PLNIA
@@ -59,7 +61,7 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 
 	pgnmsgr.IA = cfg.IA
-	//pgncrypto.CfgDir = cfg.CfgDir
+	pgncrypto.CfgDir = cfg.CfgDir
 
 	return nil
 }

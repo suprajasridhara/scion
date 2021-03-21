@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -37,6 +38,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plncmn"
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/internal/sqlite"
+	propagator "github.com/scionproto/scion/go/pln/propagator"
 	"github.com/scionproto/scion/go/proto"
 )
 
@@ -101,6 +103,13 @@ func realMain() int {
 	}
 
 	defer sqlite.Db.Close()
+
+	prop := propagator.Propagator{N: cfg.PLN.Hops}
+
+	go func(p propagator.Propagator) {
+		defer log.HandlePanic()
+		p.Start(context.Background(), cfg.PLN.PropagateInterval.Duration)
+	}(prop)
 
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
