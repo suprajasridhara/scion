@@ -13,6 +13,7 @@ using DRKeyMgmt = import "drkey_mgmt.capnp";
 using SIG = import "sig.capnp";
 using PLN = import "pln.capnp";
 using PGN = import "pgn.capnp";
+using MS = import "ms.capnp";
 using CtrlExtn = import "ctrl_extn.capnp";
 using Ack = import "ack.capnp";
 
@@ -35,6 +36,7 @@ struct CtrlPld {
         ack @11 :Ack.Ack;
         pln @12 :PLN.PLN;
         pgn @13 :PGN.PGN;
+        ms @14 :MS.MS;
     }
     reqId @9 :UInt64;
     traceId @10 :Data;

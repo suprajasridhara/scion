@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/config"
@@ -27,13 +28,17 @@ import (
 )
 
 const (
-	DefaultCtrlPort    = 30256
-	DefaultEncapPort   = 30056
-	DefaultTunName     = "sig"
-	DefaultTunRTableId = 11
+	DefaultCtrlPort           = 30256
+	DefaultEncapPort          = 30056
+	DefaultTunName            = "sig"
+	DefaultTunRTableId        = 11
+	DefaultPrefixPushInterval = 1 * time.Hour
+	DefaultMSConnectTimeout   = 1 * time.Minute
+	DefaultDb                 = "./sig.db"
 )
 
 type Config struct {
+	General  env.General `toml:"general ,omitempty"`
 	Features env.Features
 	Logging  log.Config       `toml:"log,omitempty"`
 	Metrics  env.Metrics      `toml:"metrics,omitempty"`
@@ -99,10 +104,40 @@ type SigConf struct {
 	// dispatcher. If the field is empty bypass is not done and SCION dispatcher is used
 	// instead.
 	DispatcherBypass string `toml:"disaptcher_bypass,omitempty"`
+	//CfgDir config directory to read crypto keys from (required)
+	CfgDir string `toml:"cfg_dir,omitempty"`
+	//Db to store sig cfg data (default ./sig.db will be created or read from)
+	Db string `toml:"db,omitempty"`
+	//UDPPort port to open a messenger connection on (required)
+	UDPPort uint16 `toml:"udp_port,omitempty"`
+	//QUICAddr address to listen to QUIC IP:Port (required)
+	QUICAddr string `toml:"quic_addr,omitempty"`
+	//CertFile for QUIC socket (required)
+	CertFile string `toml:"cert_file,omitempty"`
+	//KeyFile for QUIC socket (required)
+	KeyFile string `toml:"key_file,omitempty"`
+	//PrefixFile contains the list of prefixes that should be
+	//pushed to a Mapping service in the ISD. This file is scanned periodically for changes
+	PrefixFile string `toml:"prefix_file,omitempty"`
+	//PrefixPushInterval in minutes is the interval between
+	//2 consecutive pushes of prefixes to the mapping service. default (1 hour)
+	PrefixPushInterval time.Duration `toml:"prefix_push_interval,omitempty"`
+	//ConnectTimeout in minutes is the amount of time the messenger waits for a reply
+	//from MS that it connects to. default (1 minute)
+	MSConnectTimeout time.Duration `toml:"ms_connect_timeout,omitempty"`
 }
 
 // InitDefaults sets the default values to unset values.
 func (cfg *SigConf) InitDefaults() {
+	if cfg.Db == "" {
+		cfg.Db = DefaultDb
+	}
+	if cfg.PrefixPushInterval == 0 {
+		cfg.PrefixPushInterval = DefaultPrefixPushInterval
+	}
+	if cfg.MSConnectTimeout == 0 {
+		cfg.MSConnectTimeout = DefaultMSConnectTimeout
+	}
 }
 
 // Validate validate the config and returns an error if a value is not valid.
@@ -133,6 +168,24 @@ func (cfg *SigConf) Validate() error {
 	}
 	if cfg.TunRTableId == 0 {
 		cfg.TunRTableId = DefaultTunRTableId
+	}
+	if cfg.UDPPort == 0 {
+		return serrors.New("port must be set")
+	}
+	if cfg.CfgDir == "" {
+		return serrors.New("MS cfg_dir should be set")
+	}
+	if cfg.QUICAddr == "" {
+		return serrors.New("QUIC addr should be set")
+	}
+	if cfg.CertFile == "" {
+		return serrors.New("cert_file must be set")
+	}
+	if cfg.KeyFile == "" {
+		return serrors.New("key_file must be set")
+	}
+	if cfg.PrefixFile == "" {
+		return serrors.New("prefix_file must be set")
 	}
 	return nil
 }

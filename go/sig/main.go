@@ -16,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -31,18 +32,22 @@ import (
 	libconfig "github.com/scionproto/scion/go/lib/config"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
+	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/prom"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/sigdisp"
 	"github.com/scionproto/scion/go/lib/sigjson"
+	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/pkg/service"
 	sigconfig "github.com/scionproto/scion/go/pkg/sig/config"
 	"github.com/scionproto/scion/go/sig/egress"
 	"github.com/scionproto/scion/go/sig/internal/base"
+	"github.com/scionproto/scion/go/sig/internal/cfgmgmt"
 	"github.com/scionproto/scion/go/sig/internal/ingress"
 	"github.com/scionproto/scion/go/sig/internal/metrics"
 	"github.com/scionproto/scion/go/sig/internal/sigcmn"
+	"github.com/scionproto/scion/go/sig/internal/sqlite"
 	"github.com/scionproto/scion/go/sig/internal/xnet"
 )
 
@@ -94,6 +99,27 @@ func realMain() int {
 		},
 	)
 	sigdisp.Init(sigcmn.CtrlConn, false)
+
+	if err := setupDb(); err != nil {
+		log.Error("MS db initialization failed", "err", err)
+		return 1
+	}
+
+	defer sqlite.Db.Close()
+
+	setupTopo()
+	if err := sigcmn.SetupMessenger(cfg); err != nil {
+		log.Error("Messenger initialization failed", "err", err)
+		return 1
+	}
+
+	if err := cfgmgmt.Init(context.Background(),
+		cfg.Sig.CfgDir, cfg.Sig.PrefixFile,
+		cfg.Sig.PrefixPushInterval); err != nil {
+		log.Error("", "Sig configuration initialization failed", err)
+		return 1
+	}
+
 	// Parse sig config
 	if loadConfig(cfg.Sig.SIGConfig) != true {
 		log.Error("SIG configuration loading failed")
@@ -217,4 +243,26 @@ func loadConfig(path string) bool {
 	}
 	atomic.StoreUint64(&metrics.ConfigVersion, cfg.ConfigVersion)
 	return true
+}
+
+func setupTopo() error {
+	itopo.Init(&itopo.Config{})
+
+	topo, err := topology.FromJSONFile(cfg.General.Topology())
+	if err != nil {
+		return serrors.WrapStr("loading topology", err)
+	}
+	if err := itopo.Update(topo); err != nil {
+		return serrors.WrapStr("unable to set initial static topology", err)
+	}
+	log.Info("Topo setup: done")
+	return nil
+}
+
+func setupDb() error {
+	err := sqlite.New(cfg.Sig.Db, 1)
+	if err != nil {
+		return serrors.WrapStr("setting up database", err)
+	}
+	return nil
 }

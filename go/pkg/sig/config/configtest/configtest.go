@@ -33,4 +33,13 @@ func CheckTestSIG(t *testing.T, cfg *config.SigConf, id string) {
 	assert.Equal(t, config.DefaultEncapPort, int(cfg.EncapPort))
 	assert.Equal(t, config.DefaultTunName, cfg.Tun)
 	assert.Equal(t, config.DefaultTunRTableId, cfg.TunRTableId)
+	assert.Equal(t, 30127, int(cfg.UDPPort))
+	assert.Equal(t, "gen/ISD1/AS1234", cfg.CfgDir)
+	assert.Equal(t, config.DefaultDb, cfg.Db)
+	assert.Equal(t, "127.0.0.78:20955", cfg.QUICAddr)
+	assert.Equal(t, "gen-certs/tls.pem", cfg.CertFile)
+	assert.Equal(t, "gen-certs/tls.key", cfg.KeyFile)
+	assert.Equal(t, "./prefixes.json", cfg.PrefixFile)
+	assert.Equal(t, config.DefaultPrefixPushInterval, cfg.PrefixPushInterval)
+	assert.Equal(t, config.DefaultMSConnectTimeout, cfg.MSConnectTimeout)
 }

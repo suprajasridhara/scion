@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package mscrypto
+package sigcrypto
 
 import (
 	"context"
@@ -30,26 +30,26 @@ import (
 	"github.com/scionproto/scion/go/pkg/trust"
 )
 
-//MSSigner is used by the Mapping Service to sign messages as well as verify signatures
-type MSSigner struct {
+//SIGSigner is used by the SIG to sign messages as well as verify signatures
+type SIGSigner struct {
 	Msgr      infra.Messenger
 	IA        addr.IA
 	SignerGen trust.SignerGenNoDB
-	signedTRC cppki.SignedTRC
+	SignedTRC cppki.SignedTRC
 }
 
-//Init initializes MSSigner
-func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger,
+//Init initializes SIGSigner
+func (m *SIGSigner) Init(ctx context.Context, Msgr infra.Messenger,
 	IA addr.IA, cfgDir string) error {
 	m.Msgr = Msgr
 	m.IA = IA
 	t, err := m.getTRC()
 	if err != nil {
-		return serrors.WrapStr("Error in init MSSigner", err)
+		return serrors.WrapStr("Error in init SIGSigner", err)
 	}
-	m.signedTRC = t
+	m.SignedTRC = t
 	s := make([]cppki.SignedTRC, 1)
-	s[0] = m.signedTRC
+	s[0] = m.SignedTRC
 	m.SignerGen = trust.SignerGenNoDB{
 		IA: m.IA,
 		KeyRing: LoadingRing{
@@ -60,12 +60,12 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger,
 	c := make(map[crypto.Signer][][]*x509.Certificate)
 	keys, err := m.SignerGen.KeyRing.PrivateKeys(ctx)
 	if err != nil {
-		return serrors.WrapStr("Error in init MSSigner", err)
+		return serrors.WrapStr("Error in init SIGSigner", err)
 	}
 	for _, key := range keys {
 		c[key], err = m.getChains(ctx, key)
 		if err != nil {
-			return serrors.WrapStr("Error in init MSSigner", err)
+			return serrors.WrapStr("Error in init SIGSigner", err)
 		}
 	}
 	m.SignerGen.PrivateKeys = keys
@@ -73,7 +73,7 @@ func (m *MSSigner) Init(ctx context.Context, Msgr infra.Messenger,
 	return nil
 }
 
-func (m *MSSigner) getChains(ctx context.Context,
+func (m *SIGSigner) getChains(ctx context.Context,
 	key crypto.Signer) ([][]*x509.Certificate, error) {
 
 	date := time.Now()
@@ -89,7 +89,7 @@ func (m *MSSigner) getChains(ctx context.Context,
 	return rawChains.Chains()
 
 }
-func (m *MSSigner) getTRC() (cppki.SignedTRC, error) {
+func (m *SIGSigner) getTRC() (cppki.SignedTRC, error) {
 	addr := &snet.SVCAddr{IA: m.IA, SVC: addr.SvcCS}
 	encTRC, err := m.Msgr.GetTRC(context.Background(),
 		&cert_mgmt.TRCReq{ISD: m.IA.I, Base: 1, Serial: 1}, addr, rand.Uint64())

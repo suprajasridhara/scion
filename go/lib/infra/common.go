@@ -26,6 +26,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/ack"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ifid"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
@@ -148,6 +149,10 @@ const (
 	HPCfgReply
 	AddPLNEntryRequest
 	PlnListReply
+	ASActionRequest
+	ASActionReply
+	MSFullMapRequest
+	MSFullMapReply
 )
 
 func (mt MessageType) String() string {
@@ -198,6 +203,14 @@ func (mt MessageType) String() string {
 		return "AddPLNEntryRequest"
 	case PlnListReply:
 		return "PlnListReply"
+	case ASActionRequest:
+		return "ASActionRequest"
+	case ASActionReply:
+		return "ASActionReply"
+	case MSFullMapRequest:
+		return "MSFullMapRequest"
+	case MSFullMapReply:
+		return "MSFullMapReply"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -253,6 +266,14 @@ func (mt MessageType) MetricLabel() string {
 		return "add_pln_entry_req"
 	case PlnListReply:
 		return "pln_list_rep"
+	case ASActionRequest:
+		return "ms_as_action_req"
+	case ASActionReply:
+		return "ms_as_action_push"
+	case MSFullMapRequest:
+		return "ms_full_map_req"
+	case MSFullMapReply:
+		return "ms_full_map_push"
 	default:
 		return "unknown_mt"
 	}
@@ -338,7 +359,13 @@ type Messenger interface {
 	SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld, a net.Addr, id uint64) error
 	SendPLNList(ctx context.Context, msg *pln_mgmt.Pld, a net.Addr,
 		id uint64) error
-	UpdateSigner(signer ctrl.Signer, types []MessageType)
+	SendASAction(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64, messageType MessageType) error
+	GetFullMap(ctx context.Context, msg *ms_mgmt.Pld, a net.Addr,
+		id uint64) (*ctrl.SignedPld, error)
+  UpdateSigner(signer ctrl.Signer, types []MessageType)
 	UpdateVerifier(verifier Verifier)
 	AddHandler(msgType MessageType, h Handler)
 	ListenAndServe()
@@ -354,6 +381,7 @@ type ResponseWriter interface {
 	SendIfStateInfoReply(ctx context.Context, msg *path_mgmt.IFStateInfos) error
 	SendHPSegReply(ctx context.Context, msg *path_mgmt.HPSegReply) error
 	SendHPCfgReply(ctx context.Context, msg *path_mgmt.HPCfgReply) error
+	SendMSRep(ctx context.Context, msg *ms_mgmt.Pld, messageType MessageType) error
 }
 
 func ResponseWriterFromContext(ctx context.Context) (ResponseWriter, bool) {

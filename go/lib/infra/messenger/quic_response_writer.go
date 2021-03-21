@@ -20,11 +20,13 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ack"
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/rpc"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/tracing"
 )
 
 var _ infra.ResponseWriter = (*QUICResponseWriter)(nil)
@@ -33,6 +35,7 @@ var _ infra.ResponseWriter = (*QUICResponseWriter)(nil)
 type QUICResponseWriter struct {
 	ReplyWriter rpc.ReplyWriter
 	ID          uint64
+	Signer      ctrl.Signer
 }
 
 func (rw *QUICResponseWriter) SendAckReply(ctx context.Context, msg *ack.Ack) error {
@@ -135,8 +138,26 @@ func (rw *QUICResponseWriter) SendHPCfgReply(ctx context.Context, msg *path_mgmt
 	return rw.sendMessage(ctx, ctrlPld)
 }
 
+func (rw *QUICResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
+	messageType infra.MessageType) error {
+
+	go func() {
+		defer log.HandlePanic()
+		<-ctx.Done()
+		rw.ReplyWriter.Close()
+	}()
+	ctrlPld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: rw.ID, TraceId: tracing.IDFromCtx(ctx)})
+	if err != nil {
+		return err
+	}
+	return rw.sendMessage(ctx, ctrlPld)
+}
+
 func (rw *QUICResponseWriter) sendMessage(ctx context.Context, ctrlPld *ctrl.Pld) error {
-	signedCtrlPld, err := ctrlPld.SignedPld(ctx, infra.NullSigner)
+	if rw.Signer == nil {
+		rw.Signer = infra.NullSigner
+	}
+	signedCtrlPld, err := ctrlPld.SignedPld(ctx, rw.Signer)
 	if err != nil {
 		return err
 	}
