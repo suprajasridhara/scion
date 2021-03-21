@@ -108,7 +108,11 @@ func realMain() int {
 
 	go func(ctx context.Context, pgnId string, ia addr.IA, plnIA addr.IA) {
 		defer log.HandlePanic()
-		plncomm.AddPGNEntry(ctx, pgnId, ia, plnIA)
+		err := plncomm.AddPGNEntry(ctx, pgnId, ia, plnIA)
+		if err != nil {
+			fatal.Fatal(err)
+			return
+		}
 	}(context.Background(), cfg.General.ID, pgncmn.IA, pgncmn.PLNIA)
 
 	// Start HTTP endpoints.
