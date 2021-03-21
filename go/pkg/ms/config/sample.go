@@ -53,9 +53,13 @@ rpki_entry_valid = "valid"
 #PLNIA IA of the PLN to contact for PCN lists (required)
 pln_isd_as = "1-ff00:0:110"
 
-#MSListValidTime time for which a published MS list is valid in minutes (default = 10080) 1 week
-ms_list_valid_time = 10080
+#MSListValidTime time for which a published MS list is valid in minutes (default = 168h) 1 week
+ms_list_valid_time = "168h"
 
-#MSPullListInterval time interval to pull full MS list in minutes (default = 1440) 1 day
-ms_pull_list_interval = 1440
+#MSPullListInterval time interval to pull full MS list in minutes (default = 24h) 1 day
+ms_pull_list_interval = "24h"
+
+#ConnectTimeout is the amount of time the messenger waits for a reply
+#from the other service that it connects to. default (1 minute)
+connect_timeout = "1m"
 `
