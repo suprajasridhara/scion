@@ -22,6 +22,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 )
 
@@ -73,4 +74,8 @@ func (rw *UDPResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
 	messageType infra.MessageType) error {
 
 	return rw.Messenger.SendMSRep(ctx, msg, rw.Remote, rw.ID, messageType)
+}
+
+func (rw *UDPResponseWriter) SendPLNList(ctx context.Context, msg *pln_mgmt.Pld) error {
+	return rw.Messenger.SendPLNList(ctx, msg, rw.Remote, rw.ID)
 }

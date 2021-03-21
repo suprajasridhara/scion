@@ -566,6 +566,32 @@ func (m *Messenger) SendPLNList(ctx context.Context, msg *pln_mgmt.Pld,
 	return nil
 }
 
+//GetPLNList fetches the PLN list form the PLN and returns the payload with the
+//signature from the destination AS. The caller should verify the signature
+func (m *Messenger) GetPLNList(ctx context.Context, msg *pln_mgmt.Pld,
+	a net.Addr, id uint64) (*ctrl.SignedPld, error) {
+
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", infra.PlnListRequest,
+		"msg_id", id, "request", nil, "peer", a)
+
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
+
+	replyCtrlPld, err := m.getFallbackRequester(infra.PlnListRequest).
+		RequestWithSign(ctxT, pld, a, false)
+	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return nil, ctxT.Err()
+		}
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", infra.AddPLNEntryRequest)
+	}
+
+	return replyCtrlPld, nil
+}
+
 func (m *Messenger) RequestChainRenewal(ctx context.Context,
 	msg *cert_mgmt.ChainRenewalRequest, a net.Addr,
 	id uint64) (*cert_mgmt.ChainRenewalReply, error) {
@@ -1185,6 +1211,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		switch pld.Pln.Which {
 		case proto.PLN_Which_plnList:
 			return infra.PlnListReply, pld.Pln.PlnList, nil
+		case proto.PLN_Which_plnListReq:
+			return infra.PlnListRequest, pld.Pln.PlnListReq, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pln.Xxx message type",
