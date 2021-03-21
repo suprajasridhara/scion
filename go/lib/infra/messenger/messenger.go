@@ -541,8 +541,8 @@ func (m *Messenger) SendPLNEntry(ctx context.Context, msg *pgn_mgmt.Pld,
 		logger.Info("[Messenger] Got success response", "req_type", infra.AddPLNEntryRequest,
 			"msg_id", id, "request", nil, "peer", a)
 	} else {
-		return common.NewBasicError("[Messenger] Response error recvd", serrors.New(rep.Ack.Err.String()),
-			"req_type", infra.AddPLNEntryRequest)
+		return common.NewBasicError("[Messenger] Response error recvd",
+			serrors.New(rep.Ack.Err.String()), "req_type", infra.AddPLNEntryRequest)
 	}
 	return nil
 }
