@@ -108,7 +108,8 @@ func (e *executor) GetPLNListEntryByPGNID(ctx context.Context,
 	return got, nil
 }
 
-//InsertNewPLNEntry inserts a new row into pln_entries
+//InsertNewPLNEntry inserts a new row into pln_entries.
+//If an entry for the pgnID already exists, it updates it
 func (e *executor) InsertNewPLNEntry(ctx context.Context,
 	pgnID string, entry uint64, raw []byte) (sql.Result, error) {
 

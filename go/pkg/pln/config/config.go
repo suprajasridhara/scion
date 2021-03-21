@@ -28,8 +28,13 @@ import (
 )
 
 const (
-	DefaultDb                = "./pln.db"
-	DefaultPropagateInterval = 1 * time.Hour //1 hour
+	DefaultDb   = "./pln.db"
+	DefaultHops = 3
+)
+
+var (
+	DefaultPropagateInterval = duration{1 * time.Hour} //1 hour
+	DefaultConnectTimeout    = duration{1 * time.Minute}
 )
 
 type Config struct {
@@ -98,15 +103,26 @@ type PLNConf struct {
 	//KeyFile for QUIC socket (required)
 	KeyFile string `toml:"key_file,omitempty"`
 	//PropagateInterval is the time interval between PLN list propagations (default = 1 hour)
-	PropagateInterval time.Duration `toml:"prop_interval"`
+	PropagateInterval duration `toml:"prop_interval"`
+	//Hops is the number of hops that the PLN list is propagated to in every interval (default = 3)
+	Hops uint16 `toml:"hops"`
+	//ConnectTimeout is the amount of time the messenger waits for a reply
+	//from the other service that it connects to. default (1 minute)
+	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
 }
 
 func (cfg *PLNConf) InitDefaults() {
 	if cfg.Db == "" {
 		cfg.Db = DefaultDb
 	}
-	if cfg.PropagateInterval == 0 {
+	if cfg.PropagateInterval.Duration == 0 {
 		cfg.PropagateInterval = DefaultPropagateInterval
+	}
+	if cfg.Hops == 0 {
+		cfg.Hops = DefaultHops
+	}
+	if cfg.ConnectTimeout.Duration == 0 {
+		cfg.ConnectTimeout = DefaultConnectTimeout
 	}
 }
 func (cfg *PLNConf) Validate() error {
@@ -148,4 +164,14 @@ func (cfg *PLNConf) ConfigName() string {
 
 func (cfg *PLNConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
 	config.WriteString(dst, fmt.Sprintf(plnSample, ctx[config.ID]))
+}
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
 }

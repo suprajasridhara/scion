@@ -45,5 +45,12 @@ cert_file = "gen-certs/tls.pem"
 key_file = "gen-certs/tls.key" 
 
 #PropagateInterval is the time interval between PLN list propagations (default = 1 hour)
-prop_interval = 1
+prop_interval = "1h"
+
+#Hops is the number of hops that the PLN list is propagated to in every interval (default = 3)
+hops = 3
+
+#ConnectTimeout is the amount of time the messenger waits for a reply
+#from the other service that it connects to. default (1 minute)
+connect_timeout = "1m"
 `
