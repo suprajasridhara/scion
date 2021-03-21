@@ -47,22 +47,34 @@ func (p *Propagator) Run() error {
 
 	recs := rep.Recs.Recs
 	propTo := p.asToPropTo(recs)
-	for _, p := range propTo {
-		address := &snet.SVCAddr{IA: p.IA(), SVC: addr.SvcPLN}
-		err := plnmsgr.SendPLNList(address, rand.Uint64())
-		if err != nil {
-			log.Error("error sending list to "+address.String(), "error:", err)
+	if len(propTo) == 0 {
+		log.Error(`No Core ASes to propagate list to. This might be because the configured Hops 
+		is too small`)
+	} else {
+		for _, p := range propTo {
+			address := &snet.SVCAddr{IA: p.IA(), SVC: addr.SvcPLN}
+			err := plnmsgr.SendPLNList(address, rand.Uint64())
+			if err != nil {
+				log.Error("error sending list to "+address.String(), "error:", err)
+			}
 		}
 	}
 	return nil
 
 }
 
+/*asToPropTo returns the ASes to propagate PLN lists to. For this it takes
+core segments and if the segment is shorter than p.N (core AS that is less
+than p.N hops away) adds it to a slice to return. If there are no core ASes
+less than p.N hops away it returns an empty slice and should be handled by
+the caller.
+p.N is configured on PLN startup. See config.PLNConf.Hops*/
 func (p *Propagator) asToPropTo(recs []*seg.Meta) []addr.IAInt {
 	var ias []addr.IAInt
 	for _, rec := range recs {
 		asEntries := rec.Segment.ASEntries
-		if len(asEntries) <= int(p.N) {
+		if len(asEntries) <= int(p.N) { //the core AS is less than p.N hops away
+			//check if the IA exists in the slice ias already
 			newIA := asEntries[0].RawIA
 			exists := false
 			for _, ia := range ias {
@@ -72,10 +84,10 @@ func (p *Propagator) asToPropTo(recs []*seg.Meta) []addr.IAInt {
 				}
 			}
 			if !exists {
+				//ia is not in ias. Add it
 				ias = append(ias, newIA)
 			}
 		}
-
 	}
 	return ias
 }
