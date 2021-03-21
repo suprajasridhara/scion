@@ -40,9 +40,9 @@ type union struct {
 	Sibra     []byte `capnp:"-"` // Omit for now
 	DRKeyMgmt []byte `capnp:"-"` // Omit for now
 	Sig       *sig_mgmt.Pld
+	Ms        *ms_mgmt.Pld
 	Pln       *pln_mgmt.Pld
 	Pgn       *pgn_mgmt.Pld
-	Ms        *ms_mgmt.Pld
 	Extn      *extn.CtrlExtnDataList
 	Ack       *ack.Ack
 }

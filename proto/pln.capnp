@@ -8,6 +8,7 @@ struct PLN {
     union {
         unset @1 :Void;
         plnList @2 :PlnList;
+        plnListReq @3 :PlnListReq;
     }
 }
 
@@ -21,3 +22,6 @@ struct PlnListEntry{
     raw @2 :Data;
 }
 
+struct PlnListReq{
+    action @0 :Text;
+}
