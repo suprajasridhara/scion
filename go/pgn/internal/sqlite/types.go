@@ -17,10 +17,11 @@ package sqlite
 import "database/sql"
 
 //NodeListEntry sql table struct that to read from sqlite
-type NodeListEntry struct {
+type PGNEntry struct {
 	ID        int            `TbField:"id"`
-	MsList    *[]byte        `TbField:"msList"`
+	Entry     *[]byte        `TbField:"entry"`
 	CommitID  sql.NullString `TbField:"commitID"`
-	MSIA      sql.NullString `TbField:"msIA"`
+	SrcIA     sql.NullString `TbField:"srcIA"`
 	Timestamp int            `TbField:"timestamp"`
+	EntryType sql.NullString `TbField:"entryType"`
 }

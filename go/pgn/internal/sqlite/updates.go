@@ -15,12 +15,13 @@
 package sqlite
 
 const (
-	//UpdateNodeListEntry is the query used to update a row in node_list_entries based on msIA
-	UpdateNodeListEntry = `
-	Update node_list_entries SET 
-	msList = ?,
+	//UpdateNodeListEntry is the query used to update a row in pgn_entries
+	// based on srcIA and entryType
+	UpdateEntry = `
+	Update pgn_entries SET 
+	entry = ?,
 	commitId = ?,
 	timestamp = ?
-	WHERE msIA = ?
+	WHERE srcIA = ? and entryType = ?
 	`
 )

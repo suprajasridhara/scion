@@ -15,8 +15,8 @@
 package sqlite
 
 const (
-	//InsertNewEntry is the query to insert a new row into node_list_entries
+	//InsertNewEntry is the query to insert a new row into pgn_entries
 	InsertNewEntry = `
-	INSERT INTO node_list_entries(msList, commitId, msIA, timestamp) VALUES (?,?,?,?)
+	INSERT INTO pgn_entries(entry, commitID, srcIA, timestamp, entryType) VALUES (?,?,?,?,?)
 	`
 )
