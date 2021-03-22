@@ -22,6 +22,8 @@ import (
 type union struct {
 	Which              proto.PGN_Which
 	AddPLNEntryRequest *AddPLNEntryRequest
+	AddPGNEntryRequest *AddPGNEntryRequest
+	PGNRep             *PGNRep `capnp:"pgnRep"`
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -29,6 +31,12 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *AddPLNEntryRequest:
 		u.Which = proto.PGN_Which_addPLNEntryRequest
 		u.AddPLNEntryRequest = p
+	case *AddPGNEntryRequest:
+		u.Which = proto.PGN_Which_addPGNEntryRequest
+		u.AddPGNEntryRequest = p
+	case *PGNRep:
+		u.Which = proto.PGN_Which_pgnRep
+		u.PGNRep = p
 	default:
 		return common.NewBasicError("Unsupported PGN ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -40,6 +48,10 @@ func (u *union) get() (proto.Cerealizable, error) {
 	switch u.Which {
 	case proto.PGN_Which_addPLNEntryRequest:
 		return u.AddPLNEntryRequest, nil
+	case proto.PGN_Which_addPGNEntryRequest:
+		return u.AddPGNEntryRequest, nil
+	case proto.PGN_Which_pgnRep:
+		return u.PGNRep, nil
 	}
 	return nil, common.NewBasicError("Unsupported PLN ctrl union type (get)", nil,
 		"type", u.Which)
