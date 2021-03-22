@@ -37,4 +37,7 @@ cert_file = "gen-certs/tls.pem"
 key_file = "gen-certs/tls.key" 
 #PLNIA IA of the PLN to contact for PGN lists (required)
 pln_isd_as = "1-ff00:0:110"
+#ConnectTimeout is the amount of time the messenger waits for a reply
+#from the other service that it connects to. default (1 minute)
+connect_timeout = "1m"
 `

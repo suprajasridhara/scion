@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/config"
@@ -28,6 +29,10 @@ import (
 
 const (
 	DefaultDb = "./pgn.db"
+)
+
+var (
+	DefaultConnectTimeout = duration{1 * time.Minute}
 )
 
 type Config struct {
@@ -97,11 +102,17 @@ type PGNConf struct {
 	KeyFile string `toml:"key_file,omitempty"`
 	//PLNIA IA of the PLN to contact for PGN lists (required)
 	PLNIA addr.IA `toml:"pln_isd_as,omitempty"`
+	//ConnectTimeout is the amount of time the messenger waits for a reply
+	//from the other service that it connects to. default (1 minute)
+	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
 }
 
 func (cfg *PGNConf) InitDefaults() {
 	if cfg.Db == "" {
 		cfg.Db = DefaultDb
+	}
+	if cfg.ConnectTimeout.Duration == 0 {
+		cfg.ConnectTimeout = DefaultConnectTimeout
 	}
 }
 func (cfg *PGNConf) Validate() error {
@@ -144,4 +155,14 @@ func (cfg *PGNConf) ConfigName() string {
 
 func (cfg *PGNConf) Sample(dst io.Writer, path config.Path, ctx config.CtxMap) {
 	config.WriteString(dst, fmt.Sprintf(pgnSample, ctx[config.ID]))
+}
+
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) error {
+	var err error
+	d.Duration, err = time.ParseDuration(string(text))
+	return err
 }

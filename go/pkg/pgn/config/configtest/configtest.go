@@ -35,4 +35,6 @@ func CheckTestPGN(t *testing.T, cfg *config.PGNConf, id string) {
 	assert.Equal(t, "gen-certs/tls.pem", cfg.CertFile)
 	assert.Equal(t, "gen-certs/tls.key", cfg.KeyFile)
 	assert.Equal(t, xtest.MustParseIA("1-ff00:0:110"), cfg.PLNIA)
+	assert.Equal(t, config.DefaultConnectTimeout.Duration, cfg.ConnectTimeout.Duration)
+
 }
