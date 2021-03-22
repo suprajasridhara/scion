@@ -16,6 +16,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -37,6 +38,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/mscmn"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/sqlite"
+	"github.com/scionproto/scion/go/ms/pgncomm"
 	msconfig "github.com/scionproto/scion/go/pkg/ms/config"
 	"github.com/scionproto/scion/go/pkg/service"
 	"github.com/scionproto/scion/go/proto"
@@ -112,6 +114,11 @@ func realMain() int {
 		log.Error("registering status pages", "err", err)
 		return 1
 	}
+
+	go func() {
+		defer log.HandlePanic()
+		pgncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime.Duration)
+	}()
 
 	select {
 	case <-fatal.ShutdownChan():
