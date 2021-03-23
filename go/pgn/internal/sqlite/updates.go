@@ -21,7 +21,8 @@ const (
 	Update pgn_entries SET 
 	entry = ?,
 	commitId = ?,
-	timestamp = ?
+	timestamp = ?,
+	signedBlob = ?,
 	WHERE srcIA = ? and entryType = ?
 	`
 )

@@ -40,7 +40,7 @@ func IsValidPGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest) (bool, error) {
 	return true, nil
 }
 
-func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine) error {
+func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine, signedBlob []byte) error {
 	allEntries, err := sqlite.Db.GetAllEntries(context.Background())
 	if err != nil {
 		log.Error("error reading list from db", err)
@@ -67,7 +67,7 @@ func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine) err
 		log.Info("Updating PGNEntry in DB. SrcIA: " + entry.SrcIA +
 			" EntryType: " + entry.EntryType)
 		_, err = sqlite.Db.UpdateEntry(context.Background(), entry.Entry,
-			entry.CommitID, entry.SrcIA, entry.Timestamp, entry.EntryType)
+			entry.CommitID, entry.SrcIA, entry.Timestamp, entry.EntryType, signedBlob)
 		if err != nil {
 			log.Error("Error updating entry ", "Err: ", err)
 			return err
@@ -76,7 +76,7 @@ func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine) err
 		log.Info("Inserting  PGNEntry in DB. SrcIA: " + entry.SrcIA +
 			" EntryType: " + entry.EntryType)
 		_, err = sqlite.Db.InsertEntry(context.Background(), entry.Entry,
-			entry.CommitID, entry.SrcIA, entry.Timestamp, entry.EntryType)
+			entry.CommitID, entry.SrcIA, entry.Timestamp, entry.EntryType, signedBlob)
 		if err != nil {
 			log.Error("Error inserting entry ", "Err: ", err)
 			return err

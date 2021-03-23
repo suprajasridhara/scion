@@ -66,9 +66,9 @@ func (d *DB) Close() {
 
 //InsertEntry inserts a new row into node_list_entries
 func (e *executor) InsertEntry(ctx context.Context, entry []byte,
-	commitID string, srcIA string, timestamp uint64, entryType string) (sql.Result, error) {
+	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
 
-	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA, timestamp, entryType)
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA, timestamp, entryType, signedBlob)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +77,9 @@ func (e *executor) InsertEntry(ctx context.Context, entry []byte,
 
 //UpdateEntry updates a row in node_list_entries based on msIA
 func (e *executor) UpdateEntry(ctx context.Context, entry []byte,
-	commitID string, srcIA string, timestamp uint64, entryType string) (sql.Result, error) {
+	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
 
-	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID, timestamp, srcIA, entryType)
+	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID, timestamp, signedBlob, srcIA, entryType)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (e *executor) GetAllEntries(ctx context.Context) ([]PGNEntry, error) {
 	got := []PGNEntry{}
 	for rows.Next() {
 		var r PGNEntry
-		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp, &r.EntryType)
+		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp, &r.EntryType, &r.SignedBlob)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}

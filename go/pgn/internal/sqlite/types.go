@@ -18,10 +18,11 @@ import "database/sql"
 
 //NodeListEntry sql table struct that to read from sqlite
 type PGNEntry struct {
-	ID        int            `TbField:"id"`
-	Entry     *[]byte        `TbField:"entry"`
-	CommitID  sql.NullString `TbField:"commitID"`
-	SrcIA     sql.NullString `TbField:"srcIA"`
-	Timestamp int            `TbField:"timestamp"`
-	EntryType sql.NullString `TbField:"entryType"`
+	ID         int            `TbField:"id"`
+	Entry      *[]byte        `TbField:"entry"`
+	CommitID   sql.NullString `TbField:"commitID"`
+	SrcIA      sql.NullString `TbField:"srcIA"`
+	Timestamp  int            `TbField:"timestamp"`
+	EntryType  sql.NullString `TbField:"entryType"`
+	SignedBlob *[]byte        `TbField:"signedBlob"`
 }

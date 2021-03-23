@@ -25,7 +25,8 @@ const (
 		commitID DATA NOT NULL,
 		srcIA INTEGER DATA NOT NULL,
 		timestamp INTEGER NOT NULL,
-		entryType DATA NOT NULL
+		entryType DATA NOT NULL,
+		signedBlob BLOB NOT NUll
 	);	
 
 	`

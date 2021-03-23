@@ -67,14 +67,19 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		//persist the entry
 		e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
 		pgnEntry.CommitID = generateCommitID()
-		err := pgnentryhelper.PersistEntry(pgnEntry, e)
+		signedBlob, err := proto.PackRoot(r.FullMessage.(*ctrl.SignedPld))
+		if err != nil {
+			log.Error("Error packing signedPld ", "Err: ", err)
+			sendAck(proto.Ack_ErrCode_reject, err.Error())
+			return nil
+		}
+		err = pgnentryhelper.PersistEntry(pgnEntry, e, signedBlob)
 		if err != nil {
 			log.Error("Error persisting Entry ", "Err: ", err)
 			sendAck(proto.Ack_ErrCode_reject, err.Error())
 			return nil
 		}
 	}
-	log.Info("Timestamp: ", pgnEntry.Timestamp)
 	pgnRep := pgn_mgmt.NewPGNRep(*pgnEntry, uint64(time.Now().Unix()))
 	pld, err := pgn_mgmt.NewPld(1, pgnRep)
 	if err != nil {
