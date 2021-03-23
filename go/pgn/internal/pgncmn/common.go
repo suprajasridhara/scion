@@ -19,12 +19,15 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
+	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/infra/modules/itopo"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
+	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
+	"github.com/scionproto/scion/go/pgn/mscomm"
 	pgnconfig "github.com/scionproto/scion/go/pkg/pgn/config"
 )
 
@@ -51,6 +54,7 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 		Router:                router,
 		SVCRouter:             messenger.NewSVCRouter(itopo.Provider()),
 		SVCResolutionFraction: 1, //this ensures that QUIC connection is always used
+		ConnectTimeout:        cfg.ConnectTimeout.Duration,
 	}
 	IA = cfg.IA
 	PLNIA = cfg.PLNIA
@@ -59,9 +63,10 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 	if err != nil {
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
-
+	pgnentryhelper.PGNID = cfg.ID
 	pgnmsgr.IA = cfg.IA
 	pgncrypto.CfgDir = cfg.CfgDir
+	pgnmsgr.Msgr.AddHandler(infra.AddPGNEntryRequest, mscomm.AddPGNEntryReqHandler{})
 
 	return nil
 }

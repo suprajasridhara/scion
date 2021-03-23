@@ -19,7 +19,7 @@ const (
 		pulls from the Publishing Infrastructure
 	- new_entries - stores new mappings that MS receives from SIGs
 		to be pushed to the Publishing Infrastructure
-	- pcn_reps - stores response tokens from the publishing
+	- pgn_reps - stores response tokens from the publishing
 		infrastructure.
 	*/
 	Schema = `
@@ -36,7 +36,7 @@ const (
 		entry BLOB
 	);
 
-	CREATE TABLE IF NOT EXISTS pcn_reps(
+	CREATE TABLE IF NOT EXISTS pgn_reps(
 		id INTEGER PRIMARY KEY,
 		fullRep BLOB
 	)

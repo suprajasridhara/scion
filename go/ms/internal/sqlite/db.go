@@ -140,11 +140,11 @@ func (e *executor) InsertNewEntry(ctx context.Context, entry []byte) (sql.Result
 	return res, nil
 }
 
-//InsertPCNRep inserts a row into the pcn_reps table
-func (e *executor) InsertPCNRep(ctx context.Context, entry []byte) (sql.Result, error) {
+//InsertPGNRep inserts a row into the pgn_reps table
+func (e *executor) InsertPGNRep(ctx context.Context, entry []byte) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsPCNRep, entry)
+	res, err := e.db.ExecContext(ctx, InsPGNRep, entry)
 	if err != nil {
 		return nil, err
 	}

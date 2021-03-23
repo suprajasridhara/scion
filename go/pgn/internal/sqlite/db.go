@@ -64,28 +64,30 @@ func (d *DB) Close() {
 	d.db.Close()
 }
 
-//InsertNewNodeListEntry inserts a new row into node_list_entries
-func (e *executor) InsertNewNodeListEntry(ctx context.Context, entry []byte,
-	commitID string, msIA string, timestamp uint64) (sql.Result, error) {
-	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, msIA, timestamp)
+//InsertEntry inserts a new row into node_list_entries
+func (e *executor) InsertEntry(ctx context.Context, entry []byte,
+	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
+
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA, timestamp, entryType, signedBlob)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-//UpdateNodeListEntry updates a row in node_list_entries based on msIA
-func (e *executor) UpdateNodeListEntry(ctx context.Context, entry []byte,
-	commitID string, msIA string, timestamp uint64) (sql.Result, error) {
-	res, err := e.db.ExecContext(ctx, UpdateNodeListEntry, entry, commitID, timestamp, msIA)
+//UpdateEntry updates a row in node_list_entries based on msIA
+func (e *executor) UpdateEntry(ctx context.Context, entry []byte,
+	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
+
+	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID, timestamp, signedBlob, srcIA, entryType)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-//GetFullNodeList fetches all rows in node_list_entries
-func (e *executor) GetFullNodeList(ctx context.Context) ([]NodeListEntry, error) {
+//GetAllEntries fetches all rows in node_list_entries
+func (e *executor) GetAllEntries(ctx context.Context) ([]PGNEntry, error) {
 	e.RLock()
 	defer e.RUnlock()
 	rows, err := e.db.QueryContext(ctx, FullNodeList)
@@ -93,10 +95,10 @@ func (e *executor) GetFullNodeList(ctx context.Context) ([]NodeListEntry, error)
 		return nil, serrors.Wrap(db.ErrReadFailed, err)
 	}
 	defer rows.Close()
-	got := []NodeListEntry{}
+	got := []PGNEntry{}
 	for rows.Next() {
-		var r NodeListEntry
-		err = rows.Scan(&r.ID, &r.MsList, &r.CommitID, &r.MSIA, &r.Timestamp)
+		var r PGNEntry
+		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp, &r.EntryType, &r.SignedBlob)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}

@@ -592,6 +592,31 @@ func (m *Messenger) GetPLNList(ctx context.Context, msg *pln_mgmt.Pld,
 	return replyCtrlPld, nil
 }
 
+func (m *Messenger) SendPGNMessage(ctx context.Context, msg *pgn_mgmt.Pld,
+	a net.Addr, id uint64, messageType infra.MessageType) (*ctrl.SignedPld, error) {
+
+	pld, _ := ctrl.NewPld(msg, &ctrl.Data{ReqId: rand.Uint64()})
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending request", "req_type", messageType,
+		"msg_id", id, "request", nil, "peer", a)
+	ctxT, cancel := context.WithTimeout(ctx, m.config.ConnectTimeout)
+	defer cancel()
+
+	replyCtrlPld, err := m.getFallbackRequester(messageType).
+		RequestWithSign(ctxT, pld, a, false)
+	if err != nil {
+		if errors.Is(ctxT.Err(), context.DeadlineExceeded) {
+			return nil, ctxT.Err()
+		}
+		return nil, common.NewBasicError("[Messenger] Request error", err,
+			"req_type", messageType)
+	}
+
+	logger.Info("[Messenger] Got response", "req_type", messageType,
+		"msg_id", id, "response", nil, "peer", a)
+	return replyCtrlPld, nil
+}
+
 func (m *Messenger) RequestChainRenewal(ctx context.Context,
 	msg *cert_mgmt.ChainRenewalRequest, a net.Addr,
 	id uint64) (*cert_mgmt.ChainRenewalReply, error) {
@@ -722,7 +747,16 @@ func (m *Messenger) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
 
 	logger := log.FromCtx(ctx)
 	logger.Info("[Messenger] Sending response", "rep_type",
-		infra.ASActionReply, "msg_id", id, "request", nil, "peer", a)
+		messageType, "msg_id", id, "request", nil, "peer", a)
+	return m.sendMessage(ctx, msg, a, id, messageType)
+}
+
+func (m *Messenger) SendPGNRep(ctx context.Context, msg *pgn_mgmt.Pld, a net.Addr,
+	id uint64, messageType infra.MessageType) error {
+	logger := log.FromCtx(ctx)
+	logger.Info("[Messenger] Sending response", "rep_type", messageType,
+		"msg_id", id, "request", nil, "peer", a)
+
 	return m.sendMessage(ctx, msg, a, id, messageType)
 }
 
@@ -1222,6 +1256,10 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 		switch pld.Pgn.Which {
 		case proto.PGN_Which_addPLNEntryRequest:
 			return infra.AddPLNEntryRequest, pld.Pgn.AddPLNEntryRequest, nil
+		case proto.PGN_Which_addPGNEntryRequest:
+			return infra.AddPGNEntryRequest, pld.Pgn.AddPGNEntryRequest, nil
+		case proto.PGN_Which_pgnRep:
+			return infra.PGNRep, pld.Pgn.PGNRep, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pgn.Xxx message type",

@@ -10,7 +10,8 @@ struct PGN {
     union {
         unset @1 :Void;
         addPLNEntryRequest @2 :AddPLNEntryRequest;
-        nodeList @3 :NodeList;
+        addPGNEntryRequest @3 :PGNEntry;
+        pgnRep @4 :PGNRep;
     }
 }
 
@@ -18,12 +19,21 @@ struct AddPLNEntryRequest{
     entry @0 :Pln.PlnListEntry;
 }
 
-struct NodeList{
-    l @0 :List(NodeListEntry);
-    timestamp @1 :UInt64;
+struct PGNList{
+    l @0 :List(PGNEntry);
+    timestamp @1 :UInt64; #timestamp for when the list was transmitted from a PGN
 }
 
-struct NodeListEntry{
-    signedMSList @0 :Data;
-    commitId @1 :Text;
+struct PGNEntry{
+    entry @0 :Data;
+    entryType @1:Text;
+    commitID @2 :Text;
+    pgnId @3 :Text;
+    timestamp @4 :UInt64; #timestamp till when the entry is valid for
+    srcIA @5 :Text;
+}
+
+struct PGNRep{
+    entry @0 :PGNEntry;
+    timestamp @1 :UInt64; #timestamp for next broadcast in PGN
 }

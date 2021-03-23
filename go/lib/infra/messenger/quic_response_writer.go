@@ -22,6 +22,7 @@ import (
 	"github.com/scionproto/scion/go/lib/ctrl/cert_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/path_mgmt"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/rpc"
@@ -154,6 +155,21 @@ func (rw *QUICResponseWriter) SendMSRep(ctx context.Context, msg *ms_mgmt.Pld,
 	return rw.sendMessage(ctx, ctrlPld)
 }
 func (rw *QUICResponseWriter) SendPLNList(ctx context.Context, msg *pln_mgmt.Pld) error {
+
+	go func() {
+		defer log.HandlePanic()
+		<-ctx.Done()
+		rw.ReplyWriter.Close()
+	}()
+	ctrlPld, err := ctrl.NewPld(msg, &ctrl.Data{ReqId: rw.ID, TraceId: tracing.IDFromCtx(ctx)})
+	if err != nil {
+		return err
+	}
+	return rw.sendMessage(ctx, ctrlPld)
+}
+
+func (rw *QUICResponseWriter) SendPGNRep(ctx context.Context, msg *pgn_mgmt.Pld,
+	messageType infra.MessageType) error {
 
 	go func() {
 		defer log.HandlePanic()

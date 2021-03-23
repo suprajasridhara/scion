@@ -13,6 +13,7 @@ struct MS {
         asActionRep @3 :MSRepToken;
         fullMapReq @4 :FullMapReq;
         fullMapRep @5 :FullMapRep;
+        signedMSList @6 :SignedMSList;
     }
 }
 
@@ -40,6 +41,17 @@ struct FullMap {
 
 struct FullMapRep{
     fm @0 :List(FullMap);
+}
+
+struct SignedMSList{
+    timestamp @0 :UInt64;
+    asEntries @1 :List(SignedEntry); #the payload is of type ASMapEntry with signature from the source AS
+    msIA @2 :Text;
+}
+
+struct SignedEntry {
+    blob @0 :Data; 
+    sign @1 :Sign.Sign;
 }
 
 

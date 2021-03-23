@@ -29,6 +29,7 @@ import (
 	"github.com/scionproto/scion/go/pln/internal/plnmsgr"
 	"github.com/scionproto/scion/go/pln/pgncomm"
 	"github.com/scionproto/scion/go/pln/plncomm"
+	"github.com/scionproto/scion/go/pln/svccomm"
 )
 
 func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) error {
@@ -62,7 +63,7 @@ func Init(cfg plnconfig.PLNConf, sdCfg env.SCIONDClient, features env.Features) 
 
 	plnmsgr.Msgr.AddHandler(infra.AddPLNEntryRequest, pgncomm.AddPLNEntryHandler{})
 	plnmsgr.Msgr.AddHandler(infra.PlnListReply, plncomm.PLNListHandler{})
-	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, svccomm.PlnListHandler{})
+	plnmsgr.Msgr.AddHandler(infra.PlnListRequest, svccomm.SvcListHandler{})
 
 	return nil
 }

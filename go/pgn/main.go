@@ -92,8 +92,6 @@ func realMain() int {
 		log.Error("PGN common initialization failed", "err", err)
 		return 1
 	}
-
-	pgnmsgr.ID = cfg.General.ID
 	go func() {
 		defer log.HandlePanic()
 		pgnmsgr.Msgr.ListenAndServe()

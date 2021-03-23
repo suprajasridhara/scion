@@ -15,6 +15,6 @@
 package sqlite
 
 const (
-	//FullNodeList queries all rows in node_list_entries
-	FullNodeList = "Select * from node_list_entries"
+	//FullNodeList queries all rows in pgn_entries
+	FullNodeList = "Select * from pgn_entries"
 )

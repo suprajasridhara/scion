@@ -16,15 +16,17 @@ package sqlite
 
 const (
 	/*Schema PGN uses the following tables:
-	- node_list_entries to store the mapping lists it recives from mapping
-	services and other PGNs through gossip*/
+	- pgn_entries to store the pgn entries it recives from services
+	 and other PGNs through gossip*/
 	Schema = `
-	CREATE TABLE IF NOT EXISTS node_list_entries(
+	CREATE TABLE IF NOT EXISTS pgn_entries(
 		id INTEGER PRIMARY KEY,
-		msList BLOB NOT NULL,
+		entry BLOB NOT NULL,
 		commitID DATA NOT NULL,
-		msIA INTEGER DATA NOT NULL,
-		timestamp INTEGER NOT NULL
+		srcIA INTEGER DATA NOT NULL,
+		timestamp INTEGER NOT NULL,
+		entryType DATA NOT NULL,
+		signedBlob BLOB NOT NUll
 	);	
 
 	`

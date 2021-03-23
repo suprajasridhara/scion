@@ -24,8 +24,8 @@ const (
 	INSERT INTO full_map(ip, ia, timestamp) VALUES (?,?,?)
 	`
 
-	//InsPCNRep inserts a row into the pcn_reps table
-	InsPCNRep = `
-	INSERT INTO pcn_reps(fullRep) VALUES (?)
+	//InsPGNRep inserts a row into the pgn_reps table
+	InsPGNRep = `
+	INSERT INTO pgn_reps(fullRep) VALUES (?)
 	`
 )

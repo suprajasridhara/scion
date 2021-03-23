@@ -22,7 +22,7 @@ type Propagator struct {
 //Start starts the ticker to propagate PLNLists in intervals specified by
 //interval
 func (p *Propagator) Start(ctx context.Context, interval time.Duration) {
-	p.Run()
+	//p.Run()
 	propTicker := time.NewTicker(interval)
 	for {
 		select {
