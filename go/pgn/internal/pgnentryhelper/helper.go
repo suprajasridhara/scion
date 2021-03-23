@@ -25,15 +25,12 @@ import (
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
 )
 
-//TODO (supraja): move this and make it configurable
-const pgn_entry_valid_time = 1000000 * time.Minute
-
 var PGNID string
 
 func IsValidPGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest) (bool, error) {
 	//validate the PGN entry
-	timestamp := time.Unix(int64(pgnEntry.Timestamp), 0)
-	if !timestamp.Add(pgn_entry_valid_time).After(time.Now()) {
+	timestamp := time.Unix(int64(pgnEntry.Timestamp), 0) //the entry is valid till this time
+	if !timestamp.After(time.Now()) {                    //check if the entry has expired
 		return false, serrors.New("Invalid or expired timestamp in PGNEntry")
 	}
 
