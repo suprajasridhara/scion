@@ -67,6 +67,7 @@ func (d *DB) Close() {
 //InsertEntry inserts a new row into node_list_entries
 func (e *executor) InsertEntry(ctx context.Context, entry []byte,
 	commitID string, srcIA string, timestamp uint64, entryType string) (sql.Result, error) {
+
 	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA, timestamp, entryType)
 	if err != nil {
 		return nil, err
@@ -77,6 +78,7 @@ func (e *executor) InsertEntry(ctx context.Context, entry []byte,
 //UpdateEntry updates a row in node_list_entries based on msIA
 func (e *executor) UpdateEntry(ctx context.Context, entry []byte,
 	commitID string, srcIA string, timestamp uint64, entryType string) (sql.Result, error) {
+
 	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID, timestamp, srcIA, entryType)
 	if err != nil {
 		return nil, err
