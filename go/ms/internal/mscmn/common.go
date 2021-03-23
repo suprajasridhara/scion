@@ -64,6 +64,7 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 		return serrors.WrapStr("Unable to fetch Messenger", err)
 	}
 	msmsgr.IA = cfg.IA
+	msmsgr.MSListValidTime = cfg.MSListValidTime.Duration
 	mscrypto.CfgDir = cfg.CfgDir
 	validator.Path = cfg.RPKIValidator
 	validator.EntryValid = cfg.RPKIValidString

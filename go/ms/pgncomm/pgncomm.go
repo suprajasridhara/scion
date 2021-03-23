@@ -106,12 +106,14 @@ func pushSignedPrefix(ctx context.Context) error {
 	}
 	//For now push full lists, with empty commitID. This will be changed in the next iteration to
 	//only push updates
+	timestampPGN := time.Now().Add(msmsgr.MSListValidTime)
+
 	req := pgn_mgmt.NewAddPGNEntryRequest(entry, MS_LIST, "", pgn.PGNId,
-		uint64(timestamp.Unix()), msmsgr.IA.String())
+		uint64(timestampPGN.Unix()), msmsgr.IA.String())
 
 	pld, err := pgn_mgmt.NewPld(1, req)
 	if err != nil {
-		logger.Error("Error forming ms_mgmt payload", "Err: ", err)
+		logger.Error("Error forming pgn_mgmt payload", "Err: ", err)
 		return err
 	}
 
