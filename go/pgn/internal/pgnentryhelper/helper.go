@@ -18,26 +18,72 @@ import (
 	"context"
 	"time"
 
+	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
+	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
+	"github.com/scionproto/scion/go/pkg/trust"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var PGNID string
 
-func IsValidPGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest) (bool, error) {
+/*ValidatePGNEntry validates the PGN entry along with its signatures.
+To validate signatures:
+It first validates the IA signature on signedPld based on the srcIA in pgnEntry,
+it then validates the signature from the same IA on pgnEntry.entry.
+This ensures that the timestamp in pgnEntry and the entry in that entry were both created by the same IA.
+After signature validation is complete, it checks that the entry is not stale i.e. has a valid timestamp.
+And then if the checkPGNID flag is set, ensures that the current PGNID and the pgnId in the pgnEntry are equal.
+Params:
+- pgnEntry: parsed pgnEntry to validate
+- signedPld: ctrl.SignedPld with the pgnEntry. Mostly received from another PGN or a other services
+- checkPGNID: if set, the function checks if pgnEntry.PGNId is equal to the current PGNID
+**/
+func ValidatePGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.SignedPld, checkPGNID bool) error {
+	if err := validatePGNEntrySignatures(pgnEntry, signedPld); err != nil {
+		return err
+	}
 	//validate the PGN entry
 	timestamp := time.Unix(int64(pgnEntry.Timestamp), 0) //the entry is valid till this time
 	if !timestamp.After(time.Now()) {                    //check if the entry has expired
-		return false, serrors.New("Invalid or expired timestamp in PGNEntry")
+		return serrors.New("Invalid or expired timestamp in PGNEntry")
 	}
 
-	if pgnEntry.PGNId != PGNID {
-		return false, serrors.New("Invalid PGNID in PGNEntry")
+	//validate PGNId only if checkPGNID is true
+	if checkPGNID && pgnEntry.PGNId != PGNID {
+		return serrors.New("Invalid PGNID in PGNEntry")
 	}
-	return true, nil
+	return nil
+}
+
+func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.SignedPld) error {
+	ia, err := addr.IAFromString(pgnEntry.SrcIA)
+	if err != nil {
+		return err
+	}
+	if err := verifyASSignature(context.Background(), signedPld, ia); err != nil {
+		return err
+	}
+
+	signedEntry := &ctrl.SignedPld{}
+	proto.ParseFromRaw(signedEntry, pgnEntry.Entry)
+
+	if err := verifyASSignature(context.Background(), signedEntry, ia); err != nil {
+		return err
+	}
+	return nil
+}
+
+func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
+	//Verify AS signature
+	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
+	verifier := trust.Verifier{BoundIA: IA, Engine: e}
+	return verifier.Verify(ctx, message.Blob, message.Sign)
 }
 
 func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine, signedBlob []byte) error {
