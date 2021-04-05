@@ -156,6 +156,7 @@ const (
 	PlnListRequest
 	AddPGNEntryRequest
 	PGNRep
+	PGNList
 )
 
 func (mt MessageType) String() string {
@@ -220,6 +221,8 @@ func (mt MessageType) String() string {
 		return "AddPGNEntryRequest"
 	case PGNRep:
 		return "PGNRep"
+	case PGNList:
+		return "PGNList"
 	default:
 		return fmt.Sprintf("Unknown (%d)", mt)
 	}
@@ -289,6 +292,8 @@ func (mt MessageType) MetricLabel() string {
 		return "add_pgn_entry_req"
 	case PGNRep:
 		return "pgn_rep"
+	case PGNList:
+		return "pgn_list"
 	default:
 		return "unknown_mt"
 	}
