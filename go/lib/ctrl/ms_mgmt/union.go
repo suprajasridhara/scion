@@ -7,11 +7,12 @@ import (
 
 // union represents the contents of the unnamed capnp union.
 type union struct {
-	Which       proto.MS_Which
-	AsActionReq *ASMapEntry
-	AsActionRep *MSRepToken
-	FullMapReq  *FullMapReq
-	FullMapRep  *FullMapRep
+	Which        proto.MS_Which
+	AsActionReq  *ASMapEntry
+	AsActionRep  *MSRepToken
+	FullMapReq   *FullMapReq
+	FullMapRep   *FullMapRep
+	SignedMSList *SignedMSList
 }
 
 func (u *union) set(c proto.Cerealizable) error {
@@ -28,6 +29,9 @@ func (u *union) set(c proto.Cerealizable) error {
 	case *FullMapRep:
 		u.Which = proto.MS_Which_fullMapRep
 		u.FullMapRep = p
+	case *SignedMSList:
+		u.Which = proto.MS_Which_signedMSList
+		u.SignedMSList = p
 	default:
 		return common.NewBasicError("Unsupported MS ctrl union type (set)", nil,
 			"type", common.TypeOf(c))
@@ -45,6 +49,8 @@ func (u *union) get() (proto.Cerealizable, error) {
 		return u.FullMapReq, nil
 	case proto.MS_Which_fullMapRep:
 		return u.FullMapRep, nil
+	case proto.MS_Which_signedMSList:
+		return u.SignedMSList, nil
 	}
 	return nil, common.NewBasicError("Unsupported MS ctrl union type (get)", nil,
 		"type", u.Which)
