@@ -25,7 +25,6 @@ import (
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
-	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
@@ -43,43 +42,34 @@ type AddPGNEntryReqHandler struct {
 func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Entering: AddPGNEntryReqHandler.Handle")
 	ctx := r.Context()
-	requester := r.Peer.(*snet.UDPAddr)
 
-	err := verifyASSignature(ctx, r.FullMessage.(*ctrl.SignedPld), requester.IA)
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
-	if err != nil {
-		log.Error("Certificate verification failed!", err)
-		sendAck(proto.Ack_ErrCode_reject, err.Error())
-		return nil
-	}
 
 	pgnEntry := r.Message.(*pgn_mgmt.AddPGNEntryRequest)
 
-	valid, err := pgnentryhelper.IsValidPGNEntry(pgnEntry)
-	if err != nil {
+	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry, r.FullMessage.(*ctrl.SignedPld), true); err != nil {
 		log.Error("Invalid PGNEntry", "Err: ", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
 
-	if valid {
-		//persist the entry
-		e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
-		pgnEntry.CommitID = generateCommitID()
-		signedBlob, err := proto.PackRoot(r.FullMessage.(*ctrl.SignedPld))
-		if err != nil {
-			log.Error("Error packing signedPld ", "Err: ", err)
-			sendAck(proto.Ack_ErrCode_reject, err.Error())
-			return nil
-		}
-		err = pgnentryhelper.PersistEntry(pgnEntry, e, signedBlob)
-		if err != nil {
-			log.Error("Error persisting Entry ", "Err: ", err)
-			sendAck(proto.Ack_ErrCode_reject, err.Error())
-			return nil
-		}
+	//persist the entry
+	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
+	pgnEntry.CommitID = generateCommitID()
+	signedBlob, err := proto.PackRoot(r.FullMessage.(*ctrl.SignedPld))
+	if err != nil {
+		log.Error("Error packing signedPld ", "Err: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
 	}
+	err = pgnentryhelper.PersistEntry(pgnEntry, e, signedBlob)
+	if err != nil {
+		log.Error("Error persisting Entry ", "Err: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
 	pgnRep := pgn_mgmt.NewPGNRep(*pgnEntry, uint64(time.Now().Unix()))
 	pld, err := pgn_mgmt.NewPld(1, pgnRep)
 	if err != nil {

@@ -37,6 +37,7 @@ import (
 	"github.com/scionproto/scion/go/pgn/internal/pgncmn"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
+	"github.com/scionproto/scion/go/pgn/pgncomm"
 	"github.com/scionproto/scion/go/pgn/plncomm"
 	pgnconfig "github.com/scionproto/scion/go/pkg/pgn/config"
 	"github.com/scionproto/scion/go/pkg/service"
@@ -112,6 +113,12 @@ func realMain() int {
 			return
 		}
 	}(context.Background(), cfg.General.ID, pgncmn.IA, pgncmn.PLNIA)
+
+	go func(ctx context.Context, plnIA addr.IA) {
+		defer log.HandlePanic()
+		pgncomm.N = int(cfg.PGN.NumPGNs)
+		pgncomm.BroadcastNodeList(ctx, cfg.PGN.PropagateInterval.Duration, plnIA)
+	}(context.Background(), cfg.PGN.PLNIA)
 
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{

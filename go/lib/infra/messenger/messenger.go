@@ -1260,6 +1260,8 @@ func Validate(pld *ctrl.Pld) (infra.MessageType, proto.Cerealizable, error) {
 			return infra.AddPGNEntryRequest, pld.Pgn.AddPGNEntryRequest, nil
 		case proto.PGN_Which_pgnRep:
 			return infra.PGNRep, pld.Pgn.PGNRep, nil
+		case proto.PGN_Which_pgnList:
+			return infra.PGNList, pld.Pgn.PGNList, nil
 		default:
 			return infra.None, nil,
 				common.NewBasicError("Unsupported SignedPld.CtrlPld.Pgn.Xxx message type",

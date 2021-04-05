@@ -12,6 +12,7 @@ struct PGN {
         addPLNEntryRequest @2 :AddPLNEntryRequest;
         addPGNEntryRequest @3 :PGNEntry;
         pgnRep @4 :PGNRep;
+        pgnList @5 :PGNList;
     }
 }
 
@@ -20,7 +21,7 @@ struct AddPLNEntryRequest{
 }
 
 struct PGNList{
-    l @0 :List(PGNEntry);
+    l @0 :List(Data);
     timestamp @1 :UInt64; #timestamp for when the list was transmitted from a PGN
 }
 

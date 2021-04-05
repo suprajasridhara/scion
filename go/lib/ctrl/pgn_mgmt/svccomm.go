@@ -21,12 +21,12 @@ import (
 )
 
 type AddPGNEntryRequest struct {
-	Entry     []byte
-	EntryType string
-	CommitID  string
-	PGNId     string `capnp:"pgnId"`
-	Timestamp uint64
-	SrcIA     string `capnp:"srcIA"`
+	Entry      []byte
+	EntryType  string
+	CommitID   string
+	PGNId      string `capnp:"pgnId"`
+	Timestamp  uint64
+	SrcIA      string `capnp:"srcIA"`
 }
 
 func NewAddPGNEntryRequest(entry []byte, entryType string, commitID string,

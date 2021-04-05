@@ -81,9 +81,9 @@ func (h *authoritativeProcessor) classify(ctx context.Context,
 	case src != h.localIA:
 		return proto.PathSegType_unset, serrors.WithCtx(segfetcher.ErrInvalidRequest,
 			"src", src, "dst", dst, "reason", "src must be local AS")
-	case dst.I == 0:
-		return proto.PathSegType_unset, serrors.WithCtx(segfetcher.ErrInvalidRequest,
-			"src", src, "dst", dst, "reason", "zero ISD dst")
+	// case dst.I == 0:
+	// 	return proto.PathSegType_unset, serrors.WithCtx(segfetcher.ErrInvalidRequest,
+	// 		"src", src, "dst", dst, "reason", "zero ISD dst"
 	case dst.I == h.localIA.I:
 		dstCore, err := h.coreChecker.IsCore(ctx, dst)
 		if err != nil {
