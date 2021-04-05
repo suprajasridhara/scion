@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
@@ -81,7 +82,7 @@ func pushSignedPrefix(ctx context.Context) error {
 		return err
 	}
 
-	_, err = registerSigner(infra.AddPGNEntryRequest)
+	signer, err := registerSigner(infra.AddPGNEntryRequest)
 	if err != nil {
 		logger.Error("Error getting signer", "Err: ", err)
 		return err
@@ -98,10 +99,16 @@ func pushSignedPrefix(ctx context.Context) error {
 	pgn := getRandomPGN(context.Background())
 	address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
 	signedList := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), entries, msmsgr.IA.String())
-	entry, err := proto.PackRoot(signedList)
+	pld, _ := ctrl.NewPld(signedList, &ctrl.Data{ReqId: rand.Uint64()})
+	signedEntry, err := pld.SignedPld(context.Background(), signer)
+	if err != nil {
+		logger.Error("Error creating SignedPld", "Err: ", err)
+		return err
+	}
+	entry, err := proto.PackRoot(signedEntry)
 
 	if err != nil {
-		logger.Error("Error packing signedList", "Err: ", err)
+		logger.Error("Error packing signedEntry", "Err: ", err)
 		return err
 	}
 	//For now push full lists, with empty commitID. This will be changed in the next iteration to
@@ -111,13 +118,13 @@ func pushSignedPrefix(ctx context.Context) error {
 	req := pgn_mgmt.NewAddPGNEntryRequest(entry, MS_LIST, "", pgn.PGNId,
 		uint64(timestampPGN.Unix()), msmsgr.IA.String())
 
-	pld, err := pgn_mgmt.NewPld(1, req)
+	pgn_pld, err := pgn_mgmt.NewPld(1, req)
 	if err != nil {
 		logger.Error("Error forming pgn_mgmt payload", "Err: ", err)
 		return err
 	}
 
-	reply, err := msmsgr.Msgr.SendPGNMessage(ctx, pld, address,
+	reply, err := msmsgr.Msgr.SendPGNMessage(ctx, pgn_pld, address,
 		rand.Uint64(), infra.AddPGNEntryRequest)
 
 	if err != nil {
