@@ -40,4 +40,8 @@ pln_isd_as = "1-ff00:0:110"
 #ConnectTimeout is the amount of time the messenger waits for a reply
 #from the other service that it connects to. default (1 minute)
 connect_timeout = "1m"
+#PropagateInterval is the time interval between PGNEntry list propagations (default = 1 hour)
+prop_interval = "1h"
+#NumPGNs is the number of PGNs that the PGNEntry list is propagated to in every interval (default = 3)
+num_pgns = 3
 `

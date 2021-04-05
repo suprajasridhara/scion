@@ -28,11 +28,13 @@ import (
 )
 
 const (
-	DefaultDb = "./pgn.db"
+	DefaultDb      = "./pgn.db"
+	DefaultNumPGNs = 3
 )
 
 var (
-	DefaultConnectTimeout = duration{1 * time.Minute}
+	DefaultPropagateInterval = duration{1 * time.Hour} //1 hour
+	DefaultConnectTimeout    = duration{1 * time.Minute}
 )
 
 type Config struct {
@@ -105,6 +107,10 @@ type PGNConf struct {
 	//ConnectTimeout is the amount of time the messenger waits for a reply
 	//from the other service that it connects to. default (1 minute)
 	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
+	//PropagateInterval is the time interval between PGNEntry lists propagations (default = 1 hour)
+	PropagateInterval duration `toml:"prop_interval"`
+	//NumPGNs is the number of PGNs that the PGNEntry list is propagated to in every interval (default = 3)
+	NumPGNs uint16 `toml:"num_pgns"`
 }
 
 func (cfg *PGNConf) InitDefaults() {
@@ -113,6 +119,12 @@ func (cfg *PGNConf) InitDefaults() {
 	}
 	if cfg.ConnectTimeout.Duration == 0 {
 		cfg.ConnectTimeout = DefaultConnectTimeout
+	}
+	if cfg.PropagateInterval.Duration == 0 {
+		cfg.PropagateInterval = DefaultPropagateInterval
+	}
+	if cfg.NumPGNs == 0 {
+		cfg.NumPGNs = DefaultNumPGNs
 	}
 }
 func (cfg *PGNConf) Validate() error {
