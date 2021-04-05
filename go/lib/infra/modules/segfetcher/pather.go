@@ -24,7 +24,6 @@ import (
 	"github.com/scionproto/scion/go/lib/infra/modules/combinator"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/revcache"
-	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/topology"
 	"github.com/scionproto/scion/go/proto"
 )
@@ -52,9 +51,9 @@ type Pather struct {
 func (p *Pather) GetPaths(ctx context.Context, dst addr.IA,
 	refresh bool) ([]*combinator.Path, error) {
 
-	if dst.I == 0 {
-		return nil, serrors.WithCtx(ErrBadDst, "dst", dst)
-	}
+	// if dst.I == 0 {
+	// 	return nil, serrors.WithCtx(ErrBadDst, "dst", dst)
+	// }
 	src := p.TopoProvider.Get().IA()
 	if dst.Equal(src) {
 		// For AS local communication, an empty path is used.
