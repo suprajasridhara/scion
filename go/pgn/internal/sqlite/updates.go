@@ -22,7 +22,7 @@ const (
 	entry = ?,
 	commitId = ?,
 	timestamp = ?,
-	signedBlob = ?,
+	signedBlob = ?
 	WHERE srcIA = ? and entryType = ?
 	`
 )
