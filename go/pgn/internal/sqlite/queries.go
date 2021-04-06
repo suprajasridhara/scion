@@ -15,6 +15,6 @@
 package sqlite
 
 const (
-	//FullNodeList queries all rows in pgn_entries
-	FullNodeList = "Select * from pgn_entries"
+	//EntriesByTypeAndSrcIA queries all rows in pgn_entries by entryType and srcIA
+	EntriesByTypeAndSrcIA = "Select * from pgn_entries where entryType like ? and srcIA like ?"
 )

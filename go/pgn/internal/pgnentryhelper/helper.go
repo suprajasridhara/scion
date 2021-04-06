@@ -66,20 +66,20 @@ func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld
 	if err != nil {
 		return err
 	}
-	if err := verifyASSignature(context.Background(), signedPld, ia); err != nil {
+	if err := VerifyASSignature(context.Background(), signedPld, ia); err != nil {
 		return err
 	}
 
 	signedEntry := &ctrl.SignedPld{}
 	proto.ParseFromRaw(signedEntry, pgnEntry.Entry)
 
-	if err := verifyASSignature(context.Background(), signedEntry, ia); err != nil {
+	if err := VerifyASSignature(context.Background(), signedEntry, ia); err != nil {
 		return err
 	}
 	return nil
 }
 
-func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
+func VerifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
 	//Verify AS signature
 	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
 	verifier := trust.Verifier{BoundIA: IA, Engine: e}
@@ -87,7 +87,7 @@ func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA)
 }
 
 func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine, signedBlob []byte) error {
-	allEntries, err := sqlite.Db.GetAllEntries(context.Background())
+	allEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
 	if err != nil {
 		log.Error("error reading list from db", err)
 		return err
