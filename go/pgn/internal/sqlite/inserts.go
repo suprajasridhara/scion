@@ -17,6 +17,7 @@ package sqlite
 const (
 	//InsertNewEntry is the query to insert a new row into pgn_entries
 	InsertNewEntry = `
-	INSERT INTO pgn_entries(entry, commitID, srcIA, timestamp, entryType, signedBlob) VALUES (?,?,?,?,?,?)
+	INSERT INTO pgn_entries(entry, commitID, srcIA, timestamp, entryType, signedBlob) 
+	VALUES (?,?,?,?,?,?)
 	`
 )

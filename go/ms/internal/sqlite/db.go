@@ -130,7 +130,6 @@ func (e *executor) DeleteFullMapEntryByID(ctx context.Context, id int) (sql.Resu
 //DeleteFullMapEntryByIP deletes a row in the full_map table by ip
 func (e *executor) DeleteFullMapEntryByIP(ctx context.Context, ip string) (sql.Result, error) {
 
-	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, DelFullMapEntryByIp, ip)
 	if err != nil {
 		return nil, err
@@ -139,9 +138,9 @@ func (e *executor) DeleteFullMapEntryByIP(ctx context.Context, ip string) (sql.R
 }
 
 //DeleteFullMapEntryByIPAndIA deletes a row in the full_map table by ip and IA
-func (e *executor) DeleteFullMapEntryByIPAndIA(ctx context.Context, ip string, ia string) (sql.Result, error) {
+func (e *executor) DeleteFullMapEntryByIPAndIA(ctx context.Context,
+	ip string, ia string) (sql.Result, error) {
 
-	//TODO (supraja): handle transaction correctly here
 	res, err := e.db.ExecContext(ctx, DelFullMapEntryByIpIA, ip, ia)
 	if err != nil {
 		return nil, err

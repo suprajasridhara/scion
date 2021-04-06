@@ -34,8 +34,9 @@ var PGNID string
 To validate signatures:
 It first validates the IA signature on signedPld based on the srcIA in pgnEntry,
 it then validates the signature from the same IA on pgnEntry.entry.
-This ensures that the timestamp in pgnEntry and the entry in that entry were both created by the same IA.
-After signature validation is complete, it checks that the entry is not stale i.e. has a valid timestamp.
+This ensures that the timestamp in pgnEntry and the entry in that entry were
+both created by the same IA. After signature validation is complete, it checks that the
+entry is not stale i.e. has a valid timestamp.
 Params:
 - pgnEntry: parsed pgnEntry to validate
 - signedPld: ctrl.SignedPld with the pgnEntry. Mostly received from another PGN or a other services
@@ -58,7 +59,9 @@ func ValidatePGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.Sig
 	return nil
 }
 
-func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.SignedPld) error {
+func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest,
+	signedPld *ctrl.SignedPld) error {
+
 	ia, err := addr.IAFromString(pgnEntry.SrcIA)
 	if err != nil {
 		return err

@@ -109,7 +109,8 @@ type PGNConf struct {
 	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
 	//PropagateInterval is the time interval between PGNEntry lists propagations (default = 1 hour)
 	PropagateInterval duration `toml:"prop_interval"`
-	//NumPGNs is the number of PGNs that the PGNEntry list is propagated to in every interval (default = 3)
+	//NumPGNs is the number of PGNs that the PGNEntry list is propagated to in
+	//every interval (default = 3)
 	NumPGNs uint16 `toml:"num_pgns"`
 }
 

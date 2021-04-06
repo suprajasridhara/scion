@@ -339,7 +339,7 @@ func getRandomPGN(ctx context.Context) plncomm.PGN {
 	if err != nil {
 		logger.Error("Error getting PGNs", "Err: ", err)
 	}
-	pick a random pgn to send signed list to
+	//pick a random pgn to send signed list to
 	randomIndex := rand.Intn(len(pgns))
 	return pgns[randomIndex]
 }

@@ -23,8 +23,8 @@ type union struct {
 	Which              proto.PGN_Which
 	AddPLNEntryRequest *AddPLNEntryRequest
 	AddPGNEntryRequest *AddPGNEntryRequest
-	PGNRep             *PGNRep  `capnp:"pgnRep"`
-	PGNList            *PGNList `capnp:"pgnList"`
+	PGNRep             *PGNRep          `capnp:"pgnRep"`
+	PGNList            *PGNList         `capnp:"pgnList"`
 	PGNEntryRequest    *PGNEntryRequest `capnp:"pgnEntryRequest"`
 }
 

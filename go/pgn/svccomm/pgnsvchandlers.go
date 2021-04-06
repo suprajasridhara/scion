@@ -51,7 +51,8 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	pgnEntry := r.Message.(*pgn_mgmt.AddPGNEntryRequest)
 
-	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry, r.FullMessage.(*ctrl.SignedPld), true); err != nil {
+	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry,
+		r.FullMessage.(*ctrl.SignedPld), true); err != nil {
 		log.Error("Invalid PGNEntry", "Err: ", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
