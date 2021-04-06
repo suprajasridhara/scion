@@ -36,15 +36,21 @@ var PGNID string
 To validate signatures:
 It first validates the IA signature on signedPld based on the srcIA in pgnEntry,
 it then validates the signature from the same IA on pgnEntry.entry.
-This ensures that the timestamp in pgnEntry and the entry in that entry were both created by the same IA.
-After signature validation is complete, it checks that the entry is not stale i.e. has a valid timestamp.
-And then if the checkPGNID flag is set, ensures that the current PGNID and the pgnId in the pgnEntry are equal.
+This ensures that the timestamp in pgnEntry and the entry in that entry
+were both created by the same IA.
+After signature validation is complete, it checks that the entry is not stale
+i.e. has a valid timestamp.
+And then if the checkPGNID flag is set, ensures that the current PGNID and the
+pgnId in the pgnEntry are equal.
 Params:
 - pgnEntry: parsed pgnEntry to validate
-- signedPld: ctrl.SignedPld with the pgnEntry. Mostly received from another PGN or a other services
+- signedPld: ctrl.SignedPld with the pgnEntry. Mostly received from another
+			PGN or a other services
 - checkPGNID: if set, the function checks if pgnEntry.PGNId is equal to the current PGNID
 **/
-func ValidatePGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.SignedPld, checkPGNID bool) error {
+func ValidatePGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest,
+	signedPld *ctrl.SignedPld, checkPGNID bool) error {
+
 	if err := validatePGNEntrySignatures(pgnEntry, signedPld); err != nil {
 		return err
 	}
@@ -61,33 +67,37 @@ func ValidatePGNEntry(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.Sig
 	return nil
 }
 
-func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest, signedPld *ctrl.SignedPld) error {
+func validatePGNEntrySignatures(pgnEntry *pgn_mgmt.AddPGNEntryRequest,
+	signedPld *ctrl.SignedPld) error {
+
 	ia, err := addr.IAFromString(pgnEntry.SrcIA)
 	if err != nil {
 		return err
 	}
-	if err := verifyASSignature(context.Background(), signedPld, ia); err != nil {
+	if err := VerifyASSignature(context.Background(), signedPld, ia); err != nil {
 		return err
 	}
 
 	signedEntry := &ctrl.SignedPld{}
 	proto.ParseFromRaw(signedEntry, pgnEntry.Entry)
 
-	if err := verifyASSignature(context.Background(), signedEntry, ia); err != nil {
+	if err := VerifyASSignature(context.Background(), signedEntry, ia); err != nil {
 		return err
 	}
 	return nil
 }
 
-func verifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
+func VerifyASSignature(ctx context.Context, message *ctrl.SignedPld, IA addr.IA) error {
 	//Verify AS signature
 	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
 	verifier := trust.Verifier{BoundIA: IA, Engine: e}
 	return verifier.Verify(ctx, message.Blob, message.Sign)
 }
 
-func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine, signedBlob []byte) error {
-	allEntries, err := sqlite.Db.GetAllEntries(context.Background())
+func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine,
+	signedBlob []byte) error {
+
+	allEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
 	if err != nil {
 		log.Error("error reading list from db", err)
 		return err

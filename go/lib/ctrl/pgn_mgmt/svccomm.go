@@ -21,12 +21,12 @@ import (
 )
 
 type AddPGNEntryRequest struct {
-	Entry      []byte
-	EntryType  string
-	CommitID   string
-	PGNId      string `capnp:"pgnId"`
-	Timestamp  uint64
-	SrcIA      string `capnp:"srcIA"`
+	Entry     []byte
+	EntryType string
+	CommitID  string
+	PGNId     string `capnp:"pgnId"`
+	Timestamp uint64
+	SrcIA     string `capnp:"srcIA"`
 }
 
 func NewAddPGNEntryRequest(entry []byte, entryType string, commitID string,
@@ -68,4 +68,25 @@ func (p *PGNRep) Write(b common.RawBytes) (int, error) {
 
 func (p *PGNRep) String() string {
 	return fmt.Sprintf("%s %d", p.Entry.String(), p.Timestamp)
+}
+
+type PGNEntryRequest struct {
+	EntryType string
+	SrcIA     string `capnp:"srcIA"`
+}
+
+func NewPGNEntryRequest(entryType string, srcIA string) *PGNEntryRequest {
+	return &PGNEntryRequest{EntryType: entryType, SrcIA: srcIA}
+}
+
+func (p *PGNEntryRequest) ProtoId() proto.ProtoIdType {
+	return proto.PGN_TypeID
+}
+
+func (p *PGNEntryRequest) Write(b common.RawBytes) (int, error) {
+	return proto.WriteRoot(p, b)
+}
+
+func (p *PGNEntryRequest) String() string {
+	return fmt.Sprintf("%s %s", p.EntryType, p.SrcIA)
 }

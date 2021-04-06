@@ -12,22 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mscomm
+package svccomm
 
 import (
 	"context"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
+	"github.com/scionproto/scion/go/pgn/internal/sqlite"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
 )
@@ -48,7 +51,8 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	pgnEntry := r.Message.(*pgn_mgmt.AddPGNEntryRequest)
 
-	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry, r.FullMessage.(*ctrl.SignedPld), true); err != nil {
+	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry,
+		r.FullMessage.(*ctrl.SignedPld), true); err != nil {
 		log.Error("Invalid PGNEntry", "Err: ", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
@@ -90,6 +94,59 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	rw.SendPGNRep(ctx, pld, infra.PGNRep)
+
+	return nil
+}
+
+type PGNEntryRequestHandler struct {
+}
+
+func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	log.Info("Entering: PGNEntryHandler.Handle")
+	ctx := r.Context()
+	requester := r.Peer.(*snet.UDPAddr)
+	rw, _ := infra.ResponseWriterFromContext(ctx)
+	sendAck := messenger.SendAckHelper(ctx, rw)
+	message := r.FullMessage.(*ctrl.SignedPld)
+	if err := pgnentryhelper.VerifyASSignature(ctx, message, requester.IA); err != nil {
+		log.Error("Certificate verification failed!", "Error: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
+	pgnEntryRequest := r.Message.(*pgn_mgmt.PGNEntryRequest)
+	if pgnEntryRequest.EntryType == "" {
+		pgnEntryRequest.EntryType = "%"
+	}
+	if pgnEntryRequest.SrcIA == "" {
+		pgnEntryRequest.SrcIA = "%"
+	}
+
+	dbEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
+	var l []common.RawBytes
+	for _, dbEntry := range dbEntries {
+		l = append(l, *dbEntry.SignedBlob)
+	}
+	pgnList := pgn_mgmt.NewPGNList(l, uint64(time.Now().Unix()))
+	pld, err := pgn_mgmt.NewPld(1, pgnList)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt Pld", "Error: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
+	signer, err := registerSigner(infra.PGNList)
+	if err != nil {
+		log.Error("Error registering signer")
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+	switch t := rw.(type) {
+	case *messenger.QUICResponseWriter:
+		t.Signer = *signer
+	}
+
+	rw.SendPGNRep(ctx, pld, infra.PGNList)
 
 	return nil
 }

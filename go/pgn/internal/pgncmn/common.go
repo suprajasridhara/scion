@@ -27,8 +27,8 @@ import (
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
-	"github.com/scionproto/scion/go/pgn/mscomm"
 	"github.com/scionproto/scion/go/pgn/pgncomm"
+	"github.com/scionproto/scion/go/pgn/svccomm"
 	pgnconfig "github.com/scionproto/scion/go/pkg/pgn/config"
 )
 
@@ -67,8 +67,9 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 	pgnentryhelper.PGNID = cfg.ID
 	pgnmsgr.IA = cfg.IA
 	pgncrypto.CfgDir = cfg.CfgDir
-	pgnmsgr.Msgr.AddHandler(infra.AddPGNEntryRequest, mscomm.AddPGNEntryReqHandler{})
+	pgnmsgr.Msgr.AddHandler(infra.AddPGNEntryRequest, svccomm.AddPGNEntryReqHandler{})
 	pgnmsgr.Msgr.AddHandler(infra.PGNList, pgncomm.PGNEntryHandler{})
+	pgnmsgr.Msgr.AddHandler(infra.PGNEntryRequest, svccomm.PGNEntryRequestHandler{})
 
 	return nil
 }

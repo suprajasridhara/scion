@@ -64,33 +64,40 @@ func (d *DB) Close() {
 	d.db.Close()
 }
 
-//InsertEntry inserts a new row into node_list_entries
+//InsertEntry inserts a new row into pgn_entries
 func (e *executor) InsertEntry(ctx context.Context, entry []byte,
-	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
+	commitID string, srcIA string, timestamp uint64, entryType string,
+	signedBlob []byte) (sql.Result, error) {
 
-	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA, timestamp, entryType, signedBlob)
+	res, err := e.db.ExecContext(ctx, InsertNewEntry, entry, commitID, srcIA,
+		timestamp, entryType, signedBlob)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-//UpdateEntry updates a row in node_list_entries based on msIA
+//UpdateEntry updates a row in pgn_entries based on srcIA and entryType
 func (e *executor) UpdateEntry(ctx context.Context, entry []byte,
-	commitID string, srcIA string, timestamp uint64, entryType string, signedBlob []byte) (sql.Result, error) {
+	commitID string, srcIA string, timestamp uint64, entryType string,
+	signedBlob []byte) (sql.Result, error) {
 
-	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID, timestamp, signedBlob, srcIA, entryType)
+	res, err := e.db.ExecContext(ctx, UpdateEntry, entry, commitID,
+		timestamp, signedBlob, srcIA, entryType)
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-//GetAllEntries fetches all rows in node_list_entries
-func (e *executor) GetAllEntries(ctx context.Context) ([]PGNEntry, error) {
+//GetEntriesByTypeAndSrcIA queries pgn_entries by entryType and srcIA. entryType
+//and srcIA are matched by pattern so can contain wildcards
+func (e *executor) GetEntriesByTypeAndSrcIA(ctx context.Context,
+	entryType string, srcIA string) ([]PGNEntry, error) {
+
 	e.RLock()
 	defer e.RUnlock()
-	rows, err := e.db.QueryContext(ctx, FullNodeList)
+	rows, err := e.db.QueryContext(ctx, EntriesByTypeAndSrcIA, entryType, srcIA)
 	if err != nil {
 		return nil, serrors.Wrap(db.ErrReadFailed, err)
 	}
@@ -98,7 +105,8 @@ func (e *executor) GetAllEntries(ctx context.Context) ([]PGNEntry, error) {
 	got := []PGNEntry{}
 	for rows.Next() {
 		var r PGNEntry
-		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp, &r.EntryType, &r.SignedBlob)
+		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp,
+			&r.EntryType, &r.SignedBlob)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}

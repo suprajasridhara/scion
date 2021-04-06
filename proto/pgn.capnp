@@ -13,6 +13,7 @@ struct PGN {
         addPGNEntryRequest @3 :PGNEntry;
         pgnRep @4 :PGNRep;
         pgnList @5 :PGNList;
+        pgnEntryRequest @6: PGNEntryRequest;
     }
 }
 
@@ -37,4 +38,9 @@ struct PGNEntry{
 struct PGNRep{
     entry @0 :PGNEntry;
     timestamp @1 :UInt64; #timestamp for next broadcast in PGN
+}
+
+struct PGNEntryRequest{
+    entryType @0: Text;
+    srcIA @1: Text;
 }

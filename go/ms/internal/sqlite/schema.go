@@ -27,7 +27,8 @@ const (
 		id INTEGER NOT NULL,
 		ip DATA NOT NULL,
 		ia DATA NOT NULL,
-		timestamp INTEGER NOT NULL,
+		created INTEGER NOT NULL, 
+		validUntil INTEGER NOT NULL,
 		PRIMARY KEY (id)
 	);
 

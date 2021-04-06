@@ -16,10 +16,12 @@ package pgncomm
 
 import (
 	"context"
+	"database/sql"
 	"math/rand"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
@@ -29,6 +31,7 @@ import (
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/ms/internal/mscrypto"
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
+	"github.com/scionproto/scion/go/ms/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/ms/internal/sqlite"
 	"github.com/scionproto/scion/go/ms/plncomm"
 	"github.com/scionproto/scion/go/pkg/trust"
@@ -82,7 +85,7 @@ func pushSignedPrefix(ctx context.Context) error {
 		return err
 	}
 
-	signer, err := registerSigner(infra.AddPGNEntryRequest)
+	signer, err := registerSigner()
 	if err != nil {
 		logger.Error("Error getting signer", "Err: ", err)
 		return err
@@ -99,7 +102,12 @@ func pushSignedPrefix(ctx context.Context) error {
 	pgn := getRandomPGN(context.Background())
 	address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
 	signedList := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), entries, msmsgr.IA.String())
-	pld, _ := ctrl.NewPld(signedList, &ctrl.Data{ReqId: rand.Uint64()})
+	msMgmtPld, err := ms_mgmt.NewPld(1, signedList)
+	if err != nil {
+		logger.Error("Error gorming msMgmtPld ", "Err: ", err)
+		return err
+	}
+	pld, _ := ctrl.NewPld(msMgmtPld, &ctrl.Data{ReqId: rand.Uint64()})
 	signedEntry, err := pld.SignedPld(context.Background(), signer)
 	if err != nil {
 		logger.Error("Error creating SignedPld", "Err: ", err)
@@ -128,7 +136,7 @@ func pushSignedPrefix(ctx context.Context) error {
 		rand.Uint64(), infra.AddPGNEntryRequest)
 
 	if err != nil {
-		logger.Error("error getting reply from PCN", "Err: ", err)
+		logger.Error("Error getting reply from PGN", "Err: ", err)
 		return err
 	}
 
@@ -159,14 +167,169 @@ func pushSignedPrefix(ctx context.Context) error {
 
 }
 
-func registerSigner(msgType infra.MessageType) (*trust.Signer, error) {
+func PullAllPGNEntries(ctx context.Context, interval time.Duration) {
+	PullPGNEntryByQuery(ctx, MS_LIST, "")
+	pushTicker := time.NewTicker(interval * time.Minute)
+	for {
+		select {
+		case <-pushTicker.C:
+			PullPGNEntryByQuery(ctx, MS_LIST, "") //"" is considered wildcard.
+		}
+	}
+}
+
+func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) error {
+	pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest(entryType, srcIA)
+	pgn := getRandomPGN(context.Background())
+	_, err := registerSigner()
+	if err != nil {
+		log.Error("Error registering signer", "Err: ", err)
+		return err
+	}
+	pgn_pld, err := pgn_mgmt.NewPld(1, pgnEntryRequest)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt payload", "Err: ", err)
+		return err
+	}
+	address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
+
+	reply, err := msmsgr.Msgr.SendPGNMessage(ctx, pgn_pld, address,
+		rand.Uint64(), infra.PGNEntryRequest)
+
+	if err != nil {
+		log.Error("Error getting reply from PGN", "Err: ", err)
+		return err
+	}
+
+	//Validate PGN signature
+	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
+	verifier := trust.Verifier{BoundIA: address.IA, Engine: e}
+	err = verifier.Verify(ctx, reply.Blob, reply.Sign)
+
+	if err != nil {
+		log.Error("Error verifying sign for PGN rep", "Err: ", err)
+		return err
+	}
+
+	pld := &ctrl.Pld{}
+	if err := proto.ParseFromRaw(pld, reply.Blob); err != nil {
+		log.Error("Error parsing PGN reply", "Err: ", err)
+		return err
+	}
+
+	for _, l := range pld.Pgn.PGNList.L {
+		//validate each entry here
+		r, err := validateAndGetPGNEntry(l)
+		if err != nil {
+			log.Error("Error validating PGNEntry ", "Error: ", err)
+			continue
+		}
+		//parse persist entry here
+		if err := processEntry(r.Entry, r.Timestamp); err != nil {
+			log.Error("Error processing entry ", "Error: ", err)
+			continue
+		}
+	}
+	return nil
+}
+
+func validateAndGetPGNEntry(l common.RawBytes) (*pgn_mgmt.AddPGNEntryRequest, error) {
+	signedPGNEntry := &ctrl.SignedPld{}
+	err := proto.ParseFromRaw(signedPGNEntry, l)
+	if err != nil {
+		log.Error("Error getting signedPGNEntry", "Error: ", err)
+		return nil, err
+	}
+	pld := &ctrl.Pld{}
+	if err := proto.ParseFromRaw(pld, signedPGNEntry.Blob); err != nil {
+		return nil, err
+	}
+	r := pld.Pgn.AddPGNEntryRequest
+	if r.EntryType != MS_LIST {
+		log.Error("Received entry is not an MS_LIST ")
+		return nil, serrors.New("Received entry is not an MS_LIST ")
+	}
+	if err := pgnentryhelper.ValidatePGNEntry(r, signedPGNEntry); err != nil {
+		log.Error("Error validating PGN entry ", "Error: ", err)
+		return nil, err
+	}
+	return r, nil
+}
+
+func processEntry(entry []byte, timestamp uint64) error {
+	signedPld := &ctrl.SignedPld{}
+	err := proto.ParseFromRaw(signedPld, entry)
+	if err != nil {
+		log.Error("Error parsing entry ", "Error: ", err)
+		return err
+	}
+	pld := &ctrl.Pld{}
+	if err := proto.ParseFromRaw(pld, signedPld.Blob); err != nil {
+		log.Error("Error parsing entry ", "Error: ", err)
+		return err
+	}
+	for _, asEntry := range pld.Ms.SignedMSList.ASEntries {
+		sigPld := &ctrl.Pld{}
+		if err := proto.ParseFromRaw(sigPld, asEntry.Blob); err != nil {
+			log.Error("Error parsing sigPld ", "Error: ", err)
+			return err
+		}
+		if sigPld.Ms.AsActionReq.Action == "add_as_entry" {
+			persistASEntry(*sigPld.Ms.AsActionReq, timestamp)
+		} else if sigPld.Ms.AsActionReq.Action == "del_as_entry" {
+			deleteASEntry(*sigPld.Ms.AsActionReq)
+		}
+	}
+	return nil
+}
+
+func deleteASEntry(asEntry ms_mgmt.ASMapEntry) {
+	for _, ip := range asEntry.Ip {
+		_, err := sqlite.Db.DeleteFullMapEntryByIPAndIA(context.Background(), ip, asEntry.Ia)
+		if err != nil {
+			log.Error("Error deleteing fum row with ip ", ip, " ia ", asEntry.Ia, "Error: ", err)
+		}
+	}
+}
+
+func persistASEntry(asEntry ms_mgmt.ASMapEntry, timestamp uint64) {
+	for _, ip := range asEntry.Ip {
+		rows, err := sqlite.Db.GetFullMapEntryByIP(context.Background(), ip)
+		if err != nil {
+			log.Error("Error getting full map entries by ip", "Error: ", err)
+			continue
+		}
+		newestRow := sqlite.FullMapRow{IA: sql.NullString{String: asEntry.Ia, Valid: true},
+			IP: sql.NullString{String: ip, Valid: true}, Created: int(asEntry.Timestamp),
+			ValidUntil: int(timestamp)}
+		if len(rows) > 0 {
+			//keep the newest entry for this IP
+			for _, row := range rows {
+				if row.Created > newestRow.Created {
+					newestRow = row
+				}
+			}
+		}
+		_, err = sqlite.Db.DeleteFullMapEntryByIP(context.Background(), ip)
+		if err != nil {
+			log.Error("Error deleting full map entries by IP", "Error: ", err)
+		}
+		_, err = sqlite.Db.InsertFullMapEntry(context.Background(), newestRow)
+		if err != nil {
+			log.Error("Error inserting full map row", "Error: ", err)
+		}
+	}
+}
+
+func registerSigner() (*trust.Signer, error) {
 	mscrypt := &mscrypto.MSSigner{}
 	mscrypt.Init(context.Background(), msmsgr.Msgr, msmsgr.IA, mscrypto.CfgDir)
 	signer, err := mscrypt.SignerGen.Generate(context.Background())
 	if err != nil {
 		return nil, serrors.WrapStr("Unable to create signer to AddASMap", err)
 	}
-	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{msgType})
+	msmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPGNEntryRequest,
+		infra.PGNEntryRequest})
 	return &signer, nil
 }
 

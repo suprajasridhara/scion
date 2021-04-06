@@ -55,7 +55,7 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 
 func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 	log.Info("Entering: sendPGNList")
-	dbEntries, err := sqlite.Db.GetAllEntries(context.Background())
+	dbEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
 	if err != nil {
 		return serrors.WrapStr("Error getting full node list", err)
 	}
@@ -105,7 +105,8 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 				return err
 			}
 			pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
-			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address, rand.Uint64(), infra.PGNList)
+			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
+				rand.Uint64(), infra.PGNList)
 			if err != nil {
 				log.Error("Error sending pgn list", err)
 			}
