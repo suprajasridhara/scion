@@ -120,6 +120,11 @@ func realMain() int {
 		pgncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime.Duration)
 	}()
 
+	go func() {
+		defer log.HandlePanic()
+		pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
+	}()
+
 	select {
 	case <-fatal.ShutdownChan():
 		return 0
