@@ -21,7 +21,7 @@ const (
 
 	//InsFullMapEntry inserts a row into the full_map table
 	InsFullMapEntry = `
-	INSERT INTO full_map(ip, ia, timestamp) VALUES (?,?,?)
+	INSERT INTO full_map(ip, ia, created, validUntil) VALUES (?,?,?,?)
 	`
 
 	//InsPGNRep inserts a row into the pgn_reps table

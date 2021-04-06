@@ -18,4 +18,12 @@ const (
 	DelFullMapEntry = `
 	DELETE FROM full_map WHERE id = ?
 	`
+
+	DelFullMapEntryByIp = `
+	DELETE FROM full_map WHERE ip = ?
+	`
+
+	DelFullMapEntryByIpIA = `
+	DELETE FROM full_map WHERE ip = ? and ia = ?
+	`
 )

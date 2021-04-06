@@ -17,10 +17,11 @@ import "database/sql"
 
 //FullMapRow sql table struct that to store into and fetch from full_map table
 type FullMapRow struct {
-	ID        int            `TbField:"id"`
-	IP        sql.NullString `TbField:"ip"`
-	IA        sql.NullString `TbField:"ia"`
-	Timestamp int            `TbField:"timestamp"`
+	ID         int            `TbField:"id"`
+	IP         sql.NullString `TbField:"ip"`
+	IA         sql.NullString `TbField:"ia"`
+	Created    int            `TbField:"created"`
+	ValidUntil int            `TbField:"validUntil"`
 }
 
 //NewEntry sql table struct that to store into and fetch from new_entries table

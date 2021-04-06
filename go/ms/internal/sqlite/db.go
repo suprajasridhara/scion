@@ -78,7 +78,7 @@ func (e *executor) GetFullMap(ctx context.Context) ([]FullMapRow, error) {
 	got := []FullMapRow{}
 	for rows.Next() {
 		var r FullMapRow
-		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Timestamp)
+		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Created, &r.ValidUntil)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -99,7 +99,7 @@ func (e *executor) GetFullMapEntryByIP(ctx context.Context, ip string) ([]FullMa
 	got := []FullMapRow{}
 	for rows.Next() {
 		var r FullMapRow
-		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Timestamp)
+		err = rows.Scan(&r.ID, &r.IP, &r.IA, &r.Created, &r.ValidUntil)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}
@@ -110,8 +110,8 @@ func (e *executor) GetFullMapEntryByIP(ctx context.Context, ip string) ([]FullMa
 
 //InsertFullMapEntry inserts a row into the full_map table
 func (e *executor) InsertFullMapEntry(ctx context.Context, fmRow FullMapRow) (sql.Result, error) {
-	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, InsFullMapEntry, fmRow.IP, fmRow.IA, fmRow.Timestamp)
+	res, err := e.db.ExecContext(ctx, InsFullMapEntry, fmRow.IP,
+		fmRow.IA, fmRow.Created, fmRow.ValidUntil)
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +120,29 @@ func (e *executor) InsertFullMapEntry(ctx context.Context, fmRow FullMapRow) (sq
 
 //DeleteFullMapEntryByID deletes a row in the full_map table by id
 func (e *executor) DeleteFullMapEntryByID(ctx context.Context, id int) (sql.Result, error) {
+	res, err := e.db.ExecContext(ctx, DelFullMapEntry, id)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+//DeleteFullMapEntryByIP deletes a row in the full_map table by ip
+func (e *executor) DeleteFullMapEntryByIP(ctx context.Context, ip string) (sql.Result, error) {
 
 	//TODO (supraja): handle transaction correctly here
-	res, err := e.db.ExecContext(ctx, DelFullMapEntry, id)
+	res, err := e.db.ExecContext(ctx, DelFullMapEntryByIp, ip)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+//DeleteFullMapEntryByIPAndIA deletes a row in the full_map table by ip and IA
+func (e *executor) DeleteFullMapEntryByIPAndIA(ctx context.Context, ip string, ia string) (sql.Result, error) {
+
+	//TODO (supraja): handle transaction correctly here
+	res, err := e.db.ExecContext(ctx, DelFullMapEntryByIpIA, ip, ia)
 	if err != nil {
 		return nil, err
 	}
