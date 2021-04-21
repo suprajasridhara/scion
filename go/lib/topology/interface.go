@@ -21,6 +21,7 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
+	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/scmp"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
@@ -313,7 +314,7 @@ func (t *topologyS) UnderlayAnycast(svc addr.HostSVC) (*net.UDPAddr, error) {
 func supportedSVC(svc addr.HostSVC) bool {
 	b := svc.Base()
 	return b == addr.SvcBS || b == addr.SvcCS || b == addr.SvcPS || b == addr.SvcSIG ||
-		b == addr.SvcPLN || b == addr.SvcPGN
+		b == addr.SvcPLN || b == addr.SvcPGN || b == addr.SvcMS
 }
 
 func (t *topologyS) UnderlayMulticast(svc addr.HostSVC) ([]*net.UDPAddr, error) {
@@ -377,6 +378,8 @@ func toProtoServiceType(svc addr.HostSVC) (proto.ServiceType, error) {
 		return proto.ServiceType_pgn, nil
 	case addr.SvcPLN:
 		return proto.ServiceType_pln, nil
+	case addr.SvcMS:
+		return proto.ServiceType_ms, nil
 	default:
 		// FIXME(scrye): Return this error because some calling code in the BR searches for it.
 		// Ideally, the error should be communicated in a more explicit way.
@@ -416,6 +419,8 @@ func (t *topologyS) SVCNames(svc addr.HostSVC) ServiceNames {
 		m = t.Topology.PLN
 	case addr.SvcPGN:
 		m = t.Topology.PGN
+	case addr.SvcMS:
+		m = t.Topology.MS
 	}
 
 	var names ServiceNames
