@@ -16,7 +16,7 @@ package svccomm
 
 import (
 	"context"
-
+	"time" 
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
@@ -32,6 +32,7 @@ type SvcListHandler struct {
 }
 
 func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
 	log.Info("Entering: SvcListHandler.Handle")
 	ctx := r.Context()
 	rw, _ := infra.ResponseWriterFromContext(ctx)
@@ -59,6 +60,9 @@ func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	if err != nil {
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 	}
+	duration := time.Since(start)
+	log.Info("Time elapsed SvcListHandler", "duration ", duration.String())
+
 	return nil
 
 }
