@@ -65,14 +65,19 @@ func GetPLNList(ctx context.Context) ([]PGN, error) {
 	if err != nil {
 		return nil, serrors.WrapStr("Error getting verified payload", err)
 	}
-	plnList := verifiedPayload.Pln.PlnList
 
-	pgns := []PGN{}
-	for _, plnListEntry := range plnList.L {
-		pgn := PGN{PGNId: plnListEntry.PGNId, PGNIA: addr.IAInt(plnListEntry.IA).IA()}
-		pgns = append(pgns, pgn)
+	if verifiedPayload.Pln != nil && verifiedPayload.Pln.PlnList != nil {
+		plnList := verifiedPayload.Pln.PlnList
+
+		pgns := []PGN{}
+		for _, plnListEntry := range plnList.L {
+			pgn := PGN{PGNId: plnListEntry.PGNId, PGNIA: addr.IAInt(plnListEntry.IA).IA()}
+			pgns = append(pgns, pgn)
+		}
+		//Signature from PLN is validated, the list is now authenticated.
+
+		return pgns, nil
+	} else {
+		return nil, nil
 	}
-	//Signature from PLN is validated, the list is now authenticated.
-
-	return pgns, nil
 }

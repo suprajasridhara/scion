@@ -270,6 +270,10 @@ func processEntry(entry []byte, timestamp uint64) error {
 	}
 	for _, asEntry := range pld.Ms.SignedMSList.ASEntries {
 		sigPld := &ctrl.Pld{}
+		if asEntry.Blob == nil {
+			log.Info("Empty AS entry ")
+			return nil
+		}
 		if err := proto.ParseFromRaw(sigPld, asEntry.Blob); err != nil {
 			log.Error("Error parsing sigPld ", "Error: ", err)
 			return err
@@ -340,6 +344,9 @@ func getRandomPGN(ctx context.Context) plncomm.PGN {
 		logger.Error("Error getting PGNs", "Err: ", err)
 	}
 	//pick a random pgn to send signed list to
-	randomIndex := rand.Intn(len(pgns))
-	return pgns[randomIndex]
+	if len(pgns) != 0 {
+		randomIndex := rand.Intn(len(pgns))
+		return pgns[randomIndex]
+	}
+	return plncomm.PGN{}
 }
