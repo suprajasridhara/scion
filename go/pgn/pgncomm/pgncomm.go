@@ -41,7 +41,9 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 	if err != nil {
 		log.Error("error in broadcast node list", err)
 	}
-	pushTicker := time.NewTicker(interval * time.Second)
+	log.Error("error ", interval.String())
+
+	pushTicker := time.NewTicker(interval)
 	for {
 		select {
 		case <-pushTicker.C:
@@ -112,6 +114,8 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 			}
 		}
 	}
+	log.Info("Exiting: sendPGNList")
+
 	return nil
 
 }
