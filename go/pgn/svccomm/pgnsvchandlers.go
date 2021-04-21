@@ -43,6 +43,7 @@ type AddPGNEntryReqHandler struct {
 }
 
 func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
 	log.Info("Entering: AddPGNEntryReqHandler.Handle")
 	ctx := r.Context()
 
@@ -94,6 +95,8 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	rw.SendPGNRep(ctx, pld, infra.PGNRep)
+	duration := time.Since(start)
+	log.Info("Time elapsed AddPGNEntryReqHandler", "duration ", duration.String())
 
 	return nil
 }
@@ -102,6 +105,7 @@ type PGNEntryRequestHandler struct {
 }
 
 func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
 	log.Info("Entering: PGNEntryHandler.Handle")
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
@@ -147,7 +151,8 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	rw.SendPGNRep(ctx, pld, infra.PGNList)
-
+	duration := time.Since(start)
+	log.Info("Time elapsed PGNEntryRequestHandler", "duration ", duration.String())
 	return nil
 }
 
