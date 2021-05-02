@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tf=$(mktemp --tmpdir scion-quiet.XXXXXXX)
+tf=$(mktemp -p /tmp scion-quiet.XXXXXXX)
 "$@" &>"$tf"
 result=$?
 [ $result -eq 0 ] || cat "$tf"

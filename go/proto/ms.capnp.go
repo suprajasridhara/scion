@@ -13,15 +13,16 @@ type MS struct{ capnp.Struct }
 type MS_Which uint16
 
 const (
-	MS_Which_unset       MS_Which = 0
-	MS_Which_asActionReq MS_Which = 1
-	MS_Which_asActionRep MS_Which = 2
-	MS_Which_fullMapReq  MS_Which = 3
-	MS_Which_fullMapRep  MS_Which = 4
+	MS_Which_unset        MS_Which = 0
+	MS_Which_asActionReq  MS_Which = 1
+	MS_Which_asActionRep  MS_Which = 2
+	MS_Which_fullMapReq   MS_Which = 3
+	MS_Which_fullMapRep   MS_Which = 4
+	MS_Which_signedMSList MS_Which = 5
 )
 
 func (w MS_Which) String() string {
-	const s = "unsetasActionReqasActionRepfullMapReqfullMapRep"
+	const s = "unsetasActionReqasActionRepfullMapReqfullMapRepsignedMSList"
 	switch w {
 	case MS_Which_unset:
 		return s[0:5]
@@ -33,13 +34,15 @@ func (w MS_Which) String() string {
 		return s[27:37]
 	case MS_Which_fullMapRep:
 		return s[37:47]
+	case MS_Which_signedMSList:
+		return s[47:59]
 
 	}
 	return "MS_Which(" + strconv.FormatUint(uint64(w), 10) + ")"
 }
 
 // MS_TypeID is the unique identifier for the type MS.
-const MS_TypeID = 0xda155ff9f070267c
+const MS_TypeID = 0x9784eb1f78b48548
 
 func NewMS(s *capnp.Segment) (MS, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 16, PointerCount: 1})
@@ -57,7 +60,7 @@ func ReadRootMS(msg *capnp.Message) (MS, error) {
 }
 
 func (s MS) String() string {
-	str, _ := text.Marshal(0xda155ff9f070267c, s.Struct)
+	str, _ := text.Marshal(0x9784eb1f78b48548, s.Struct)
 	return str
 }
 
@@ -209,6 +212,39 @@ func (s MS) NewFullMapRep() (FullMapRep, error) {
 	return ss, err
 }
 
+func (s MS) SignedMSList() (SignedMSList, error) {
+	if s.Struct.Uint16(8) != 5 {
+		panic("Which() != signedMSList")
+	}
+	p, err := s.Struct.Ptr(0)
+	return SignedMSList{Struct: p.Struct()}, err
+}
+
+func (s MS) HasSignedMSList() bool {
+	if s.Struct.Uint16(8) != 5 {
+		return false
+	}
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s MS) SetSignedMSList(v SignedMSList) error {
+	s.Struct.SetUint16(8, 5)
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewSignedMSList sets the signedMSList field to a newly
+// allocated SignedMSList struct, preferring placement in s's segment.
+func (s MS) NewSignedMSList() (SignedMSList, error) {
+	s.Struct.SetUint16(8, 5)
+	ss, err := NewSignedMSList(s.Struct.Segment())
+	if err != nil {
+		return SignedMSList{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
 // MS_List is a list of MS.
 type MS_List struct{ capnp.List }
 
@@ -223,7 +259,7 @@ func (s MS_List) At(i int) MS { return MS{s.List.Struct(i)} }
 func (s MS_List) Set(i int, v MS) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s MS_List) String() string {
-	str, _ := text.MarshalList(0xda155ff9f070267c, s.List)
+	str, _ := text.MarshalList(0x9784eb1f78b48548, s.List)
 	return str
 }
 
@@ -251,10 +287,14 @@ func (p MS_Promise) FullMapRep() FullMapRep_Promise {
 	return FullMapRep_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
 }
 
+func (p MS_Promise) SignedMSList() SignedMSList_Promise {
+	return SignedMSList_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
 type ASMapEntry struct{ capnp.Struct }
 
 // ASMapEntry_TypeID is the unique identifier for the type ASMapEntry.
-const ASMapEntry_TypeID = 0xbf2197df52e713b4
+const ASMapEntry_TypeID = 0xb63b553fb7bedc23
 
 func NewASMapEntry(s *capnp.Segment) (ASMapEntry, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 3})
@@ -272,7 +312,7 @@ func ReadRootASMapEntry(msg *capnp.Message) (ASMapEntry, error) {
 }
 
 func (s ASMapEntry) String() string {
-	str, _ := text.Marshal(0xbf2197df52e713b4, s.Struct)
+	str, _ := text.Marshal(0xb63b553fb7bedc23, s.Struct)
 	return str
 }
 
@@ -361,7 +401,7 @@ func (s ASMapEntry_List) At(i int) ASMapEntry { return ASMapEntry{s.List.Struct(
 func (s ASMapEntry_List) Set(i int, v ASMapEntry) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s ASMapEntry_List) String() string {
-	str, _ := text.MarshalList(0xbf2197df52e713b4, s.List)
+	str, _ := text.MarshalList(0xb63b553fb7bedc23, s.List)
 	return str
 }
 
@@ -376,7 +416,7 @@ func (p ASMapEntry_Promise) Struct() (ASMapEntry, error) {
 type MSRepToken struct{ capnp.Struct }
 
 // MSRepToken_TypeID is the unique identifier for the type MSRepToken.
-const MSRepToken_TypeID = 0xd7387a16c86c1020
+const MSRepToken_TypeID = 0xf4d0e3fd031ba157
 
 func NewMSRepToken(s *capnp.Segment) (MSRepToken, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
@@ -394,7 +434,7 @@ func ReadRootMSRepToken(msg *capnp.Message) (MSRepToken, error) {
 }
 
 func (s MSRepToken) String() string {
-	str, _ := text.Marshal(0xd7387a16c86c1020, s.Struct)
+	str, _ := text.Marshal(0xf4d0e3fd031ba157, s.Struct)
 	return str
 }
 
@@ -434,7 +474,7 @@ func (s MSRepToken_List) At(i int) MSRepToken { return MSRepToken{s.List.Struct(
 func (s MSRepToken_List) Set(i int, v MSRepToken) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s MSRepToken_List) String() string {
-	str, _ := text.MarshalList(0xd7387a16c86c1020, s.List)
+	str, _ := text.MarshalList(0xf4d0e3fd031ba157, s.List)
 	return str
 }
 
@@ -449,7 +489,7 @@ func (p MSRepToken_Promise) Struct() (MSRepToken, error) {
 type FullMapReq struct{ capnp.Struct }
 
 // FullMapReq_TypeID is the unique identifier for the type FullMapReq.
-const FullMapReq_TypeID = 0x9f79403fb2002d32
+const FullMapReq_TypeID = 0xeba5cc6f7f0c9fe8
 
 func NewFullMapReq(s *capnp.Segment) (FullMapReq, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
@@ -467,7 +507,7 @@ func ReadRootFullMapReq(msg *capnp.Message) (FullMapReq, error) {
 }
 
 func (s FullMapReq) String() string {
-	str, _ := text.Marshal(0x9f79403fb2002d32, s.Struct)
+	str, _ := text.Marshal(0xeba5cc6f7f0c9fe8, s.Struct)
 	return str
 }
 
@@ -493,7 +533,7 @@ func (s FullMapReq_List) At(i int) FullMapReq { return FullMapReq{s.List.Struct(
 func (s FullMapReq_List) Set(i int, v FullMapReq) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s FullMapReq_List) String() string {
-	str, _ := text.MarshalList(0x9f79403fb2002d32, s.List)
+	str, _ := text.MarshalList(0xeba5cc6f7f0c9fe8, s.List)
 	return str
 }
 
@@ -508,7 +548,7 @@ func (p FullMapReq_Promise) Struct() (FullMapReq, error) {
 type FullMap struct{ capnp.Struct }
 
 // FullMap_TypeID is the unique identifier for the type FullMap.
-const FullMap_TypeID = 0xc7b2da00ffda93d6
+const FullMap_TypeID = 0xed4f7c2fa899f312
 
 func NewFullMap(s *capnp.Segment) (FullMap, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
@@ -526,7 +566,7 @@ func ReadRootFullMap(msg *capnp.Message) (FullMap, error) {
 }
 
 func (s FullMap) String() string {
-	str, _ := text.Marshal(0xc7b2da00ffda93d6, s.Struct)
+	str, _ := text.Marshal(0xed4f7c2fa899f312, s.Struct)
 	return str
 }
 
@@ -590,7 +630,7 @@ func (s FullMap_List) At(i int) FullMap { return FullMap{s.List.Struct(i)} }
 func (s FullMap_List) Set(i int, v FullMap) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s FullMap_List) String() string {
-	str, _ := text.MarshalList(0xc7b2da00ffda93d6, s.List)
+	str, _ := text.MarshalList(0xed4f7c2fa899f312, s.List)
 	return str
 }
 
@@ -605,7 +645,7 @@ func (p FullMap_Promise) Struct() (FullMap, error) {
 type FullMapRep struct{ capnp.Struct }
 
 // FullMapRep_TypeID is the unique identifier for the type FullMapRep.
-const FullMapRep_TypeID = 0xb0f5e5a599f7ce14
+const FullMapRep_TypeID = 0xa671b0286df5a992
 
 func NewFullMapRep(s *capnp.Segment) (FullMapRep, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -623,7 +663,7 @@ func ReadRootFullMapRep(msg *capnp.Message) (FullMapRep, error) {
 }
 
 func (s FullMapRep) String() string {
-	str, _ := text.Marshal(0xb0f5e5a599f7ce14, s.Struct)
+	str, _ := text.Marshal(0xa671b0286df5a992, s.Struct)
 	return str
 }
 
@@ -666,7 +706,7 @@ func (s FullMapRep_List) At(i int) FullMapRep { return FullMapRep{s.List.Struct(
 func (s FullMapRep_List) Set(i int, v FullMapRep) error { return s.List.SetStruct(i, v.Struct) }
 
 func (s FullMapRep_List) String() string {
-	str, _ := text.MarshalList(0xb0f5e5a599f7ce14, s.List)
+	str, _ := text.MarshalList(0xa671b0286df5a992, s.List)
 	return str
 }
 
@@ -678,55 +718,265 @@ func (p FullMapRep_Promise) Struct() (FullMapRep, error) {
 	return FullMapRep{s}, err
 }
 
-const schema_de42b02816bdc1bf = "x\xdatTMhSY\x18=\xe7\xbb\xf9i\xa0o" +
-	"\xc8\xe3\xa5\x9d\xce\xc0\xd0\x19\x18\x86\xceb\x86\xb63\x03" +
-	"\xd32\xa5\xed0\x19,\x18\xe8M\x0a\x82\x08\xfa\xda\xa6" +
-	"\x1al\xd2\xd7&E#\xdd\x08.\xc4\xad\x82v!\xd6" +
-	"\xa0\xa0 XK\x17\x0aJ\x11\x04]\x09.T\xecB" +
-	"W\xd2\xa5\xba(R\xaa>\xb9I\x93\xf4w\xf5.\xe7" +
-	";\xdf9\xe7\xbb\xf7\xdd\xdb>\xc9>\xe9\x08~+\x80" +
-	"n\x09\x86\xd6;\x7f[\xe8\xed+^\xd1\x11\xd2_z" +
-	"\xf8\xa0\xb9m\xfe\xdf\xd7\x08\x84\x01\xfbC\xc9^3\xdf" +
-	"\xd5^\xd0\x8f=\xfd8{\xfd\xed\xea<\xec\xc8&^" +
-	"\x90a\xc0ib\xc9\xf9\xa1\xbc\xfa\x8e\x86\xbb\xe8\xac$" +
-	"\xdf\\\xfci\x09[E\x83\xcaP\x06Xrt\x99\x9c" +
-	"\xe0\x0a\xf8\xee\xc5\xf9e\x7fy\xe1\xf16\xaa\x18\xc2_" +
-	"r\xce\xe9)\xaf\xba\xe46\xe8\xff\x18\x1d\x7f\xd2|\xea" +
-	"\xef\x97\xdbu\xcbj\xcf\xa4\xe4\xbc*\x93\x9f\xcb\x09\xd0" +
-	"\x9f\xf9\xc5{\xbfv\xb8i\xd9\x90\xa5N\x8e3\x1cd" +
-	"\xc0\xe9R\xc3N\x8f\xc9\xf3G\x97:@\xd0\xcf\xe6\x7f" +
-	"\x1fq\xbd\x9c\xc7\xee\xff\xa7\xc7\xc7\x13\xae\x17N\xa6'" +
-	"\x07I\x1dP\x01 @\xc0\xb6\xbe\x07t\x83\xa2\x8e\x09" +
-	"Uf\x94!\x08C{\xb4z{\xb4\xfe,TcY" +
-	"~\x03\x0e*2Z\x9d\x1e4\xd0&\xa5\xfeT\xc2\xf5" +
-	"\xe2\xb9pa\xaah\x94\xa25%\xd7(\x1dR\xd4\xc7" +
-	"\x846\x19\xa3\x01\xd3\x06<\xa2\xa8g\x84\x94\x18\x05\xb0" +
-	"\x8bI@\x9fT\xd4g\x84\xb6\x92\x18\x15`\x9f\xee\x06" +
-	"\xf4\x8c\xa2>kFp\xd9\x08a#\xa82^5\x92" +
-	"AL\x94B&\x9b\xce\x17\xdc,\xe81\x02a\x04\xec" +
-	"uG\x0a\x99\x89\\\xb5i\xe7\xdc\x80\xc9\xdaX\xcb\x1a" +
-	"7\xb1\xfa\x14\xf5~a5\xea\x80\xc1\xfeS\xd4\x83B" +
-	"[X\xc9\x9a0\xe0>E=\xb4egM\xacZB" +
-	"w\x17\xdfD*\x99\xf6\x86&\xc2\xc7\xd39\xe3\xdcP" +
-	"s\xfeu\x0a\xd0m\x8a\xfa\xcf\xbas\x87\xd9\x90vE" +
-	"\xfd\x8f\xd0\xcfg\x8e\xe6\xd2\xa3\xfd)\xb4\xc6s\x85\xa9" +
-	"\"-\x08\xad\xdd\xc7\xae\xf9!\xdc\x9dH\x19\x9f\x96\x9a" +
-	"\xcf\xac\x09~AQ\xcf\x09-\xfa~\xc5\xe9r'\xa0" +
-	"/)\xeakBK\xbe\xf8\x95!\xaf\x0e\x03zNQ" +
-	"\xdf\x12Z\xea\xb3_9\x91\x9b\x06\xbd\xa1\xa8\x17\x85V" +
-	"\xe0\x93\x1fc\x00\xb0\xef\x1c\x04\xf4\xbc\xa2\xbe/\xb4\x82" +
-	"\xeb~\x8cA\xc0\xbeg\xd0\xbb\x8a\xfaQe\x9b6\x02" +
-	"\xb6N\xe7\xf2\xe9\x02B\xbe\x9b\xef/\x9f\x10\xcc\xbf\xcb" +
-	"h\xfd\x1e\x82\x8c\x82[\xea\x1e\xa3\xf5\xfb\xb4Q\x1f\xab" +
-	"\x1cc\x12\xca\xb4W_\x86\x9dE\xd3[{\x0f*\xe5" +
-	"\xaf\x01\x00\x00\xff\xffE\x0a\x02}"
+type SignedMSList struct{ capnp.Struct }
+
+// SignedMSList_TypeID is the unique identifier for the type SignedMSList.
+const SignedMSList_TypeID = 0x9cb550cb22608d73
+
+func NewSignedMSList(s *capnp.Segment) (SignedMSList, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return SignedMSList{st}, err
+}
+
+func NewRootSignedMSList(s *capnp.Segment) (SignedMSList, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return SignedMSList{st}, err
+}
+
+func ReadRootSignedMSList(msg *capnp.Message) (SignedMSList, error) {
+	root, err := msg.RootPtr()
+	return SignedMSList{root.Struct()}, err
+}
+
+func (s SignedMSList) String() string {
+	str, _ := text.Marshal(0x9cb550cb22608d73, s.Struct)
+	return str
+}
+
+func (s SignedMSList) Timestamp() uint64 {
+	return s.Struct.Uint64(0)
+}
+
+func (s SignedMSList) SetTimestamp(v uint64) {
+	s.Struct.SetUint64(0, v)
+}
+
+func (s SignedMSList) AsEntries() (SignedEntry_List, error) {
+	p, err := s.Struct.Ptr(0)
+	return SignedEntry_List{List: p.List()}, err
+}
+
+func (s SignedMSList) HasAsEntries() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s SignedMSList) SetAsEntries(v SignedEntry_List) error {
+	return s.Struct.SetPtr(0, v.List.ToPtr())
+}
+
+// NewAsEntries sets the asEntries field to a newly
+// allocated SignedEntry_List, preferring placement in s's segment.
+func (s SignedMSList) NewAsEntries(n int32) (SignedEntry_List, error) {
+	l, err := NewSignedEntry_List(s.Struct.Segment(), n)
+	if err != nil {
+		return SignedEntry_List{}, err
+	}
+	err = s.Struct.SetPtr(0, l.List.ToPtr())
+	return l, err
+}
+
+func (s SignedMSList) MsIA() (string, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.Text(), err
+}
+
+func (s SignedMSList) HasMsIA() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s SignedMSList) MsIABytes() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s SignedMSList) SetMsIA(v string) error {
+	return s.Struct.SetText(1, v)
+}
+
+// SignedMSList_List is a list of SignedMSList.
+type SignedMSList_List struct{ capnp.List }
+
+// NewSignedMSList creates a new list of SignedMSList.
+func NewSignedMSList_List(s *capnp.Segment, sz int32) (SignedMSList_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
+	return SignedMSList_List{l}, err
+}
+
+func (s SignedMSList_List) At(i int) SignedMSList { return SignedMSList{s.List.Struct(i)} }
+
+func (s SignedMSList_List) Set(i int, v SignedMSList) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s SignedMSList_List) String() string {
+	str, _ := text.MarshalList(0x9cb550cb22608d73, s.List)
+	return str
+}
+
+// SignedMSList_Promise is a wrapper for a SignedMSList promised by a client call.
+type SignedMSList_Promise struct{ *capnp.Pipeline }
+
+func (p SignedMSList_Promise) Struct() (SignedMSList, error) {
+	s, err := p.Pipeline.Struct()
+	return SignedMSList{s}, err
+}
+
+type SignedEntry struct{ capnp.Struct }
+
+// SignedEntry_TypeID is the unique identifier for the type SignedEntry.
+const SignedEntry_TypeID = 0xae7af16c750a8ece
+
+func NewSignedEntry(s *capnp.Segment) (SignedEntry, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return SignedEntry{st}, err
+}
+
+func NewRootSignedEntry(s *capnp.Segment) (SignedEntry, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return SignedEntry{st}, err
+}
+
+func ReadRootSignedEntry(msg *capnp.Message) (SignedEntry, error) {
+	root, err := msg.RootPtr()
+	return SignedEntry{root.Struct()}, err
+}
+
+func (s SignedEntry) String() string {
+	str, _ := text.Marshal(0xae7af16c750a8ece, s.Struct)
+	return str
+}
+
+func (s SignedEntry) Blob() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return []byte(p.Data()), err
+}
+
+func (s SignedEntry) HasBlob() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s SignedEntry) SetBlob(v []byte) error {
+	return s.Struct.SetData(0, v)
+}
+
+func (s SignedEntry) Sign() (Sign, error) {
+	p, err := s.Struct.Ptr(1)
+	return Sign{Struct: p.Struct()}, err
+}
+
+func (s SignedEntry) HasSign() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s SignedEntry) SetSign(v Sign) error {
+	return s.Struct.SetPtr(1, v.Struct.ToPtr())
+}
+
+// NewSign sets the sign field to a newly
+// allocated Sign struct, preferring placement in s's segment.
+func (s SignedEntry) NewSign() (Sign, error) {
+	ss, err := NewSign(s.Struct.Segment())
+	if err != nil {
+		return Sign{}, err
+	}
+	err = s.Struct.SetPtr(1, ss.Struct.ToPtr())
+	return ss, err
+}
+
+// SignedEntry_List is a list of SignedEntry.
+type SignedEntry_List struct{ capnp.List }
+
+// NewSignedEntry creates a new list of SignedEntry.
+func NewSignedEntry_List(s *capnp.Segment, sz int32) (SignedEntry_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return SignedEntry_List{l}, err
+}
+
+func (s SignedEntry_List) At(i int) SignedEntry { return SignedEntry{s.List.Struct(i)} }
+
+func (s SignedEntry_List) Set(i int, v SignedEntry) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s SignedEntry_List) String() string {
+	str, _ := text.MarshalList(0xae7af16c750a8ece, s.List)
+	return str
+}
+
+// SignedEntry_Promise is a wrapper for a SignedEntry promised by a client call.
+type SignedEntry_Promise struct{ *capnp.Pipeline }
+
+func (p SignedEntry_Promise) Struct() (SignedEntry, error) {
+	s, err := p.Pipeline.Struct()
+	return SignedEntry{s}, err
+}
+
+func (p SignedEntry_Promise) Sign() Sign_Promise {
+	return Sign_Promise{Pipeline: p.Pipeline.GetPipeline(1)}
+}
+
+const schema_a1a908676d0a7d2e = "x\xda|\x93_h\x1cU\x14\xc6\xcfw\xcf\xccn\x12" +
+	"2\xee\x8e\xb3/F%\xfe\xe9C\x15Z\x13\xff\xbcD" +
+	"%]p\xa5\x81\x8c\xe6f+\x82\xf8\xd0I3\xad\xab" +
+	"\xbb\x9bMf\x83\x8dD\xa4\x10A\x04\x15D\x90\x82\"" +
+	"\x09(\xd6\x07-\xd2*B\x15\x1f\x14\x05[\xa9`A" +
+	"\xa1\x05E\xc4J\xe9\x83Z_\xd4z\xe5\xcc\xee\xcc\x98" +
+	"\xcd\xea\xdbp\xeew\xcf=\xdf\xef|3\xf6+v\xa9" +
+	"q\xfb3E\xa4\xaf\xb3sf\xf7\xd3\xc7\x0e\x8e^X" +
+	"{\x99\xf4 \x94\xd9\xf9\xe4P\xe3\xc0\xc0\x91u\xaa " +
+	"\x9f\x83\xe5Ma\xce\xf3\x91'\xbam\x0a/\x80`\xa2" +
+	"\xe7\xf6\xde\xf0\xc5\xcc\xf1WD\x8eLn\xab<\x91\xf7" +
+	"\xa3z\xd7\xbb\x18\x7f\xfd\xac\xde!\x98\x17\x8f\xfc\xde\xd8" +
+	"~t\xf1\x0dr\x07\xff\xad\x95~\xdea\xde\xf0\xd6Y" +
+	"\xbe^\xe5I\x82\xf9\xf2\xf9\xa1\xe5\xfa/O\xbc\xdd\xa3" +
+	"\x8d\xbb\x9d\xe2\xb7\xbc3\xb1\xf6+~\x9c`n<\xfb" +
+	"\xd1\xfb\x93\x0f\xdc\xf9^\xef\x10\xb1d\x87\xb5\xe1\xdda" +
+	"\xc9\xd7\xb8\xf5\x13\xc1\x9c\x7fm\xf8\xa9\x85\x93\xaf_\xe8" +
+	"\x11\xc7\x8a\xab\xec\x0d\xefz[\xbe\xae\xb5e\x88+\x7f" +
+	";\xfc\xe6-\xab\xf7_\xec\xeb\xeen\xfbY\xaf\x12\x8b" +
+	"\xcb\xb6\xb8{p\xfdj\xbe\xfc\xc3\xe9K\xbd\xe2\xd8\xde" +
+	"\xb7\xf6\x86\xf7},>g\xcb\xc8\x8dh\xe7\xbe\xa0\xd5" +
+	"lQ~\xc2\xaf\xce\x00\xfa\x1a\xb6\x88,\x10\xb9\xc7G" +
+	"\x88\xf4Q\x86>\xa1\xe0\xc0\x98\x12\xa4\xfa\xc1\xadD\xfa" +
+	"\x18C\x7f\xac\xe0\xa8\xbfM\x09\x8a\xc8\xfdp\x8eH\x9f" +
+	"`\xe8\xcf\x15\x1c\xbelJ`\"\xf7S\xa9~\xc2\xd0" +
+	"\xa7\x15\x1c\xeb/S\x82E\xe4\x9ez\x88H\x9fd\xe8" +
+	"o\x14\x1c\xfbOS\x82M\xe4\x9e\x91\xea\xd7\x0c\xfd\x9d" +
+	"\x82\x93\xfb\xc3\x94\x90#r\xcf=J\xa4\xcf2\xf4y" +
+	"\x05\xae\xcdc\x90\x14\x06\x09\xa3\xcb\xcd(lS\xce\x04" +
+	"Qy_\xbb\xb6\xd0\xa4\xfcl\xb8\x88b\xb6\x01\x02\x8a" +
+	"\x84M\xe7-\x1436\xdd\xf3\xfd\xcb\xf5\xba\x1f\xb4f" +
+	"\x89\xe3\xeb\xe9N\xb6\x1e\xcb\xed47\xdd\xe3\xa8v\xa0" +
+	"\x19\xce\xfbU*L\xd7\xa26\x8aY\x0a\xbb\x82\x84." +
+	"&\xaa\x1d\xe9hU\x94\xc2y8\xe5\\\x99%\xd2\xf7" +
+	"0\xf4\x8c\x02\xd0\xa1\xecKm\x9a\xa1\x1fQp\x15:" +
+	"\x90\xc3\x9b\x89\xf4^\x86\xae+\x98v\xad\x11F\xed\xa0" +
+	"Ah%TL\x10U\x9a\xed\xa5ZH\x88p\x05a" +
+	"\x86\x81b\x16`\x82\x14\x0b\x8dh\xaa\x8caR\x18\xde" +
+	"4\xe0\xbd\x1d\xab\xc2I\xc6\xb3\xd2\xf1\x1c\x89\xc1\x00C" +
+	"oS\xe0\xfd\x8d\xacq\x1a\xcaN\xe3-f+\x85f" +
+	"{iE\x9a\x0d\xa4\xcdn\x12\x0b\xdb\x18zL\xc1M" +
+	"\xcc\xee\x90\xe2v\x86\xbe]\xa10W_\x98\x83C\x0a" +
+	"\x0e\xa1 \x80Q4C\x87\xee\xbb4\xff\x92\xbf\xb6\x15" +
+	"k\xb9\xea\x07\xadJ3\xdf}\xa8\x98>\x14\xc8\xd4\x0f" +
+	"w\x01&\x0f\x85#]\x80\xab\x0aP\x1d\xa8+B\xfa" +
+	" C\xaf)\xb8\xac:\xc1=4A\xa4W\x19\xfa\x19" +
+	"\x89]\x90\xe0\xe2Z+\xb1/\x151\xddg\x0d\x93A" +
+	"\x1c\xb9\xffe\xbc\xf8\x1f\x8cK\x9d\x98\xe7H!\xd7\xef" +
+	"*QOv\xe4\xe2.\x86\x9e\xce\xb235\x92\xe5)" +
+	"\xcd\x8e/\xc5\xdd\x0c\xbdg\xd3\x0b\xe2(5\x17\xf4\x19" +
+	"\xd9\xaf\xce\x86\xad=\x0b\xf9\xc7\xc2f\xcf&\x97\xb2\xa5" +
+	"%/\x8f\x0b\xcb1\x86\xbeK%?G\xb9J\xa3\x12" +
+	"\xca\x95d\xa7\xfd\x88\xfd\x13\x00\x00\xff\xff_&`2"
 
 func init() {
-	schemas.Register(schema_de42b02816bdc1bf,
-		0x9f79403fb2002d32,
-		0xb0f5e5a599f7ce14,
-		0xbf2197df52e713b4,
-		0xc7b2da00ffda93d6,
-		0xd7387a16c86c1020,
-		0xda155ff9f070267c)
+	schemas.Register(schema_a1a908676d0a7d2e,
+		0x9784eb1f78b48548,
+		0x9cb550cb22608d73,
+		0xa671b0286df5a992,
+		0xae7af16c750a8ece,
+		0xb63b553fb7bedc23,
+		0xeba5cc6f7f0c9fe8,
+		0xed4f7c2fa899f312,
+		0xf4d0e3fd031ba157)
 }

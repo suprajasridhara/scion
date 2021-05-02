@@ -101,7 +101,7 @@ func (a ASActionHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	//Done inserting token. Now send back token with message and signature
 	signer, err := registerSigner(infra.ASActionReply)
 	if err != nil {
-		log.Error("Error registering signer", err)
+		log.Error("Error registering signer", "err", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
@@ -163,7 +163,7 @@ func (f FullMapReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	pld, err := ms_mgmt.NewPld(1, fmRep)
 	err = rw.SendMSRep(context.Background(), pld, infra.MSFullMapReply)
 	if err != nil {
-		log.Error("Error sending fullMap", err)
+		log.Error("Error sending fullMap", "err", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 	}
 

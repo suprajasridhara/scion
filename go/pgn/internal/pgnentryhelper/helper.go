@@ -99,7 +99,7 @@ func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine,
 
 	allEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
 	if err != nil {
-		log.Error("error reading list from db", err)
+		log.Error("error reading list from db", "err", err)
 		return err
 	}
 	insert := true

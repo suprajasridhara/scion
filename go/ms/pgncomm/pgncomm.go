@@ -291,7 +291,7 @@ func deleteASEntry(asEntry ms_mgmt.ASMapEntry) {
 	for _, ip := range asEntry.Ip {
 		_, err := sqlite.Db.DeleteFullMapEntryByIPAndIA(context.Background(), ip, asEntry.Ia)
 		if err != nil {
-			log.Error("Error deleteing fum row with ip ", ip, " ia ", asEntry.Ia, "Error: ", err)
+			log.Error("Error deleteing from row", "ip", ip, " ia ", asEntry.Ia, "Error: ", err)
 		}
 	}
 }

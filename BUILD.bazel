@@ -25,6 +25,19 @@ pkg_tar(
     package_dir = "",
 )
 
+# This is the SIAM distributable package. It contains all (binary) services
+pkg_tar(
+    name = "siam",
+    srcs = [
+        "//go/sig",
+        "//go/ms",
+        "//go/pln",
+        "//go/pgn",
+    ],
+    mode = "0755",
+    package_dir = "",
+)
+
 # This contains all of the binaries needed to run CI (integration & acceptance
 # tests)
 pkg_tar(

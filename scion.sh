@@ -26,8 +26,8 @@ cmd_topology() {
     cmd_topo_clean
 
     # Build the necessary binaries.
-    bazel build //:scion-topo
-    tar --overwrite -xf bazel-bin/scion-topo.tar -C bin
+    bazel build --sandbox_debug --verbose_failures  //:scion-topo
+    sudo tar --overwrite -xf bazel-bin/scion-topo.tar -C bin
 
     echo "Create topology, configuration, and execution files."
     python/topology/generator.py "$@"

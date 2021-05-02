@@ -47,12 +47,12 @@ func AddPGNEntry(ctx context.Context, pgnID string, ia addr.IA, plnIA addr.IA) e
 	pgncrypt := &pgncrypto.PGNSigner{}
 	err := pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
 	if err != nil {
-		log.Error("error getting pgncrypto", err)
+		log.Error("error getting pgncrypto", "err", err)
 		return err
 	}
 	signer, err := pgncrypt.SignerGen.Generate(context.Background())
 	if err != nil {
-		log.Error("error getting signer", err)
+		log.Error("error getting signer", "err", err)
 		return err
 	}
 	pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPLNEntryRequest})

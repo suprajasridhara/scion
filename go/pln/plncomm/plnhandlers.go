@@ -36,7 +36,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
 	if err != nil {
-		log.Error("Certificate verification failed!", err)
+		log.Error("Certificate verification failed!", "err", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
@@ -45,7 +45,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	pld := &ctrl.Pld{}
 	err = proto.ParseFromRaw(pld, message.Blob)
 	if err != nil {
-		log.Error("Parse from raw failed to parse to Plnlist", err)
+		log.Error("Parse from raw failed to parse to Plnlist", "err", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
@@ -55,13 +55,13 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		signedPld := &ctrl.SignedPld{}
 		err = proto.ParseFromRaw(signedPld, plnListEntry.Raw)
 		if err != nil {
-			log.Error("Error parsing SignedPld", err)
+			log.Error("Error parsing SignedPld", "err", err)
 			return nil
 		}
 		pldFromRaw := &ctrl.Pld{}
 		err = proto.ParseFromRaw(pldFromRaw, signedPld.Blob)
 		if err != nil {
-			log.Error("Error parsing PGN entry", err)
+			log.Error("Error parsing PGN entry", "err", err)
 			return nil
 		}
 		var pgnIAInt addr.IAInt

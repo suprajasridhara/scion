@@ -70,7 +70,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	_, err = sqlite.Db.InsertNewPLNEntry(context.Background(), plnEntry.PGNId, plnEntry.IA, packed)
 
 	if err != nil {
-		log.Error("Error while inserting new entry", err)
+		log.Error("Error while inserting new entry", "err", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 	}
 

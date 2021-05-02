@@ -12,5 +12,6 @@ go_library(
         "//go/sig/egress/asmap:go_default_library",
         "//go/sig/egress/iface:go_default_library",
         "//go/sig/egress/reader:go_default_library",
+        "//go/sig/internal/cfgmgmt:go_default_library",
     ],
 )

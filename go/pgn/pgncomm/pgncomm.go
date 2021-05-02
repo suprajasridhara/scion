@@ -39,9 +39,9 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 	log.Info("Entering: BroadcastNodeList")
 	err := sendPGNList(ctx, plnIA)
 	if err != nil {
-		log.Error("error in broadcast node list", err)
+		log.Error("error in broadcast node list", "err", err)
 	}
-	log.Error("error ", interval.String())
+	log.Error("BroadcastNodeList", "interval", interval.String())
 
 	pushTicker := time.NewTicker(interval)
 	for {
@@ -49,7 +49,7 @@ func BroadcastNodeList(ctx context.Context, interval time.Duration, plnIA addr.I
 		case <-pushTicker.C:
 			err = sendPGNList(ctx, plnIA)
 			if err != nil {
-				log.Error("error in broadcast node list", err)
+				log.Error("error in broadcast node list", "err", err)
 			}
 		}
 	}
@@ -98,19 +98,19 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 			pgncrypt := &pgncrypto.PGNSigner{}
 			err := pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
 			if err != nil {
-				log.Error("error getting pgncrypto", err)
+				log.Error("error getting pgncrypto", "err", err)
 				return err
 			}
 			signer, err := pgncrypt.SignerGen.Generate(context.Background())
 			if err != nil {
-				log.Error("error getting signer", err)
+				log.Error("error getting signer", "err", err)
 				return err
 			}
 			pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
 			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
 				rand.Uint64(), infra.PGNList)
 			if err != nil {
-				log.Error("Error sending pgn list", err)
+				log.Error("Error sending pgn list", "err", err)
 			}
 		}
 	}

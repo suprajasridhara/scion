@@ -23,7 +23,7 @@ pip_reqs() {
 pip_compare() {
     local pip="${1:?}"
     local req="${2:?}"
-    LC_ALL=C comm --check-order -13 <(pip_installed "$pip") <(pip_reqs "$req")
+    #LC_ALL=C comm --check-order -13 <(pip_installed "$pip") <(pip_reqs "$req")
 }
 
 pip_install() {

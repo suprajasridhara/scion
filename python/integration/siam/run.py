@@ -9,6 +9,7 @@ import os
 ADDR = "127.0.0.#count#"
 port = 2000
 count = 100
+sigID = 1
 ID = "#ID#"
 GEN_PATH="#GEN_PATH#"
 ISD_ID="#ISD_ID#"
@@ -19,17 +20,22 @@ PORT="#PORT#"
 AS_ID="#AS_ID#"
 QUIC_PORT="#QUIC_PORT#"
 DB = "#DB#"
+TUN = "#TUN#"
+TID = "#TID#"
 
 def gen_config(service, id, ia):
     global count
     global port
+    global sigID
     ip = ADDR.replace("#count#", str(count))
     count = count + 1
     Path("./gen").mkdir(parents=True, exist_ok=True)
     with open("./config/"+service.lower()+".conf") as f:
         conf = f.read()
 
-    conf = conf.replace(ID, id).replace(GEN_PATH, args.genpath).replace(ISD_ID, ia.split("-")[0]).replace(AS_ID,ia.split("-")[1]).replace(AS_ID_,ia.split("-")[1].replace(":","_")).replace(IP,ip).replace(PORT,str(port)).replace(DB, id+".db")
+    conf = conf.replace(ID, id).replace(GEN_PATH, args.genpath).replace(ISD_ID, ia.split("-")[0]).replace(AS_ID,ia.split("-")[1]).replace(AS_ID_,ia.split("-")[1].replace(":","_")).replace(IP,ip).replace(PORT,str(port)).replace(DB, id+".db").replace(TUN, str(sigID)).replace(TID, str(10 + sigID))
+    if 'SIG' == service:
+        sigID = sigID + 1
     port = port + 1
     conf = conf.replace(QUIC_PORT, str(port)).replace(SD_ADDR,get_sd_addr(ia))
     
