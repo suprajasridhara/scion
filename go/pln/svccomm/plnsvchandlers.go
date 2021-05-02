@@ -64,7 +64,7 @@ func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 	}
 	duration := time.Since(start)
-	log.Info("Time elapsed SvcListHandler", "duration ", duration.String())
+	log.Info("Time elapsed 3-SvcListHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -73,7 +73,7 @@ func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"PLN-SvcListHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"3-PLN-SvcListHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}

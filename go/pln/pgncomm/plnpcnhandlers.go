@@ -84,7 +84,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	log.Info("Exiting: AddPLNEntryHandler.Handle")
 
 	duration := time.Since(start)
-	log.Info("Time elapsed AddPLNEntryHandler", "duration ", duration.String())
+	log.Info("Time elapsed 6-AddPLNEntryHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -93,7 +93,7 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"AddPLNEntryHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"6-AddPLNEntryHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}

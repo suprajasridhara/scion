@@ -83,7 +83,7 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		}
 	}
 	duration := time.Since(start)
-	log.Info("Time elapsed PGNEntryHandler", "duration ", duration.String())
+	log.Info("Time elapsed 8-PGNEntryHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -92,7 +92,7 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"PGNEntryHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"8-PGNEntryHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}

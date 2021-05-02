@@ -1,0 +1,13 @@
+ASes:
+  "1-ff00:0:110":
+    core: true
+    voting: true
+    authoritative: true
+    issuing: true
+    mtu: 1400
+  "2-ff00:0:210": {core: true, voting: true, authoritative: true, issuing: true}
+
+links:
+ - {a: "1-ff00:0:110", b: "2-ff00:0:210", linkAtoB: CORE}
+
+

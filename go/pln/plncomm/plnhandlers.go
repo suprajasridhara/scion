@@ -91,7 +91,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	duration := time.Since(start)
-	log.Info("Time elapsed PLNListHandler", "duration ", duration.String())
+	log.Info("Time elapsed 0b-PLNListHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -100,7 +100,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"PLNListHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"0b-PLNListHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}

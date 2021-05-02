@@ -98,7 +98,7 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	rw.SendPGNRep(ctx, pld, infra.PGNRep)
 	duration := time.Since(start)
-	log.Info("Time elapsed AddPGNEntryReqHandler", "duration ", duration.String())
+	log.Info("Time elapsed 4-AddPGNEntryReqHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -107,7 +107,7 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"AddPGNEntryReqHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"4-AddPGNEntryReqHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}
@@ -172,7 +172,7 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	rw.SendPGNRep(ctx, pld, infra.PGNList)
 	duration := time.Since(start)
-	log.Info("Time elapsed MSPGNEntryRequestHandler", "duration ", duration.String())
+	log.Info("Time elapsed 10-MSPGNEntryRequestHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
@@ -181,7 +181,7 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	w.Write([]string{"MSPGNEntryRequestHandler", time.Now().String(), duration.String()})
+	w.Write([]string{"10-MSPGNEntryRequestHandler", time.Now().String(), duration.String()})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}
