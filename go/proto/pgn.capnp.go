@@ -19,10 +19,11 @@ const (
 	PGN_Which_pgnRep             PGN_Which = 3
 	PGN_Which_pgnList            PGN_Which = 4
 	PGN_Which_pgnEntryRequest    PGN_Which = 5
+	PGN_Which_emptyObject        PGN_Which = 6
 )
 
 func (w PGN_Which) String() string {
-	const s = "unsetaddPLNEntryRequestaddPGNEntryRequestpgnReppgnListpgnEntryRequest"
+	const s = "unsetaddPLNEntryRequestaddPGNEntryRequestpgnReppgnListpgnEntryRequestemptyObject"
 	switch w {
 	case PGN_Which_unset:
 		return s[0:5]
@@ -36,6 +37,8 @@ func (w PGN_Which) String() string {
 		return s[47:54]
 	case PGN_Which_pgnEntryRequest:
 		return s[54:69]
+	case PGN_Which_emptyObject:
+		return s[69:80]
 
 	}
 	return "PGN_Which(" + strconv.FormatUint(uint64(w), 10) + ")"
@@ -245,6 +248,39 @@ func (s PGN) NewPgnEntryRequest() (PGNEntryRequest, error) {
 	return ss, err
 }
 
+func (s PGN) EmptyObject() (EmptyObject, error) {
+	if s.Struct.Uint16(8) != 6 {
+		panic("Which() != emptyObject")
+	}
+	p, err := s.Struct.Ptr(0)
+	return EmptyObject{Struct: p.Struct()}, err
+}
+
+func (s PGN) HasEmptyObject() bool {
+	if s.Struct.Uint16(8) != 6 {
+		return false
+	}
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s PGN) SetEmptyObject(v EmptyObject) error {
+	s.Struct.SetUint16(8, 6)
+	return s.Struct.SetPtr(0, v.Struct.ToPtr())
+}
+
+// NewEmptyObject sets the emptyObject field to a newly
+// allocated EmptyObject struct, preferring placement in s's segment.
+func (s PGN) NewEmptyObject() (EmptyObject, error) {
+	s.Struct.SetUint16(8, 6)
+	ss, err := NewEmptyObject(s.Struct.Segment())
+	if err != nil {
+		return EmptyObject{}, err
+	}
+	err = s.Struct.SetPtr(0, ss.Struct.ToPtr())
+	return ss, err
+}
+
 // PGN_List is a list of PGN.
 type PGN_List struct{ capnp.List }
 
@@ -289,6 +325,10 @@ func (p PGN_Promise) PgnList() PGNList_Promise {
 
 func (p PGN_Promise) PgnEntryRequest() PGNEntryRequest_Promise {
 	return PGNEntryRequest_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
+}
+
+func (p PGN_Promise) EmptyObject() EmptyObject_Promise {
+	return EmptyObject_Promise{Pipeline: p.Pipeline.GetPipeline(0)}
 }
 
 type AddPLNEntryRequest struct{ capnp.Struct }
@@ -812,60 +852,165 @@ func (p PGNEntryRequest_Promise) Struct() (PGNEntryRequest, error) {
 	return PGNEntryRequest{s}, err
 }
 
-const schema_de42b02816b2b3bf = "x\xda\x8cS]\x88\x1be\x14=\xe7\xbb\x93l[v" +
-	"l\xc6\x09\xba\x88eiQ\xa8\xa0\xa5[\x15\xa4\xa0\xfd" +
-	"\xc1X#\xdb6_\x10\xda\xe0\x0f\xac\xc9\x10R\xcc8" +
-	"M\xa6J@\x10\x84\xbe\x88\"X_,U\x14\x14\xfb" +
-	"\xa2\xae\xba>,\xac\xb8\x88 B\xc5\x1f\x14V\xa8Z" +
-	"\x1f\xc4\x9f\x07Q\xc1\x07\xb5\xeb'\xdfL2Y\xa7\xfb" +
-	"\xe0S&3\xe7\xdes\xee=\xe7\xee\\\xe0^5S" +
-	"\xb8R\x01z\xaaP4w\x9c\x9ci|\xb0-|\x12" +
-	"\xde&\x9a\xf7\xde~\xeb\x8a\xed\xf3\xfb\xbfAAM\x00" +
-	"\xdeo\x9f{\xab\xf6\xf7\xcfG@\xb3\xed\xc8\x9dOm" +
-	"\xd9z\xcf\xab\xd0\x9b\xa8\xc6\xc8\x0a'\x8at\xfc\x06{" +
-	"\xfe}\x9c\x00nl\xf0i\x82\xe6\xe0\xd2\x8e\x97N-" +
-	"\xc6\x9f\xe5\xfaZ\x88\xff\x87\xfa\xd9\xa7\xd8\xa7U\xb5\x07" +
-	"4S\xaf\x87?,\xbf\xf0\xc9\x8am\x9d\x17\xe1o\x91" +
-	"g\xfck\x13\xf0Vy\x034\xf7\x7fx\xe6\xfd\xa5\x93" +
-	"\x17/\x01'\x9d\xbf\x93'\xfc\x9f\x12\xf0\xf7bE/" +
-	"\xfe\xfa\xf1\xcd\x17\xbe\xbd\xed\x97<\xb8`!\x15\xe7\xb4" +
-	"\x7f\xd0\xb1\x9a\xab\xce\x11\xab9j\x87;\x9asQ\xa8" +
-	"\xa2\xdd\xb5\x03\x87*a\xdc\x1b\xd4\x83\xe3'\x82>\xe3" +
-	"\x1a\xa97\x88\x038\x04\xbc\xeb\xea\x80\xde.\xd47)" +
-	"zd\x99\xf6\xe5\xcc.@_/\xd4\xb7(\x9a\xc0\x16" +
-	"\xdf=\x88\xc0\x80\x93P\x9c\x04\xa7\xfb\xbdfu\xdf\xe8" +
-	"_F\x86\xe9\x84\xcd\x12\\\x9d\x11\xbcs\x15\xa0\xe7\x85" +
-	"zI\xd1\xa51)\xc3\xa2eX\x10\xeaeEW\xfd" +
-	"c\xcaT\x80\xf7\xeei@/\x0b\xf59EWVM" +
-	"\x99\x02x\x1f\xd9\xb7\xe7\x84zE\xd1u.\x9a2\x1d" +
-	"\xc0\xfbr7\xa0?\x15\xea\xf3\x8an\xe1oSf\x01" +
-	"\xf0\xbe\xda\x0f\xe8/\x84\xfa\x82\xa2[\xfc\xcb\x94Y\x04" +
-	"\xbc\xaf\x1f\x07\xf4y\xa1\xfeQQ:-n\x84\xe2F" +
-	"p\xfaD\xd8\x0fb\x14\xcd\\\xabU\x9b=T\x099" +
-	"Z\x93\xf4c\x96\xc6\xc6\x83,\x81\x09\xec\xc0\xa5\xb0\xcc" +
-	"\x99\x14\xb6'j\x87\xf5 bi\xeco\xfa\xe1\xb1\xa8" +
-	"\x1d\xcev\x92\x92,&\xc3\xceQ;L<bjR" +
-	"\x0c\x96\xc6q\x1ecF\x96\xee\x1b\xeaMul\xb6\x15" +
-	"v\xe9N\xb6t\xd7\xaew\x83P\x97\x15\xa7\x13\x03Y" +
-	"2\xbb~\xbf\xf5\xf0\xd1\x87O\xad\xe4\x1b2qm\xb6" +
-	"3\xcc\xc6d\xd6\xa5r9\xa0\xf7\x0a\xf5\xbdk\xb2\xd1" +
-	"8\x06\xe8\xa3B\x1d+R\xa5\xbe\x1d\xb7!\x8a\x84\xfa" +
-	"QE>\xc8\xcb\xc0\x9a\x90.\x94}4A7\x8a\x07" +
-	"\x87\x1f8\x86\xcdA3\xee\xe7\xbf\xc6\x9dn\xd0\x8f\xe7" +
-	"\xba`4\xf2%\xa7\xac\x1eD@.\xb5v\xbek\x84" +
-	"z\xa7\xe2H\xd8\x0d\xf5qh\xb3\x99s\xde\xfc\x0f\xb6" +
-	"J\x18Ko`\xe9\xa62\xba\xe7,\xdd\xb3B\xfd\xe2" +
-	"\x9aE<o\xf9\xce\x08\xf5YEO\x0d7\xf1\xca]" +
-	"\x80~Y\xa8\xe7\x15=\x914\xc0\xaf\xd9\xf2\xb3B\xbd" +
-	"\xa0H'\x8d\xef\x9b\xf5\xf1Yx\x05'M\xef\xda\xab" +
-	"\x18\x8e`\xd7\xe4b\xdd+4\xcd\x87\xba\xddN\\\xbd" +
-	"\x1d@v\x99Q;\xac\xb62\xc4:\xe3\xfe\xf7v\xff" +
-	"\x0d\x00\x00\xff\xff\xde\xd5N+"
+type EmptyObject struct{ capnp.Struct }
+
+// EmptyObject_TypeID is the unique identifier for the type EmptyObject.
+const EmptyObject_TypeID = 0xab69dc8b897d6bc2
+
+func NewEmptyObject(s *capnp.Segment) (EmptyObject, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return EmptyObject{st}, err
+}
+
+func NewRootEmptyObject(s *capnp.Segment) (EmptyObject, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
+	return EmptyObject{st}, err
+}
+
+func ReadRootEmptyObject(msg *capnp.Message) (EmptyObject, error) {
+	root, err := msg.RootPtr()
+	return EmptyObject{root.Struct()}, err
+}
+
+func (s EmptyObject) String() string {
+	str, _ := text.Marshal(0xab69dc8b897d6bc2, s.Struct)
+	return str
+}
+
+func (s EmptyObject) Str() (string, error) {
+	p, err := s.Struct.Ptr(0)
+	return p.Text(), err
+}
+
+func (s EmptyObject) HasStr() bool {
+	p, err := s.Struct.Ptr(0)
+	return p.IsValid() || err != nil
+}
+
+func (s EmptyObject) StrBytes() ([]byte, error) {
+	p, err := s.Struct.Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s EmptyObject) SetStr(v string) error {
+	return s.Struct.SetText(0, v)
+}
+
+func (s EmptyObject) Isd() (string, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.Text(), err
+}
+
+func (s EmptyObject) HasIsd() bool {
+	p, err := s.Struct.Ptr(1)
+	return p.IsValid() || err != nil
+}
+
+func (s EmptyObject) IsdBytes() ([]byte, error) {
+	p, err := s.Struct.Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s EmptyObject) SetIsd(v string) error {
+	return s.Struct.SetText(1, v)
+}
+
+func (s EmptyObject) Timestamp() uint64 {
+	return s.Struct.Uint64(0)
+}
+
+func (s EmptyObject) SetTimestamp(v uint64) {
+	s.Struct.SetUint64(0, v)
+}
+
+// EmptyObject_List is a list of EmptyObject.
+type EmptyObject_List struct{ capnp.List }
+
+// NewEmptyObject creates a new list of EmptyObject.
+func NewEmptyObject_List(s *capnp.Segment, sz int32) (EmptyObject_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
+	return EmptyObject_List{l}, err
+}
+
+func (s EmptyObject_List) At(i int) EmptyObject { return EmptyObject{s.List.Struct(i)} }
+
+func (s EmptyObject_List) Set(i int, v EmptyObject) error { return s.List.SetStruct(i, v.Struct) }
+
+func (s EmptyObject_List) String() string {
+	str, _ := text.MarshalList(0xab69dc8b897d6bc2, s.List)
+	return str
+}
+
+// EmptyObject_Promise is a wrapper for a EmptyObject promised by a client call.
+type EmptyObject_Promise struct{ *capnp.Pipeline }
+
+func (p EmptyObject_Promise) Struct() (EmptyObject, error) {
+	s, err := p.Pipeline.Struct()
+	return EmptyObject{s}, err
+}
+
+const schema_de42b02816b2b3bf = "x\xda\x8cT]h\x1cU\x14>\xdf=3\xd9\xa6d" +
+	"\xec\x8e\xb3H\x11\xcbjPh\xc0\x96\xa6U\x90\x80\xf6" +
+	"\x87\xae1\xb2M\xf7l\x95&(B\xb2\x19\x96\x8d\xee" +
+	"t\xba;U\x02\x8a \xe4\xa1\xfe\xbcX_,U\x14" +
+	"\x14\x0b\xa2\xc6\xda\x97@\xc0R\x84\xbe(ZA\x88\x10" +
+	"\xd4\x17\xb1\x88J+\x16Z\x8d^\xb93\xbb\xb3\xeb&" +
+	"\x14\xdf\xce\xdc\xf9\xee\xf9\xcew\xcew\xee\x0e\xa5\xf6\xa8" +
+	"a\xfb\x88\"\x92\xdb\xec>\xfd\xe0\xfc\xf0\xe4g\x83\xc1" +
+	"\xcb\xe4n\x84\xfe\xf4\x933\xb7l]\xd8\xf7\x1d\xd9*" +
+	"C\xe4m\xc1\xd7\xde\x10Lt\x17\x9e!\xe8\xc1\xc3\x0f" +
+	"\xbd\xb2\xe5\x8e\xc7\xde#\xd9\x08\xd5\x01\x17\x90\xc9\xc0\xf2" +
+	"\xe6\xd1\xf0\x8e\x1b\xf4\xaey\\\x00A\x9f\x7f\xf2\xb9\xe3" +
+	"/\xad\xd4\xde7\xf05\xb9\xa7\xf8\x8cWc\x13\xf9\xfc" +
+	"\x11A\x1fX\xda\xfe\xf6\x89\xc5\xe8bO\x1d1;\xac" +
+	"\x9f=\xc72Q\xbf\xb5\x9b\xa07\x7f\x18\xfct\xee\xcd" +
+	"/\x97\xd7M<d\xbd\xea\x0d\xc7\xe0m\x96I\xfc\xc4" +
+	"\x85S\xe7\x97\xe6W\xd7\x80\xe3\xcc\xbfZ/zWc" +
+	"\xf0\x15\xcb(\\\xbc\xfc\xc5\xbd?|\xff\xc0o\xbd`" +
+	"\xdb@\xc4>\xe9M\x9ah\xd7\xa3\xf6a#0\xac\x06" +
+	"\xdb+Sa\xa0\xc2\x91\xd2\xe8x!\x88\x1ase\xff" +
+	"\xe81\xbf\x89\xa8\x04\xc8\x06\xb6\x88,\x10\xb9Ce\"" +
+	"\xd9\xca\x90{\x14\\ \x07s8\xbc\x93H\xeef\xc8" +
+	"}\x0a\xda7\x97\x1f\x99\x0b\x09>\x06Ha\x80\x90o" +
+	"6*c{\xdb_)\x19\xe5c6Cp{Jp" +
+	"\xf1V\"\xf9\x9c!\xcb\x0a\x0e\xb4N\x18\xbe1\x0c_" +
+	"1dE\xc1Q\xff\xe8\x1c\x14\x91\xfb\xedI\"Ya" +
+	"\xc8%\x05\x87\xff\xd690\x91\xfb\xa39\xbd\xc4\x90?" +
+	"\x14\x1ckU\xe7`\x11\xb9WF\x88\xe4\x17\x86\\S" +
+	"p\xec\xbft\x0e6\x91{u\x1f\x91\\f\xc8\xaa\x82" +
+	"\xd3\xf7\xa7\xce\xa1\x8f\xc8\xbd\xfe\x02\x91\\c\x1c\xb2\xa0" +
+	"\xe0d\xae\xeb\\2<L\x13\x95\xc184\x00\x05\xae" +
+	"\xcd\xa0\x9f\x14\xfa\x09\xf9cA\xd3\x8f\xa8OO\xcd\xcc" +
+	"\x94\x8a\xe3\x85\x00\xed\xfeq3B\xb6\xe3\x08\x02\xb2\x84" +
+	"\x186\xba\x16\x96\x8e,\x81\xed\x0e\xabA\xd9\x0f\x91\xed" +
+	"\x0c>\xf9\xf1|X\x0d\x8a\xb5\xf8J\xea\x9fV\xe6\xb0" +
+	"\x1a\xc4\xc3C2\xbd\x88\x90\xed\xecE\x0b\xe3\xd7\xc3h" +
+	"\xee\xe0\xf4,e\xfc\x8a\xc9\x91\x9a\xbb\x93#\x1e\x0f\xc2" +
+	"\x91B\x0c\xcdO\xcf\xfa\x95\xd8\x07\x03\xe9\x98\x0a\x83D" +
+	"\xb2\x87!\xc5.\x1f\x8c\x99\xc3\xfd\x0c))@%3" +
+	":`\x0cSd\xc8\x84B\xa6\x195\xda.\xc8\xd4\x9a" +
+	"3\xa9#\xa2Z\xddoFSuB\xd8\xeei\xb7%" +
+	"\xf7\xb6\xda\x9a\xb4k\x93\x11f\xaa\xb1\xd2j\x1cc\x8f" +
+	"\x0d\x0c\xc9)\xe4c\x03\"\xabw\xfe~\xff\xc1\x89\xa7" +
+	"O,\xaf\xa3\xab4:^\xac\xb5\xbc\xdd\xa5\xe9\xe6\x96" +
+	"\xa6\xc7\xbb4M\xce\x12\xc9\x04C\xa2\x8e\xa6\xa3FS" +
+	"\xc8\x90g\x15\xf0\x14n\"\x94\x18pH\x99\xb0\xd3\xdf" +
+	"M~%j\xf6\xfe\xbd\x91\xd4\xa4\xb2\xb2\x1f\x12\xf5l" +
+	"\x9d\xd1w'Cv(\xb4\x0b\xdbV\xee,]\xaa\xb9" +
+	"\xc7B\xff\x83\xad\x10D\xdc\x983t\x9bS\xba\xd7\x0d" +
+	"\xddk\x0cy\xab\xab\x11o\x18\xbeS\x0c9\xad\xe0\xaa" +
+	"V'\xde}\x98H\xdea\xc8\x82\x82\xcb\x9c,\xe0\x07" +
+	"\xe6\xfai\x86\x9cU\x80\x95\xac\xdf\xc7\xe6\xf6\x02C\x96" +
+	"\x14\\\xdbJ\xb6o\xd1\x00\xcf2\xe4\\*\xc1\xb4\xc9" +
+	"\xa1u_\x11]9R\xaf\xd7\xa2\xb1\xfdD\x94\xbe," +
+	"a5\x18\xbb\xa1\x8f\xfe\xfb\xf6\xfc\x1b\x00\x00\xff\xff\x7f" +
+	"u\x80["
 
 func init() {
 	schemas.Register(schema_de42b02816b2b3bf,
 		0x8c6e22c459318546,
 		0xa75b211d8d485722,
+		0xab69dc8b897d6bc2,
 		0xd174b993a12ebc4d,
 		0xd8cf9ec0e76eae18,
 		0xd8fc85bcc29cc75e,

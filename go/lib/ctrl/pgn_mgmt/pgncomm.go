@@ -23,12 +23,13 @@ import (
 
 type PGNList struct {
 	//L should be a list of SignedPlds in bytes form.
-	L         []common.RawBytes
-	Timestamp uint64
+	L            []common.RawBytes
+	EmptyObjects []common.RawBytes `capnp:"emptyObjects"`
+	Timestamp    uint64
 }
 
-func NewPGNList(l []common.RawBytes, timestamp uint64) *PGNList {
-	return &PGNList{L: l, Timestamp: timestamp}
+func NewPGNList(l []common.RawBytes, emptyObjects []common.RawBytes, timestamp uint64) *PGNList {
+	return &PGNList{L: l, EmptyObjects: emptyObjects, Timestamp: timestamp}
 }
 
 func (p *PGNList) ProtoId() proto.ProtoIdType {
@@ -42,4 +43,26 @@ func (p *PGNList) Write(b common.RawBytes) (int, error) {
 func (p *PGNList) String() string {
 	str := ""
 	return fmt.Sprintf("%s %d", str, p.Timestamp)
+}
+
+type EmptyObject struct {
+	Str       string
+	Isd       string
+	Timestamp uint64
+}
+
+func NewEmptyObject(isd string, timestamp uint64) *EmptyObject {
+	return &EmptyObject{Str: "empty", Isd: isd, Timestamp: timestamp}
+}
+
+func (p *EmptyObject) ProtoId() proto.ProtoIdType {
+	return proto.PGN_TypeID
+}
+
+func (p *EmptyObject) Write(b common.RawBytes) (int, error) {
+	return proto.WriteRoot(p, b)
+}
+
+func (p *EmptyObject) String() string {
+	return fmt.Sprintf("%s %s %d", p.Isd, p.Isd, p.Timestamp)
 }

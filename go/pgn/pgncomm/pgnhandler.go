@@ -15,6 +15,7 @@
 package pgncomm
 
 import (
+	"context"
 	"encoding/csv"
 	"os"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
+	"github.com/scionproto/scion/go/pgn/internal/sqlite"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
 )
@@ -53,21 +55,21 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	pld := &ctrl.Pld{}
-	err = proto.ParseFromRaw(pld, message.Blob)
+	pldList := &ctrl.Pld{}
+	err = proto.ParseFromRaw(pldList, message.Blob)
 	if err != nil {
 		log.Error("Error decerializing control payload", "Error: ", err)
 		return nil
 	}
 
-	for _, l := range pld.Pgn.PGNList.L {
+	for _, l := range pldList.Pgn.PGNList.L {
 		signedPGNEntry := &ctrl.SignedPld{}
 		err = proto.ParseFromRaw(signedPGNEntry, l)
 		if err != nil {
 			log.Error("Error getting signedPGNEntry", "Error: ", err)
 			continue
 		}
-		pld = &ctrl.Pld{}
+		pld := &ctrl.Pld{}
 		proto.ParseFromRaw(pld, signedPGNEntry.Blob)
 		r := pld.Pgn.AddPGNEntryRequest
 		if err = pgnentryhelper.ValidatePGNEntry(r, signedPGNEntry, false); err != nil {
@@ -82,6 +84,20 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 			continue
 		}
 	}
+
+	//process empty objects
+	for _, emptyObjectBlob := range pldList.Pgn.PGNList.EmptyObjects {
+		signedEmptyObject := &ctrl.SignedPld{}
+		err = proto.ParseFromRaw(signedEmptyObject, emptyObjectBlob)
+		if err != nil {
+			log.Error("Error getting signedPGNEntry", "Error: ", err)
+			continue
+		}
+		pld := &ctrl.Pld{}
+		proto.ParseFromRaw(pld, signedEmptyObject.Blob)
+		sqlite.Db.InsertEmptyObject(context.Background(), emptyObjectBlob, pld.Pgn.EmptyObject.Isd, pld.Pgn.EmptyObject.Timestamp)
+	}
+
 	duration := time.Since(start)
 	log.Info("Time elapsed 8-PGNEntryHandler", "duration ", duration.String())
 

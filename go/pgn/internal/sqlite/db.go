@@ -80,7 +80,7 @@ func (e *executor) InsertEntry(ctx context.Context, entry []byte,
 
 //InsertEmptyObject inserts a new row into pgn_entries
 func (e *executor) InsertEmptyObject(ctx context.Context, emptyObject []byte,
-	isd string, timestamp string) (sql.Result, error) {
+	isd string, timestamp uint64) (sql.Result, error) {
 
 	res, err := e.db.ExecContext(ctx, InsertEmptyObject, isd, timestamp, emptyObject)
 	if err != nil {
@@ -140,6 +140,28 @@ func (e *executor) GetEmptyObjects(ctx context.Context) ([]common.RawBytes, erro
 	got := []common.RawBytes{}
 	for rows.Next() {
 		var r common.RawBytes
+		err = rows.Scan(&r)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
+}
+
+//GetEntrySRCIAs queries pgn_entries for all SRCIAs
+func (e *executor) GetEntrySRCIAs(ctx context.Context) ([]string, error) {
+
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, EntrySRCIAs)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []string{}
+	for rows.Next() {
+		var r string
 		err = rows.Scan(&r)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)

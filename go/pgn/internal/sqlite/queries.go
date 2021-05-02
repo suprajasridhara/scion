@@ -20,4 +20,7 @@ const (
 
 	//EmptyObjects queries all rows in empty_objects
 	EmptyObjects = "Select * from empty_objects"
+
+	//EntryASIds gets ASIds of entries
+	EntrySRCIAs = "Select Distinct srcIA from pgn_entries"
 )
