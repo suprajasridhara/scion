@@ -15,6 +15,8 @@
 package pgncomm
 
 import (
+	"encoding/csv"
+	"os"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/ctrl"
@@ -83,5 +85,16 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	duration := time.Since(start)
 	log.Info("Time elapsed PGNEntryHandler", "duration ", duration.String())
 
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"PGNEntryHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
 	return nil
 }

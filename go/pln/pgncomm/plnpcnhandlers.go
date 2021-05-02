@@ -15,6 +15,9 @@ package pgncomm
 
 import (
 	"context"
+	"encoding/csv"
+	"os"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
@@ -34,6 +37,8 @@ type AddPLNEntryHandler struct {
 }
 
 func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
+
 	log.Info("Entering: AddPLNEntryHandler.Handle")
 	ctx := r.Context()
 	rw, _ := infra.ResponseWriterFromContext(ctx)
@@ -77,6 +82,21 @@ func (a AddPLNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	sendAck(proto.Ack_ErrCode_ok, "OK")
 
 	log.Info("Exiting: AddPLNEntryHandler.Handle")
+
+	duration := time.Since(start)
+	log.Info("Time elapsed AddPLNEntryHandler", "duration ", duration.String())
+
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"AddPLNEntryHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
 
 	return nil
 }

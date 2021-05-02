@@ -2,6 +2,9 @@ package plncomm
 
 import (
 	"context"
+	"encoding/csv"
+	"os"
+	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl"
@@ -24,6 +27,8 @@ type PLNListHandler struct {
 //source PLN and signatures on each of the entries before uppdating the PLN DB with any
 //new entries received
 func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
+
 	log.Info("Entering: PLNListHandler.Handle")
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
@@ -84,5 +89,21 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		}
 
 	}
+
+	duration := time.Since(start)
+	log.Info("Time elapsed PLNListHandler", "duration ", duration.String())
+
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"PLNListHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
+
 	return nil
 }

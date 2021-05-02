@@ -16,7 +16,10 @@ package svccomm
 
 import (
 	"context"
-	"time" 
+	"encoding/csv"
+	"os"
+	"time"
+
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
@@ -63,6 +66,17 @@ func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	duration := time.Since(start)
 	log.Info("Time elapsed SvcListHandler", "duration ", duration.String())
 
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"PLN-SvcListHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
 	return nil
 
 }

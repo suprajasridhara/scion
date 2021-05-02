@@ -77,6 +77,8 @@ build_all()
 with open(args.folder+"/"+args.services) as f:
   services = json.load(f)
 
+Path('./run/times.csv').touch()
+
 #for service in services:
 
 service = 'PLN'
