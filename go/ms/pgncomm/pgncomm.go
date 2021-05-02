@@ -169,7 +169,7 @@ func pushSignedPrefix(ctx context.Context) error {
 
 func PullAllPGNEntries(ctx context.Context, interval time.Duration) {
 	PullPGNEntryByQuery(ctx, MS_LIST, "")
-	pushTicker := time.NewTicker(interval * time.Minute)
+	pushTicker := time.NewTicker(interval)
 	for {
 		select {
 		case <-pushTicker.C:

@@ -17,4 +17,7 @@ package sqlite
 const (
 	//EntriesByTypeAndSrcIA queries all rows in pgn_entries by entryType and srcIA
 	EntriesByTypeAndSrcIA = "Select * from pgn_entries where entryType like ? and srcIA like ?"
+
+	//EmptyObjects queries all rows in empty_objects
+	EmptyObjects = "Select * from empty_objects"
 )

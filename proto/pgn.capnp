@@ -23,7 +23,8 @@ struct AddPLNEntryRequest{
 
 struct PGNList{
     l @0 :List(Data);
-    timestamp @1 :UInt64; #timestamp for when the list was transmitted from a PGN
+    emptyObjects @1 :List(Data);
+    timestamp @2 :UInt64; #timestamp for when the list was transmitted from a PGN
 }
 
 struct PGNEntry{

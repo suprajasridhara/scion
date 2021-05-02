@@ -66,6 +66,7 @@ func Init(cfg pgnconfig.PGNConf, sdCfg env.SCIONDClient, features env.Features) 
 	}
 	pgnentryhelper.PGNID = cfg.ID
 	pgnmsgr.IA = cfg.IA
+	pgnmsgr.ISDRange = cfg.ISDRange
 	pgncrypto.CfgDir = cfg.CfgDir
 	pgnmsgr.Msgr.AddHandler(infra.AddPGNEntryRequest, svccomm.AddPGNEntryReqHandler{})
 	pgnmsgr.Msgr.AddHandler(infra.PGNList, pgncomm.PGNEntryHandler{})

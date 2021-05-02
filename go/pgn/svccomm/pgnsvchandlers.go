@@ -16,6 +16,8 @@ package svccomm
 
 import (
 	"context"
+	"encoding/csv"
+	"os"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
@@ -96,8 +98,19 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	rw.SendPGNRep(ctx, pld, infra.PGNRep)
 	duration := time.Since(start)
-	log.Info("Time elapsed AddPGNEntryReqHandler", "duration ", duration.String())
+	log.Info("Time elapsed 4-AddPGNEntryReqHandler", "duration ", duration.String())
 
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"4-AddPGNEntryReqHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
 	return nil
 }
 
@@ -106,7 +119,7 @@ type PGNEntryRequestHandler struct {
 
 func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	start := time.Now()
-	log.Info("Entering: PGNEntryHandler.Handle")
+	log.Info("Entering: PGNEntryRequestHandler.Handle")
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
 	rw, _ := infra.ResponseWriterFromContext(ctx)
@@ -131,13 +144,6 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	for _, dbEntry := range dbEntries {
 		l = append(l, *dbEntry.SignedBlob)
 	}
-	pgnList := pgn_mgmt.NewPGNList(l, uint64(time.Now().Unix()))
-	pld, err := pgn_mgmt.NewPld(1, pgnList)
-	if err != nil {
-		log.Error("Error forming pgn_mgmt Pld", "Error: ", err)
-		sendAck(proto.Ack_ErrCode_reject, err.Error())
-		return nil
-	}
 
 	signer, err := registerSigner(infra.PGNList)
 	if err != nil {
@@ -145,6 +151,20 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
+
+	var emptyObjects []common.RawBytes
+	if pgnEntryRequest.SrcIA == "%" {
+		isds := pgnentryhelper.GetISDsInEntries(dbEntries)
+		emptyObjects = pgnentryhelper.GetEmptyObjects(isds, signer)
+	}
+	pgnList := pgn_mgmt.NewPGNList(l, emptyObjects, uint64(time.Now().Unix()))
+	pld, err := pgn_mgmt.NewPld(1, pgnList)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt Pld", "Error: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
 	switch t := rw.(type) {
 	case *messenger.QUICResponseWriter:
 		t.Signer = *signer
@@ -152,7 +172,20 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	rw.SendPGNRep(ctx, pld, infra.PGNList)
 	duration := time.Since(start)
-	log.Info("Time elapsed PGNEntryRequestHandler", "duration ", duration.String())
+	log.Info("Time elapsed 10-MSPGNEntryRequestHandler", "duration ", duration.String())
+
+	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+		return nil
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"10-MSPGNEntryRequestHandler", time.Now().String(), duration.String()})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
+
 	return nil
 }
 

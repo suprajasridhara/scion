@@ -21,3 +21,4 @@ import (
 
 var Msgr infra.Messenger
 var IA addr.IA
+var ISDRange string

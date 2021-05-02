@@ -16,9 +16,13 @@ package pgnentryhelper
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/log"
@@ -139,4 +143,37 @@ func PersistEntry(entry *pgn_mgmt.AddPGNEntryRequest, e pgncrypto.PGNEngine,
 		}
 	}
 	return nil
+}
+
+func GetEmptyObjects(isds map[uint64]bool, signer *trust.Signer) []common.RawBytes {
+
+	emptyObjects, err := sqlite.Db.GetEmptyObjects(context.Background())
+	if err != nil {
+		log.Error("Error getting empty objects", "Error: ", err)
+	}
+	pgnRange := strings.Split(pgnmsgr.ISDRange, "-")
+	start, _ := strconv.Atoi(pgnRange[0])
+	end, _ := strconv.Atoi(pgnRange[1])
+
+	for i := uint64(start); i <= uint64(end); i++ {
+		if !isds[i] {
+			//no list for isd i. Create empty token
+			empty := pgn_mgmt.NewEmptyObject(strconv.Itoa(int(i)), uint64(time.Now().Unix()))
+			e, _ := pgn_mgmt.NewPld(1, empty)
+			pld, _ := ctrl.NewPld(e, &ctrl.Data{ReqId: rand.Uint64()})
+			spld, _ := pld.SignedPld(context.Background(), signer)
+			b, _ := proto.PackRoot(spld)
+			emptyObjects = append(emptyObjects, b)
+		}
+	}
+	return emptyObjects
+}
+
+func GetISDsInEntries(dbEntries []sqlite.PGNEntry) map[uint64]bool {
+	set := make(map[uint64]bool)
+	for _, entry := range dbEntries {
+		ia, _ := addr.IAFromString(entry.SrcIA.String)
+		set[uint64(ia.I)] = true
+	}
+	return set
 }
