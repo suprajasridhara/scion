@@ -29,5 +29,11 @@ const (
 		signedBlob BLOB NOT NUll
 	);	
 
+	CREATE TABLE IF NOT EXISTS empty_objects(
+		id INTEGER PRIMARY KEY,
+		isd DATA NOT NULL,
+		timestamp INTEGER NOT NULL,
+		signedBlob BLOB NOT NUll 
+	)
 	`
 )

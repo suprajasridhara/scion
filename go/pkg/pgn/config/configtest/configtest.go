@@ -38,4 +38,5 @@ func CheckTestPGN(t *testing.T, cfg *config.PGNConf, id string) {
 	assert.Equal(t, config.DefaultConnectTimeout.Duration, cfg.ConnectTimeout.Duration)
 	assert.Equal(t, config.DefaultPropagateInterval.Duration, cfg.PropagateInterval.Duration)
 	assert.Equal(t, config.DefaultNumPGNs, int(cfg.NumPGNs))
+	assert.Equal(t, "1-10", cfg.ISDRange)
 }

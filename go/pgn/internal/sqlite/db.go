@@ -21,6 +21,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/infra/modules/db"
 	"github.com/scionproto/scion/go/lib/serrors"
 )
@@ -77,6 +78,17 @@ func (e *executor) InsertEntry(ctx context.Context, entry []byte,
 	return res, nil
 }
 
+//InsertEmptyObject inserts a new row into pgn_entries
+func (e *executor) InsertEmptyObject(ctx context.Context, emptyObject []byte,
+	isd string, timestamp string) (sql.Result, error) {
+
+	res, err := e.db.ExecContext(ctx, InsertEmptyObject, isd, timestamp, emptyObject)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 //UpdateEntry updates a row in pgn_entries based on srcIA and entryType
 func (e *executor) UpdateEntry(ctx context.Context, entry []byte,
 	commitID string, srcIA string, timestamp uint64, entryType string,
@@ -107,6 +119,28 @@ func (e *executor) GetEntriesByTypeAndSrcIA(ctx context.Context,
 		var r PGNEntry
 		err = rows.Scan(&r.ID, &r.Entry, &r.CommitID, &r.SrcIA, &r.Timestamp,
 			&r.EntryType, &r.SignedBlob)
+		if err != nil {
+			return nil, serrors.Wrap(db.ErrDataInvalid, err)
+		}
+		got = append(got, r)
+	}
+	return got, nil
+}
+
+//GetEmptyObjects queries empty_objects
+func (e *executor) GetEmptyObjects(ctx context.Context) ([]common.RawBytes, error) {
+
+	e.RLock()
+	defer e.RUnlock()
+	rows, err := e.db.QueryContext(ctx, EmptyObjects)
+	if err != nil {
+		return nil, serrors.Wrap(db.ErrReadFailed, err)
+	}
+	defer rows.Close()
+	got := []common.RawBytes{}
+	for rows.Next() {
+		var r common.RawBytes
+		err = rows.Scan(&r)
 		if err != nil {
 			return nil, serrors.Wrap(db.ErrDataInvalid, err)
 		}

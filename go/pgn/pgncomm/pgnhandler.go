@@ -15,6 +15,8 @@
 package pgncomm
 
 import (
+	"time"
+
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
@@ -31,6 +33,7 @@ type PGNEntryHandler struct {
 }
 
 func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	start := time.Now()
 	log.Info("Entering: PGNEntryHandler.Handle")
 	ctx := r.Context()
 	requester := r.Peer.(*snet.UDPAddr)
@@ -77,6 +80,8 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 			continue
 		}
 	}
+	duration := time.Since(start)
+	log.Info("Time elapsed PGNEntryHandler", "duration ", duration.String())
 
 	return nil
 }

@@ -45,4 +45,6 @@ prop_interval = "1h"
 #NumPGNs is the number of PGNs that the PGNEntry list is propagated 
 #to in every interval (default = 3)
 num_pgns = 3
+#ISDRange is the range of ISD numbers in the current network (required)
+isd_range = "1-10"
 `

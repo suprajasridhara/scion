@@ -131,13 +131,6 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	for _, dbEntry := range dbEntries {
 		l = append(l, *dbEntry.SignedBlob)
 	}
-	pgnList := pgn_mgmt.NewPGNList(l, uint64(time.Now().Unix()))
-	pld, err := pgn_mgmt.NewPld(1, pgnList)
-	if err != nil {
-		log.Error("Error forming pgn_mgmt Pld", "Error: ", err)
-		sendAck(proto.Ack_ErrCode_reject, err.Error())
-		return nil
-	}
 
 	signer, err := registerSigner(infra.PGNList)
 	if err != nil {
@@ -145,6 +138,20 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
 	}
+
+	var emptyObjects []common.RawBytes
+	if pgnEntryRequest.SrcIA == "%" {
+		isds := pgnentryhelper.GetISDsInEntries(dbEntries)
+		emptyObjects = pgnentryhelper.GetEmptyObjects(isds, signer)
+	}
+	pgnList := pgn_mgmt.NewPGNList(l, emptyObjects, uint64(time.Now().Unix()))
+	pld, err := pgn_mgmt.NewPld(1, pgnList)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt Pld", "Error: ", err)
+		sendAck(proto.Ack_ErrCode_reject, err.Error())
+		return nil
+	}
+
 	switch t := rw.(type) {
 	case *messenger.QUICResponseWriter:
 		t.Signer = *signer

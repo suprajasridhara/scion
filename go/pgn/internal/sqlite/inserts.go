@@ -20,4 +20,9 @@ const (
 	INSERT INTO pgn_entries(entry, commitID, srcIA, timestamp, entryType, signedBlob) 
 	VALUES (?,?,?,?,?,?)
 	`
+	//InsertEmptyObject is the query to insert a new row into empty_objects
+	InsertEmptyObject = `
+	INSERT INTO empty_objects(isd, timestamp, signedBlob) 
+	VALUES (?,?,?)
+`
 )

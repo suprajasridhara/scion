@@ -112,6 +112,8 @@ type PGNConf struct {
 	//NumPGNs is the number of PGNs that the PGNEntry list is propagated to in
 	//every interval (default = 3)
 	NumPGNs uint16 `toml:"num_pgns"`
+	//ISDRange is the range of ISD numbers in the current network (required)
+	ISDRange string `toml:"isd_range"`
 }
 
 func (cfg *PGNConf) InitDefaults() {
@@ -158,6 +160,9 @@ func (cfg *PGNConf) Validate() error {
 	}
 	if cfg.PLNIA.IsZero() {
 		return serrors.New("pln_isd_as must be set")
+	}
+	if cfg.ISDRange == "" {
+		return serrors.New("isd_range must be set")
 	}
 	return nil
 }

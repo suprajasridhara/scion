@@ -27,6 +27,7 @@ import (
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
+	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
 	"github.com/scionproto/scion/go/pgn/plncomm"
@@ -86,7 +87,25 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		for _, dbEntry := range dbEntries {
 			l = append(l, *dbEntry.SignedBlob)
 		}
-		pgnList := pgn_mgmt.NewPGNList(l, uint64(time.Now().Unix()))
+
+		pgncrypt := &pgncrypto.PGNSigner{}
+		err = pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
+		if err != nil {
+			log.Error("error getting pgncrypto", err)
+			return err
+		}
+		signer, err := pgncrypt.SignerGen.Generate(context.Background())
+		if err != nil {
+			log.Error("error getting signer", err)
+			return err
+		}
+		pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
+
+		var emptyObjects []common.RawBytes
+		isds := pgnentryhelper.GetISDsInEntries(dbEntries)
+		emptyObjects = pgnentryhelper.GetEmptyObjects(isds, &signer)
+
+		pgnList := pgn_mgmt.NewPGNList(l, emptyObjects, uint64(time.Now().Unix()))
 		pld, err := pgn_mgmt.NewPld(1, pgnList)
 		if err != nil {
 			return serrors.WrapStr("Error forming pgn_mgmt Pld", err)
@@ -95,18 +114,6 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 			pgn := pgns[i]
 			address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
 
-			pgncrypt := &pgncrypto.PGNSigner{}
-			err := pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
-			if err != nil {
-				log.Error("error getting pgncrypto", err)
-				return err
-			}
-			signer, err := pgncrypt.SignerGen.Generate(context.Background())
-			if err != nil {
-				log.Error("error getting signer", err)
-				return err
-			}
-			pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
 			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
 				rand.Uint64(), infra.PGNList)
 			if err != nil {
