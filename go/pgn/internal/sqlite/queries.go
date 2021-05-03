@@ -19,7 +19,7 @@ const (
 	EntriesByTypeAndSrcIA = "Select * from pgn_entries where entryType like ? and srcIA like ?"
 
 	//EmptyObjects queries all rows in empty_objects
-	EmptyObjects = "Select * from empty_objects"
+	EmptyObjects = "Select signedBlob from empty_objects"
 
 	//EntryASIds gets ASIds of entries
 	EntrySRCIAs = "Select Distinct srcIA from pgn_entries"
