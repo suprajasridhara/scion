@@ -231,7 +231,7 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 	pld, _ := ctrl.NewPld(mspld, &ctrl.Data{ReqId: rand.Uint64()})
 	signedPld, err := pld.SignedPld(ctx, signer)
 	asEntryBytes, err := proto.PackRoot(signedPld)
-	log.Info("size of asEntry ", asEntryBytes.Len())
+	log.Info("size of asEntry ", "size ", asEntryBytes.Len())
 	var asEntries []*ctrl.SignedPld
 	for i := 0; i < 90000; i++ {
 		asEntries = append(asEntries, signedPld)
@@ -252,7 +252,7 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 		return err
 	}
 	pld, _ = ctrl.NewPld(msMgmtPld, &ctrl.Data{ReqId: rand.Uint64()})
-	log.Info("sizeof pld ", unsafe.Sizeof(pld))
+	log.Info("sizeof pld ", "size ", unsafe.Sizeof(pld))
 	signedEntry, err := pld.SignedPld(context.Background(), signer)
 	if err != nil {
 		log.Error("Error creating SignedPld", "Err: ", err)
@@ -276,7 +276,7 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 	pld, _ = ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
 	signedPld, _ = pld.SignedPld(context.Background(), signer)
 	l, _ := proto.PackRoot(signedPld)
-	log.Info("size of l ", l.Len())
+	log.Info("size of l ", "size ", l.Len())
 
 	// for _, l := range pld.Pgn.PGNList.L {
 	//validate each entry here
@@ -380,7 +380,7 @@ func persistASEntry(asEntry ms_mgmt.ASMapEntry, timestamp uint64) {
 		//validate RPKI signatures before presisting
 		ia, _ := addr.IAFromString(asEntry.Ia)
 		if err := validateRPKI(ia, ip); err != nil {
-			log.Error("RPKI validation failed IA ", ia.String(), "IP ", ip)
+			log.Error("RPKI validation failed IA ", "ia ", ia.String(), "IP ", ip)
 			continue
 		}
 		rows, err := sqlite.Db.GetFullMapEntryByIP(context.Background(), ip)
