@@ -115,16 +115,16 @@ func realMain() int {
 		return 1
 	}
 
-	go func() {
-		defer log.HandlePanic()
-		pgncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime.Duration)
-	}()
+	// go func() {
+	// 	defer log.HandlePanic()
+	// 	pgncomm.SendSignedList(context.Background(), cfg.Ms.MSListValidTime.Duration)
+	// }()
 
-	go func() {
-		defer log.HandlePanic()
-		pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
-	}()
-
+	// go func() {
+	// 	defer log.HandlePanic()
+	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
+	// }()
+	pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
 	select {
 	case <-fatal.ShutdownChan():
 		return 0

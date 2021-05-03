@@ -18,7 +18,11 @@ import (
 	"context"
 	"database/sql"
 	"math/rand"
+	"os/exec"
+	"strings"
+	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
@@ -33,6 +37,7 @@ import (
 	"github.com/scionproto/scion/go/ms/internal/msmsgr"
 	"github.com/scionproto/scion/go/ms/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/ms/internal/sqlite"
+	"github.com/scionproto/scion/go/ms/internal/validator"
 	"github.com/scionproto/scion/go/ms/plncomm"
 	"github.com/scionproto/scion/go/pkg/trust"
 	"github.com/scionproto/scion/go/proto"
@@ -179,57 +184,119 @@ func PullAllPGNEntries(ctx context.Context, interval time.Duration) {
 }
 
 func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) error {
-	pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest(entryType, srcIA)
+	// pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest(entryType, srcIA)
 	pgn := getRandomPGN(context.Background())
-	_, err := registerSigner()
+	signer, err := registerSigner()
 	if err != nil {
 		log.Error("Error registering signer", "Err: ", err)
 		return err
 	}
-	pgn_pld, err := pgn_mgmt.NewPld(1, pgnEntryRequest)
-	if err != nil {
-		log.Error("Error forming pgn_mgmt payload", "Err: ", err)
-		return err
-	}
-	address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
+	// pgn_pld, err := pgn_mgmt.NewPld(1, pgnEntryRequest)
+	// if err != nil {
+	// 	log.Error("Error forming pgn_mgmt payload", "Err: ", err)
+	// 	return err
+	// }
+	// address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
 
-	reply, err := msmsgr.Msgr.SendPGNMessage(ctx, pgn_pld, address,
-		rand.Uint64(), infra.PGNEntryRequest)
+	// reply, err := msmsgr.Msgr.SendPGNMessage(ctx, pgn_pld, address,
+	// 	rand.Uint64(), infra.PGNEntryRequest)
 
-	if err != nil {
-		log.Error("Error getting reply from PGN", "Err: ", err)
-		return err
-	}
+	// if err != nil {
+	// 	log.Error("Error getting reply from PGN", "Err: ", err)
+	// 	return err
+	// }
 
 	//Validate PGN signature
-	e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
-	verifier := trust.Verifier{BoundIA: address.IA, Engine: e}
-	err = verifier.Verify(ctx, reply.Blob, reply.Sign)
+	// e := mscrypto.MSEngine{Msgr: msmsgr.Msgr, IA: msmsgr.IA}
+	// verifier := trust.Verifier{BoundIA: address.IA, Engine: e}
+	// err = verifier.Verify(ctx, reply.Blob, reply.Sign)
+
+	// if err != nil {
+	// 	log.Error("Error verifying sign for PGN rep", "Err: ", err)
+	// 	return err
+	// }
+
+	// pld := &ctrl.Pld{}
+	// if err := proto.ParseFromRaw(pld, reply.Blob); err != nil {
+	// 	log.Error("Error parsing PGN reply", "Err: ", err)
+	// 	return err
+	// }
+
+	//Performance test -------
+
+	//create AS MAP entry
+	ts := uint64(time.Now().UnixNano())
+	asEntry := ms_mgmt.NewASMapEntry([]string{"10.71.57.0/26"}, msmsgr.IA.String(), ts, "add_as_entry")
+	mspld, err := ms_mgmt.NewPld(1, asEntry)
+	pld, _ := ctrl.NewPld(mspld, &ctrl.Data{ReqId: rand.Uint64()})
+	signedPld, err := pld.SignedPld(ctx, signer)
+	asEntryBytes, err := proto.PackRoot(signedPld)
+	log.Info("size of asEntry ", asEntryBytes.Len())
+	var asEntries []*ctrl.SignedPld
+	for i := 0; i < 90000; i++ {
+		asEntries = append(asEntries, signedPld)
+	}
+	entries := []ms_mgmt.SignedASEntry{}
+	for _, asEntry := range asEntries {
+		entry := ms_mgmt.NewSignedASEntry(asEntry.Blob, asEntry.Sign)
+		entries = append(entries, *entry)
+	}
+
+	//create signed MS list
+	timestamp := time.Now()
+
+	signedList := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), entries, msmsgr.IA.String())
+	msMgmtPld, err := ms_mgmt.NewPld(1, signedList)
+	if err != nil {
+		log.Error("Error gorming msMgmtPld ", "Err: ", err)
+		return err
+	}
+	pld, _ = ctrl.NewPld(msMgmtPld, &ctrl.Data{ReqId: rand.Uint64()})
+	log.Info("sizeof pld ", unsafe.Sizeof(pld))
+	signedEntry, err := pld.SignedPld(context.Background(), signer)
+	if err != nil {
+		log.Error("Error creating SignedPld", "Err: ", err)
+		return err
+	}
+	entry, err := proto.PackRoot(signedEntry)
 
 	if err != nil {
-		log.Error("Error verifying sign for PGN rep", "Err: ", err)
+		log.Error("Error packing signedEntry", "Err: ", err)
 		return err
 	}
 
-	pld := &ctrl.Pld{}
-	if err := proto.ParseFromRaw(pld, reply.Blob); err != nil {
-		log.Error("Error parsing PGN reply", "Err: ", err)
-		return err
-	}
+	//Create PGNEntry request
+	//For now push full lists, with empty commitID. This will be changed in the next iteration to
+	//only push updates
+	timestampPGN := time.Now().Add(msmsgr.MSListValidTime)
 
-	for _, l := range pld.Pgn.PGNList.L {
-		//validate each entry here
-		r, err := validateAndGetPGNEntry(l)
-		if err != nil {
-			log.Error("Error validating PGNEntry ", "Error: ", err)
-			continue
-		}
-		//parse persist entry here
-		if err := processEntry(r.Entry, r.Timestamp); err != nil {
-			log.Error("Error processing entry ", "Error: ", err)
-			continue
-		}
+	req := pgn_mgmt.NewAddPGNEntryRequest(entry, MS_LIST, "", pgn.PGNId,
+		uint64(timestampPGN.Unix()), msmsgr.IA.String())
+	pgnPld, _ := pgn_mgmt.NewPld(1, req)
+	pld, _ = ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
+	signedPld, _ = pld.SignedPld(context.Background(), signer)
+	l, _ := proto.PackRoot(signedPld)
+	log.Info("size of l ", l.Len())
+
+	// for _, l := range pld.Pgn.PGNList.L {
+	//validate each entry here
+
+	start := time.Now()
+	r, err := validateAndGetPGNEntry(l)
+	if err != nil {
+		log.Error("Error validating PGNEntry ", "Error: ", err)
+		//continue
 	}
+	//parse persist entry here
+	if err := processEntry(r.Entry, r.Timestamp); err != nil {
+		log.Error("Error processing entry ", "Error: ", err)
+		//continue
+	}
+	//}
+
+	duration := time.Since(start)
+	log.Info("Time elapsed ReverseMappinglist", "duration ", duration.String())
+
 	return nil
 }
 
@@ -268,22 +335,34 @@ func processEntry(entry []byte, timestamp uint64) error {
 		log.Error("Error parsing entry ", "Error: ", err)
 		return err
 	}
-	for _, asEntry := range pld.Ms.SignedMSList.ASEntries {
-		sigPld := &ctrl.Pld{}
-		if asEntry.Blob == nil {
-			log.Info("Empty AS entry ")
-			return nil
-		}
-		if err := proto.ParseFromRaw(sigPld, asEntry.Blob); err != nil {
-			log.Error("Error parsing sigPld ", "Error: ", err)
-			return err
-		}
-		if sigPld.Ms.AsActionReq.Action == "add_as_entry" {
-			persistASEntry(*sigPld.Ms.AsActionReq, timestamp)
-		} else if sigPld.Ms.AsActionReq.Action == "del_as_entry" {
-			deleteASEntry(*sigPld.Ms.AsActionReq)
-		}
+	var wg sync.WaitGroup
+	wg.Add(len(pld.Ms.SignedMSList.ASEntries))
+
+	for i, asEntry := range pld.Ms.SignedMSList.ASEntries {
+		go func(asEntry ms_mgmt.SignedASEntry, wg *sync.WaitGroup, index int) {
+			defer log.HandlePanic()
+			defer wg.Done()
+			sigPld := &ctrl.Pld{}
+			if asEntry.Blob == nil {
+				log.Info("Empty AS entry ")
+
+			}
+			if err := proto.ParseFromRaw(sigPld, asEntry.Blob); err != nil {
+				log.Error("Error parsing sigPld ", "Error: ", err)
+
+			}
+
+			if sigPld.Ms.AsActionReq.Action == "add_as_entry" {
+				persistASEntry(*sigPld.Ms.AsActionReq, timestamp)
+			} else if sigPld.Ms.AsActionReq.Action == "del_as_entry" {
+				deleteASEntry(*sigPld.Ms.AsActionReq)
+			}
+
+		}(asEntry, &wg, i)
+
 	}
+	wg.Wait()
+
 	return nil
 }
 
@@ -298,6 +377,12 @@ func deleteASEntry(asEntry ms_mgmt.ASMapEntry) {
 
 func persistASEntry(asEntry ms_mgmt.ASMapEntry, timestamp uint64) {
 	for _, ip := range asEntry.Ip {
+		//validate RPKI signatures before presisting
+		ia, _ := addr.IAFromString(asEntry.Ia)
+		if err := validateRPKI(ia, ip); err != nil {
+			log.Error("RPKI validation failed IA ", ia.String(), "IP ", ip)
+			continue
+		}
 		rows, err := sqlite.Db.GetFullMapEntryByIP(context.Background(), ip)
 		if err != nil {
 			log.Error("Error getting full map entries by ip", "Error: ", err)
@@ -323,6 +408,24 @@ func persistASEntry(asEntry ms_mgmt.ASMapEntry, timestamp uint64) {
 			log.Error("Error inserting full map row", "Error: ", err)
 		}
 	}
+}
+
+func validateRPKI(ia addr.IA, ip string) error {
+
+	cmd := exec.Command("/bin/sh", validator.Path, "1234", ip)
+
+	op, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+
+	if strings.TrimSpace(string(op)) != validator.EntryValid {
+		log.Error("Not valid mapping")
+		//return serrors.New("Not a valid mapping")
+		return nil
+	}
+	return nil
 }
 
 func registerSigner() (*trust.Signer, error) {
