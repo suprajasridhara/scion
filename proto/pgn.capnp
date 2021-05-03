@@ -14,6 +14,7 @@ struct PGN {
         pgnRep @4 :PGNRep;
         pgnList @5 :PGNList;
         pgnEntryRequest @6: PGNEntryRequest;
+        emptyObject @7: EmptyObject;
     }
 }
 
@@ -44,4 +45,10 @@ struct PGNRep{
 struct PGNEntryRequest{
     entryType @0: Text;
     srcIA @1: Text;
+}
+
+struct EmptyObject{
+    str @0 :Text;
+    isd @1 :Text;
+    timestamp @2 :UInt64;
 }
