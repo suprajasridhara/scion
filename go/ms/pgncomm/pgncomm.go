@@ -20,7 +20,6 @@ import (
 	"math/rand"
 	"os/exec"
 	"strings"
-	"sync"
 	"time"
 	"unsafe"
 
@@ -233,7 +232,7 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 	asEntryBytes, err := proto.PackRoot(signedPld)
 	log.Info("size of asEntry ", "size ", asEntryBytes.Len())
 	var asEntries []*ctrl.SignedPld
-	for i := 0; i < 90000; i++ {
+	for i := 0; i < msmsgr.NoOfASEntries; i++ {
 		asEntries = append(asEntries, signedPld)
 	}
 	entries := []ms_mgmt.SignedASEntry{}
@@ -335,21 +334,19 @@ func processEntry(entry []byte, timestamp uint64) error {
 		log.Error("Error parsing entry ", "Error: ", err)
 		return err
 	}
-	var wg sync.WaitGroup
-	wg.Add(len(pld.Ms.SignedMSList.ASEntries))
-
+	// var wg sync.WaitGroup
+	// wg.Add(len(pld.Ms.SignedMSList.ASEntries))
+	c := make(chan int, msmsgr.WorkerPoolSize)
 	for i, asEntry := range pld.Ms.SignedMSList.ASEntries {
-		go func(asEntry ms_mgmt.SignedASEntry, wg *sync.WaitGroup, index int) {
+		c <- i
+		go func(asEntry ms_mgmt.SignedASEntry, ch chan int) {
 			defer log.HandlePanic()
-			defer wg.Done()
 			sigPld := &ctrl.Pld{}
 			if asEntry.Blob == nil {
 				log.Info("Empty AS entry ")
-
 			}
 			if err := proto.ParseFromRaw(sigPld, asEntry.Blob); err != nil {
 				log.Error("Error parsing sigPld ", "Error: ", err)
-
 			}
 
 			if sigPld.Ms.AsActionReq.Action == "add_as_entry" {
@@ -357,11 +354,14 @@ func processEntry(entry []byte, timestamp uint64) error {
 			} else if sigPld.Ms.AsActionReq.Action == "del_as_entry" {
 				deleteASEntry(*sigPld.Ms.AsActionReq)
 			}
-
-		}(asEntry, &wg, i)
+			index := <-ch
+			if index%1000 == 0 {
+				log.Info("Done ", "index ", index)
+			}
+		}(asEntry, c)
 
 	}
-	wg.Wait()
+	// wg.Wait()
 
 	return nil
 }
@@ -380,7 +380,7 @@ func persistASEntry(asEntry ms_mgmt.ASMapEntry, timestamp uint64) {
 		//validate RPKI signatures before presisting
 		ia, _ := addr.IAFromString(asEntry.Ia)
 		if err := validateRPKI(ia, ip); err != nil {
-			log.Error("RPKI validation failed IA ", "ia ", ia.String(), "IP ", ip)
+			log.Error("RPKI validation failed IA ", "ia ", ia.String(), "IP ", ip, "err ", err)
 			continue
 		}
 		rows, err := sqlite.Db.GetFullMapEntryByIP(context.Background(), ip)
@@ -421,7 +421,7 @@ func validateRPKI(ia addr.IA, ip string) error {
 	}
 
 	if strings.TrimSpace(string(op)) != validator.EntryValid {
-		log.Error("Not valid mapping")
+		//log.Error("Not valid mapping")
 		//return serrors.New("Not a valid mapping")
 		return nil
 	}

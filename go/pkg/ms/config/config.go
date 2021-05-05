@@ -129,6 +129,10 @@ type MsConf struct {
 	//ConnectTimeout is the amount of time the messenger waits for a reply
 	//from the other service that it connects to. default (1 minute)
 	ConnectTimeout duration `toml:"connect_timeout,omitempty"`
+
+	//Only for measurement
+	WorkerPoolSize int `toml:"worker_pool_size,omitempty"`
+	NoOfASEntries  int `toml:"no_of_as_entries,omitempty"`
 }
 
 func (cfg *MsConf) InitDefaults() {

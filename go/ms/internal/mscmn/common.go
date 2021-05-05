@@ -70,6 +70,10 @@ func Init(cfg msconfig.MsConf, sdCfg env.SCIONDClient, features env.Features) er
 	validator.EntryValid = cfg.RPKIValidString
 	plncomm.PLNAddr = cfg.PLNIA
 
+	//only for measurement
+	msmsgr.WorkerPoolSize = cfg.WorkerPoolSize
+	msmsgr.NoOfASEntries = cfg.NoOfASEntries
+
 	msmsgr.Msgr.AddHandler(infra.MSFullMapRequest, sigcomm.FullMapReqHandler{})
 	msmsgr.Msgr.AddHandler(infra.ASActionRequest, sigcomm.ASActionHandler{})
 

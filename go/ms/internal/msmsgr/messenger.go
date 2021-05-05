@@ -23,3 +23,7 @@ import (
 var Msgr infra.Messenger
 var IA addr.IA
 var MSListValidTime time.Duration
+
+//only for measurement
+var WorkerPoolSize int
+var NoOfASEntries int
