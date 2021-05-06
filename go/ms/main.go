@@ -17,11 +17,13 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -124,7 +126,17 @@ func realMain() int {
 	// 	defer log.HandlePanic()
 	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
 	// }()
-	pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
+	time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
+	f, err := os.OpenFile("revMapping.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Error("Cannot open times.csv", "Err ", err)
+	}
+	w := csv.NewWriter(f)
+	defer w.Flush()
+	w.Write([]string{"REV", "1-1000", strconv.FormatInt(time, 10)})
+	if err := w.Error(); err != nil {
+		log.Error("error writing csv:", "Error :", err)
+	}
 	select {
 	case <-fatal.ShutdownChan():
 		return 0

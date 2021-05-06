@@ -182,13 +182,13 @@ func PullAllPGNEntries(ctx context.Context, interval time.Duration) {
 	}
 }
 
-func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) error {
+func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) (int64, error) {
 	// pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest(entryType, srcIA)
 	pgn := getRandomPGN(context.Background())
 	signer, err := registerSigner()
 	if err != nil {
 		log.Error("Error registering signer", "Err: ", err)
-		return err
+		return 0, err
 	}
 	// pgn_pld, err := pgn_mgmt.NewPld(1, pgnEntryRequest)
 	// if err != nil {
@@ -248,20 +248,20 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 	msMgmtPld, err := ms_mgmt.NewPld(1, signedList)
 	if err != nil {
 		log.Error("Error gorming msMgmtPld ", "Err: ", err)
-		return err
+		return 0, err
 	}
 	pld, _ = ctrl.NewPld(msMgmtPld, &ctrl.Data{ReqId: rand.Uint64()})
 	log.Info("sizeof pld ", "size ", unsafe.Sizeof(pld))
 	signedEntry, err := pld.SignedPld(context.Background(), signer)
 	if err != nil {
 		log.Error("Error creating SignedPld", "Err: ", err)
-		return err
+		return 0, err
 	}
 	entry, err := proto.PackRoot(signedEntry)
 
 	if err != nil {
 		log.Error("Error packing signedEntry", "Err: ", err)
-		return err
+		return 0, err
 	}
 
 	//Create PGNEntry request
@@ -296,7 +296,7 @@ func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) er
 	duration := time.Since(start)
 	log.Info("Time elapsed ReverseMappinglist", "duration ", duration.String())
 
-	return nil
+	return duration.Milliseconds(), nil
 }
 
 func validateAndGetPGNEntry(l common.RawBytes) (*pgn_mgmt.AddPGNEntryRequest, error) {
