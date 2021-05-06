@@ -127,12 +127,14 @@ func realMain() int {
 	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
 	// }()
 	time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
+	log.Info("Got time ", "time ", time)
 	f, err := os.OpenFile("revMapping.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		log.Error("Cannot open times.csv", "Err ", err)
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
+	log.Info("writing to csv")
 	w.Write([]string{"REV", "1-1000", strconv.FormatInt(time, 10)})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
