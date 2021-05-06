@@ -355,15 +355,16 @@ func processEntry(entry []byte, timestamp uint64) error {
 				deleteASEntry(*sigPld.Ms.AsActionReq)
 			}
 			index := <-ch
-			if index%1000 == 0 {
-				log.Info("Done ", "index ", index)
-			}
+
+			log.Info("Done ", "index ", index)
+
 		}(asEntry, c)
 	}
 	if len(c) > 0 {
-		log.Info("Waiting for all workers to finish ")
+		log.Info("Waiting for all workers to finish ", "len ", len(c))
 	}
 	for len(c) > 0 {
+		log.Info("Waiting ", "no ", len(c))
 	}
 	// wg.Wait()
 
