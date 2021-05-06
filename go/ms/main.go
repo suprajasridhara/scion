@@ -128,10 +128,12 @@ func realMain() int {
 	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
 	// }()
 	c := make(chan int, msmsgr.WorkerPoolSize/10)
-	noISD := 10
-	msListLogTime := make([]int64, noISD)
-	id := "10-1000"
 	start := time.Now()
+
+	noISD := 1
+	msListLogTime := make([]int64, noISD)
+	id := strconv.Itoa(noISD) + "-" + strconv.Itoa(cfg.Ms.NoOfASEntries)
+
 	for i := 0; i < noISD; i++ {
 		c <- i
 		go func(ch chan int, id string, msListLogTime []int64) {
@@ -154,8 +156,8 @@ func realMain() int {
 	defer w.Flush()
 	s, _ := json.Marshal(msListLogTime)
 	log.Info("S ", "s ", string(s))
-	w.Write([]string{"REV", "1-1000", string(s)})
-	w.Write([]string{"ALL", "1-1000", strconv.FormatInt(duration.Milliseconds(), 10)})
+	w.Write([]string{"REV", id, string(s)})
+	w.Write([]string{"ALL", id, strconv.FormatInt(duration.Milliseconds(), 10)})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}
