@@ -184,7 +184,8 @@ func PullAllPGNEntries(ctx context.Context, interval time.Duration) {
 
 func PullPGNEntryByQuery(ctx context.Context, entryType string, srcIA string) (int64, error) {
 	// pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest(entryType, srcIA)
-	pgn := getRandomPGN(context.Background())
+	// pgn := getRandomPGN(context.Background())
+	pgn := plncomm.PGN{PGNId: "pgn1-ff00:0:110", PGNIA: msmsgr.IA}
 	signer, err := registerSigner()
 	if err != nil {
 		log.Error("Error registering signer", "Err: ", err)
