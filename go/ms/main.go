@@ -18,12 +18,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -126,16 +126,32 @@ func realMain() int {
 	// 	defer log.HandlePanic()
 	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
 	// }()
-	time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
-	log.Info("Got time ", "time ", time)
-	f, err := os.OpenFile("revMapping.csv", os.O_WRONLY|os.O_APPEND, 0644)
+	c := make(chan int, msmsgr.WorkerPoolSize/10)
+	noISD := 10
+	msListLogTime := make([]int64, noISD)
+	id := "10-1000"
+	for i := 0; i < noISD; i++ {
+		c <- i
+		go func(ch chan int, id string, msListLogTime []int64) {
+			defer log.HandlePanic()
+			time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
+			index := <-ch
+			msListLogTime[index] = time
+		}(c, id, msListLogTime)
+	}
+
+	for len(c) > 0 {
+		log.Info("waiting for all ids to finish ", "num ", len(c))
+	}
+
+	f, err := os.OpenFile("revMapping"+id+".csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Error("Cannot open times.csv", "Err ", err)
 	}
 	w := csv.NewWriter(f)
 	defer w.Flush()
-	log.Info("writing to csv")
-	w.Write([]string{"REV", "1-1000", strconv.FormatInt(time, 10)})
+	s, _ := json.Marshal(msListLogTime)
+	w.Write([]string{"REV", "1-1000", string(s)})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}
