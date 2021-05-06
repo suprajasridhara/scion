@@ -355,9 +355,9 @@ func processEntry(entry []byte, timestamp uint64) error {
 			} else if sigPld.Ms.AsActionReq.Action == "del_as_entry" {
 				deleteASEntry(*sigPld.Ms.AsActionReq)
 			}
-			// index := <-ch
-			<-ch
-			//log.Info("Done ", "index ", index)
+			index := <-ch
+
+			log.Info("Done ", "index ", index)
 
 		}(asEntry, c)
 	}
@@ -365,7 +365,7 @@ func processEntry(entry []byte, timestamp uint64) error {
 		log.Info("Waiting for all workers to finish ", "len ", len(c))
 	}
 	for len(c) > 0 {
-		log.Info("Waiting ", "no ", len(c))
+		//log.Info("Waiting ", "no ", len(c))
 	}
 	// wg.Wait()
 
