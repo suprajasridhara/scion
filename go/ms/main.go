@@ -127,41 +127,41 @@ func realMain() int {
 	// 	defer log.HandlePanic()
 	// 	pgncomm.PullAllPGNEntries(context.Background(), cfg.Ms.MSPullListInterval.Duration)
 	// }()
-	c := make(chan int, msmsgr.WorkerPoolSize/10)
-	start := time.Now()
+	for j := 10; j <= 10000; j = j * 10 {
+		c := make(chan int, msmsgr.WorkerPoolSize/10)
+		start := time.Now()
+		noISD := j
+		msListLogTime := make([]int64, noISD)
+		id := strconv.Itoa(noISD) + "-" + strconv.Itoa(cfg.Ms.NoOfASEntries)
+		for i := 0; i < noISD; i++ {
+			c <- i
+			go func(ch chan int, id string, msListLogTime []int64) {
+				defer log.HandlePanic()
+				time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
+				index := <-ch
+				msListLogTime[index] = time
+			}(c, id, msListLogTime)
+		}
 
-	noISD := 1
-	msListLogTime := make([]int64, noISD)
-	id := strconv.Itoa(noISD) + "-" + strconv.Itoa(cfg.Ms.NoOfASEntries)
-
-	for i := 0; i < noISD; i++ {
-		c <- i
-		go func(ch chan int, id string, msListLogTime []int64) {
-			defer log.HandlePanic()
-			time, _ := pgncomm.PullPGNEntryByQuery(context.Background(), "MS_LIST", "")
-			index := <-ch
-			msListLogTime[index] = time
-		}(c, id, msListLogTime)
+		for len(c) > 0 {
+			log.Info("waiting for all ISDs to finish ", "num ", len(c))
+		}
+		duration := time.Since(start)
+		f, err := os.OpenFile("revMapping"+id+".csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			log.Error("Cannot open times.csv", "Err ", err)
+		}
+		w := csv.NewWriter(f)
+		defer w.Flush()
+		s, _ := json.Marshal(msListLogTime)
+		log.Info("S ", "s ", string(s))
+		w.Write([]string{"REV", id, string(s)})
+		w.Write([]string{"ALL", id, strconv.FormatInt(duration.Milliseconds(), 10)})
+		if err := w.Error(); err != nil {
+			log.Error("error writing csv:", "Error :", err)
+		}
+		w.Flush()
 	}
-
-	for len(c) > 0 {
-		log.Info("waiting for all ISDs to finish ", "num ", len(c))
-	}
-	duration := time.Since(start)
-	f, err := os.OpenFile("revMapping"+id+".csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		log.Error("Cannot open times.csv", "Err ", err)
-	}
-	w := csv.NewWriter(f)
-	defer w.Flush()
-	s, _ := json.Marshal(msListLogTime)
-	log.Info("S ", "s ", string(s))
-	w.Write([]string{"REV", id, string(s)})
-	w.Write([]string{"ALL", id, strconv.FormatInt(duration.Milliseconds(), 10)})
-	if err := w.Error(); err != nil {
-		log.Error("error writing csv:", "Error :", err)
-	}
-	w.Flush()
 	select {
 	case <-fatal.ShutdownChan():
 		return 0
