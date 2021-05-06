@@ -24,6 +24,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -130,6 +131,7 @@ func realMain() int {
 	noISD := 10
 	msListLogTime := make([]int64, noISD)
 	id := "10-1000"
+	start := time.Now()
 	for i := 0; i < noISD; i++ {
 		c <- i
 		go func(ch chan int, id string, msListLogTime []int64) {
@@ -141,9 +143,9 @@ func realMain() int {
 	}
 
 	for len(c) > 0 {
-		log.Info("waiting for all ids to finish ", "num ", len(c))
+		log.Info("waiting for all ISDs to finish ", "num ", len(c))
 	}
-
+	duration := time.Since(start)
 	f, err := os.OpenFile("revMapping"+id+".csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Error("Cannot open times.csv", "Err ", err)
@@ -153,9 +155,11 @@ func realMain() int {
 	s, _ := json.Marshal(msListLogTime)
 	log.Info("S ", "s ", string(s))
 	w.Write([]string{"REV", "1-1000", string(s)})
+	w.Write([]string{"ALL", "1-1000", strconv.FormatInt(duration.Milliseconds(), 10)})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
 	}
+	w.Flush()
 	select {
 	case <-fatal.ShutdownChan():
 		return 0
