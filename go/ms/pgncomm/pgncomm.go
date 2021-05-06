@@ -365,7 +365,7 @@ func processEntry(entry []byte, timestamp uint64) error {
 		log.Info("Waiting for all workers to finish ", "len ", len(c))
 	}
 	for len(c) > 0 {
-		_ = true
+		log.Info("Waiting ")
 	}
 	// wg.Wait()
 
