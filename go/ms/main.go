@@ -151,6 +151,7 @@ func realMain() int {
 	w := csv.NewWriter(f)
 	defer w.Flush()
 	s, _ := json.Marshal(msListLogTime)
+	log.Info("S ", "s ", string(s))
 	w.Write([]string{"REV", "1-1000", string(s)})
 	if err := w.Error(); err != nil {
 		log.Error("error writing csv:", "Error :", err)
