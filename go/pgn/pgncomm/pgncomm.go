@@ -67,9 +67,9 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		//pgns, err := plncomm.GetPLNList(ctx, plnIA)
 		var pgns []plncomm.PGN
 		pgns = append(pgns, plncomm.PGN{PGNId: "id", PGNIA: pgnmsgr.IA})
-		if err != nil {
-			return serrors.WrapStr("Error getting pln list", err)
-		}
+		// if err != nil {
+		// 	return serrors.WrapStr("Error getting pln list", err)
+		// }
 
 		if N > len(pgns) {
 			return serrors.WrapStr("n is greater than number of PGNs in PLN list", err)
