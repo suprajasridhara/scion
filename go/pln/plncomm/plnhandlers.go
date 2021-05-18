@@ -60,6 +60,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	for i, plnListEntry := range plnList {
 		c <- i
 		go func(plnListEntry pln_mgmt.PlnListEntry) {
+			defer log.HandlePanic()
 			signedPld := &ctrl.SignedPld{}
 			err = proto.ParseFromRaw(signedPld, plnListEntry.Raw)
 			if err != nil {
