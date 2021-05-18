@@ -116,7 +116,9 @@ func ParseFromReader(c Cerealizable, r io.Reader) error {
 // readRootFromReader returns the root struct from a capnp message read from r.
 func readRootFromReader(r io.Reader) (capnp.Struct, error) {
 	var blank capnp.Struct
-	msg, err := SafeDecode(capnp.NewPackedDecoder(r))
+	d := capnp.NewPackedDecoder(r)
+	d.MaxMessageSize = 250 << 20
+	msg, err := SafeDecode(d)
 	if err != nil {
 		return blank, common.NewBasicError("Failed to decode capnp message", err)
 	}
