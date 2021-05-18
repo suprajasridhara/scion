@@ -17,6 +17,7 @@ package plnmsgr
 import (
 	"context"
 	"net"
+	"strconv"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
@@ -36,14 +37,18 @@ func GetPLNListAsPld(id uint64) (*pln_mgmt.Pld, error) {
 		return nil, err
 	}
 	var l []pln_mgmt.PlnListEntry
-	added := make(map[string]bool)
-	for _, entry := range plnList {
-		if !added[entry.PgnID] {
-			l = append(l, *pln_mgmt.NewPlnListEntry(entry.PgnID, uint64(entry.IA), entry.Raw))
-			added[entry.PgnID] = true
-		}
+	//added := make(map[string]bool)
+	// for _, entry := range plnList {
+	// 	if !added[entry.PgnID] {
+	// 		l = append(l, *pln_mgmt.NewPlnListEntry(entry.PgnID, uint64(entry.IA), entry.Raw))
+	// 		added[entry.PgnID] = true
+	// 	}
+	// }
+	log.Info("PLN list size: ", "list size", len(plnList))
+	entry := plnList[0]
+	for i := 0; i < 1000; i++ {
+		l = append(l, *pln_mgmt.NewPlnListEntry(entry.PgnID+strconv.Itoa(i), uint64(entry.IA), entry.Raw))
 	}
-
 	if len(l) > 0 {
 		plnL := pln_mgmt.NewPlnList(l)
 

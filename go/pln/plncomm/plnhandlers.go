@@ -91,7 +91,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	duration := time.Since(start)
-	log.Info("Time elapsed 0b-PLNListHandler", "duration ", duration.String())
+	log.Info("Time elapsed 0c-PLNListHandler", "duration ", duration.String())
 
 	f, err := os.OpenFile("times.csv", os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {

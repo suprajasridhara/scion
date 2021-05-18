@@ -40,25 +40,25 @@ func (p *Propagator) Run() error {
 	msg := &path_mgmt.SegReq{RawSrcIA: plnmsgr.IA.IAInt(), RawDstIA: addr.IA{I: 0, A: 0}.IAInt()}
 	csaddr := &snet.SVCAddr{IA: plnmsgr.IA, SVC: addr.SvcCS}
 
-	rep, err := plnmsgr.Msgr.GetSegs(context.Background(), msg, csaddr, rand.Uint64())
+	_, err := plnmsgr.Msgr.GetSegs(context.Background(), msg, csaddr, rand.Uint64())
 	if err != nil {
 		return serrors.New("Error getting segs", "error:", err)
 	}
 
-	recs := rep.Recs.Recs
-	propTo := p.asToPropTo(recs)
-	if len(propTo) == 0 {
-		log.Error(`No Core ASes to propagate list to. This might be because the configured Hops 
-		is too small`)
-	} else {
-		for _, p := range propTo {
-			address := &snet.SVCAddr{IA: p.IA(), SVC: addr.SvcPLN}
-			err := plnmsgr.SendPLNList(address, rand.Uint64())
-			if err != nil {
-				log.Error("error sending list to "+address.String(), "error:", err)
-			}
-		}
+	//recs := rep.Recs.Recs
+	// propTo := p.asToPropTo(recs)
+	// if len(propTo) == 0 {
+	// 	log.Error(`No Core ASes to propagate list to. This might be because the configured Hops
+	// 	is too small`)
+	// } else {
+	// 	for _, p := range propTo {
+	address := &snet.SVCAddr{IA: plnmsgr.IA, SVC: addr.SvcPLN}
+	err = plnmsgr.SendPLNList(address, rand.Uint64())
+	if err != nil {
+		log.Error("error sending list to "+address.String(), "error:", err)
 	}
+	//}
+	//}
 	return nil
 
 }
