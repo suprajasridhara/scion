@@ -88,6 +88,7 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 			} else {
 				log.Error("Error verifying plnEntry signature", "error: ", err)
 			}
+			<-c
 		}(plnListEntry)
 
 	}
