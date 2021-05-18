@@ -24,7 +24,6 @@ import (
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
-	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
@@ -34,18 +33,20 @@ import (
 )
 
 type PGNEntryHandler struct {
+	SignedPld *ctrl.SignedPld
 }
 
 func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	start := time.Now()
 	log.Info("Entering: PGNEntryHandler.Handle")
-	ctx := r.Context()
-	requester := r.Peer.(*snet.UDPAddr)
+	ctx := context.Background()
+	//requester := r.Peer.(*snet.UDPAddr)
 
 	//Verify node list signature by pgn on the list
-	message := r.FullMessage.(*ctrl.SignedPld)
+	//message := r.FullMessage.(*ctrl.SignedPld)
+	message := n.SignedPld
 	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
-	verifier := trust.Verifier{BoundIA: requester.IA, Engine: e}
+	verifier := trust.Verifier{BoundIA: pgnmsgr.IA, Engine: e}
 	err := verifier.Verify(ctx, message.Blob, message.Sign)
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)

@@ -21,11 +21,11 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
+	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
-	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
@@ -81,7 +81,7 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 			if !contains(randIs, r) && !pgns[r].PGNIA.Equal(pgnmsgr.IA) {
 				randIs = append(randIs, r)
 			} else {
-				i--
+				//i--
 			}
 		}
 
@@ -112,21 +112,24 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		emptyObjects = pgnentryhelper.GetEmptyObjects(isds, &signer)
 
 		pgnList := pgn_mgmt.NewPGNList(l, emptyObjects, uint64(time.Now().Unix()))
-		pld, err := pgn_mgmt.NewPld(1, pgnList)
+		pgnPld, err := pgn_mgmt.NewPld(1, pgnList)
 		if err != nil {
 			return serrors.WrapStr("Error forming pgn_mgmt Pld", err)
 		}
-		for _, i := range randIs {
-			//pgn := pgns[i]
-			log.Info("I ", "i ", i)
-			address := &snet.SVCAddr{IA: pgnmsgr.IA, SVC: addr.SvcPGN}
+		pld, _ := ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
+		signedPld, _ := pld.SignedPld(context.Background(), signer)
+		PGNEntryHandler{SignedPld: signedPld}.Handle(nil)
+		// for _, i := range randIs {
+		// 	//pgn := pgns[i]
+		// 	log.Info("I ", "i ", i)
+		// 	address := &snet.SVCAddr{IA: pgnmsgr.IA, SVC: addr.SvcPGN}
 
-			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
-				rand.Uint64(), infra.PGNList)
-			if err != nil {
-				log.Error("Error sending pgn list", "err", err)
-			}
-		}
+		// 	err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
+		// 		rand.Uint64(), infra.PGNList)
+		// 	if err != nil {
+		// 		log.Error("Error sending pgn list", "err", err)
+		// 	}
+		// }
 	}
 	log.Info("Exiting: sendPGNList")
 
