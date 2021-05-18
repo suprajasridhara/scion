@@ -67,6 +67,7 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	for i, l := range pldList.Pgn.PGNList.L {
 		c <- i
 		go func(ch chan int, l common.RawBytes) {
+			defer log.HandlePanic()
 			signedPGNEntry := &ctrl.SignedPld{}
 			err = proto.ParseFromRaw(signedPGNEntry, l)
 			if err != nil {
