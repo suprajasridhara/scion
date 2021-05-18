@@ -20,6 +20,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
@@ -62,28 +63,29 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		log.Error("Error decerializing control payload", "Error: ", err)
 		return nil
 	}
+	c := make(chan int, 50)
+	for i, l := range pldList.Pgn.PGNList.L {
+		c <- i
+		go func(ch chan int, l common.RawBytes) {
+			signedPGNEntry := &ctrl.SignedPld{}
+			err = proto.ParseFromRaw(signedPGNEntry, l)
+			if err != nil {
+				log.Error("Error getting signedPGNEntry", "Error: ", err)
+			}
+			pld := &ctrl.Pld{}
+			proto.ParseFromRaw(pld, signedPGNEntry.Blob)
+			r := pld.Pgn.AddPGNEntryRequest
+			if err = pgnentryhelper.ValidatePGNEntry(r, signedPGNEntry, false); err != nil {
+				log.Error("Error validating signatures", "Error: ", err)
+			}
 
-	for _, l := range pldList.Pgn.PGNList.L {
-		signedPGNEntry := &ctrl.SignedPld{}
-		err = proto.ParseFromRaw(signedPGNEntry, l)
-		if err != nil {
-			log.Error("Error getting signedPGNEntry", "Error: ", err)
-			continue
-		}
-		pld := &ctrl.Pld{}
-		proto.ParseFromRaw(pld, signedPGNEntry.Blob)
-		r := pld.Pgn.AddPGNEntryRequest
-		if err = pgnentryhelper.ValidatePGNEntry(r, signedPGNEntry, false); err != nil {
-			log.Error("Error validating signatures", "Error: ", err)
-			continue
-		}
-
-		//all verification done. Persist PGNEntry
-		e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
-		if err = pgnentryhelper.PersistEntry(r, e, l); err != nil {
-			log.Error("Error persisting PGNEntry ", "Error: ", err)
-			continue
-		}
+			//all verification done. Persist PGNEntry
+			e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
+			if err = pgnentryhelper.PersistEntry(r, e, l); err != nil {
+				log.Error("Error persisting PGNEntry ", "Error: ", err)
+			}
+			<-ch
+		}(c, l)
 	}
 
 	//process empty objects
