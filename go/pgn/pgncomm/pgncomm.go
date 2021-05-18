@@ -64,7 +64,9 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 	}
 
 	if len(dbEntries) > 0 {
-		pgns, err := plncomm.GetPLNList(ctx, plnIA)
+		//pgns, err := plncomm.GetPLNList(ctx, plnIA)
+		var pgns []plncomm.PGN
+		pgns = append(pgns, plncomm.PGN{PGNId: "id", PGNIA: pgnmsgr.IA})
 		if err != nil {
 			return serrors.WrapStr("Error getting pln list", err)
 		}
