@@ -84,10 +84,14 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		}
 
 		var l []common.RawBytes
-		for _, dbEntry := range dbEntries {
-			l = append(l, *dbEntry.SignedBlob)
-		}
+		// for _, dbEntry := range dbEntries {
+		// 	l = append(l, *dbEntry.SignedBlob)
+		// }
 
+		for i := 0; i < 1000; i++ {
+			l = append(l, *dbEntries[0].SignedBlob)
+		}
+		log.Info("Signed blob size ", "1000 AS entries ", l[0].Len())
 		pgncrypt := &pgncrypto.PGNSigner{}
 		err = pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
 		if err != nil {
@@ -96,7 +100,7 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		}
 		signer, err := pgncrypt.SignerGen.Generate(context.Background())
 		if err != nil {
-			log.Error("error getting signer","err: ", err)
+			log.Error("error getting signer", "err: ", err)
 			return err
 		}
 		pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
@@ -111,12 +115,13 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 			return serrors.WrapStr("Error forming pgn_mgmt Pld", err)
 		}
 		for _, i := range randIs {
-			pgn := pgns[i]
-			address := &snet.SVCAddr{IA: pgn.PGNIA, SVC: addr.SvcPGN}
+			//pgn := pgns[i]
+			log.Info("I ", "i ", i)
+			address := &snet.SVCAddr{IA: pgnmsgr.IA, SVC: addr.SvcPGN}
 
 			err = pgnmsgr.Msgr.SendPGNRep(context.Background(), pld, address,
 				rand.Uint64(), infra.PGNList)
-				if err != nil {
+			if err != nil {
 				log.Error("Error sending pgn list", "err", err)
 			}
 		}
