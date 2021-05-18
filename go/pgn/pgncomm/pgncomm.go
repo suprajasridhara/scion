@@ -91,12 +91,12 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		pgncrypt := &pgncrypto.PGNSigner{}
 		err = pgncrypt.Init(ctx, pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
 		if err != nil {
-			log.Error("error getting pgncrypto", err)
+			log.Error("error getting pgncrypto", "err ", err)
 			return err
 		}
 		signer, err := pgncrypt.SignerGen.Generate(context.Background())
 		if err != nil {
-			log.Error("error getting signer", err)
+			log.Error("error getting signer","err: ", err)
 			return err
 		}
 		pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.PGNList})
