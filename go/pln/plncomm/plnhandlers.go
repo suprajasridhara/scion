@@ -8,6 +8,7 @@ import (
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/ctrl"
+	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/infra/messenger"
 	"github.com/scionproto/scion/go/lib/log"
@@ -55,38 +56,38 @@ func (p PLNListHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 	plnList := pld.Pln.PlnList.L
-
-	for _, plnListEntry := range plnList {
-		signedPld := &ctrl.SignedPld{}
-		err = proto.ParseFromRaw(signedPld, plnListEntry.Raw)
-		if err != nil {
-			log.Error("Error parsing SignedPld", "err", err)
-			return nil
-		}
-		pldFromRaw := &ctrl.Pld{}
-		err = proto.ParseFromRaw(pldFromRaw, signedPld.Blob)
-		if err != nil {
-			log.Error("Error parsing PGN entry", "err", err)
-			return nil
-		}
-		var pgnIAInt addr.IAInt
-		pgnIAInt = addr.IAInt(pldFromRaw.Pgn.AddPLNEntryRequest.Entry.IA)
-		pgnIA := pgnIAInt.IA()
-
-		//verify pgnIA signature
-		verifier := trust.Verifier{BoundIA: pgnIA, Engine: e}
-		err := verifier.Verify(context.Background(), signedPld.Blob, signedPld.Sign)
-
-		if err == nil {
-			//persist entry in database
-			_, err = sqlite.Db.InsertNewPLNEntry(context.Background(),
-				pldFromRaw.Pgn.AddPLNEntryRequest.Entry.PGNId, uint64(pgnIAInt), plnListEntry.Raw)
+	c := make(chan int, 50)
+	for i, plnListEntry := range plnList {
+		c <- i
+		go func(plnListEntry pln_mgmt.PlnListEntry) {
+			signedPld := &ctrl.SignedPld{}
+			err = proto.ParseFromRaw(signedPld, plnListEntry.Raw)
 			if err != nil {
-				log.Error("Error while inserting new entry")
+				log.Error("Error parsing SignedPld", "err", err)
 			}
-		} else {
-			log.Error("Error verifying plnEntry signature", "error: ", err)
-		}
+			pldFromRaw := &ctrl.Pld{}
+			err = proto.ParseFromRaw(pldFromRaw, signedPld.Blob)
+			if err != nil {
+				log.Error("Error parsing PGN entry", "err", err)
+			}
+			pgnIAInt := addr.IAInt(pldFromRaw.Pgn.AddPLNEntryRequest.Entry.IA)
+			pgnIA := pgnIAInt.IA()
+
+			//verify pgnIA signature
+			verifier := trust.Verifier{BoundIA: pgnIA, Engine: e}
+			err := verifier.Verify(context.Background(), signedPld.Blob, signedPld.Sign)
+
+			if err == nil {
+				//persist entry in database
+				_, err = sqlite.Db.InsertNewPLNEntry(context.Background(),
+					pldFromRaw.Pgn.AddPLNEntryRequest.Entry.PGNId, uint64(pgnIAInt), plnListEntry.Raw)
+				if err != nil {
+					log.Error("Error while inserting new entry")
+				}
+			} else {
+				log.Error("Error verifying plnEntry signature", "error: ", err)
+			}
+		}(plnListEntry)
 
 	}
 
