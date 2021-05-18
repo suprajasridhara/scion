@@ -45,17 +45,20 @@ type AddPGNEntryReqHandler struct {
 }
 
 func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	pgnEntry, signedPld := pgnentryhelper.CreateObjMS() //create entry in PGN itself
+
 	start := time.Now()
 	log.Info("Entering: AddPGNEntryReqHandler.Handle")
-	ctx := r.Context()
-
+	//ctx := r.Context()
+	ctx := context.Background()
 	rw, _ := infra.ResponseWriterFromContext(ctx)
 	sendAck := messenger.SendAckHelper(ctx, rw)
 
-	pgnEntry := r.Message.(*pgn_mgmt.AddPGNEntryRequest)
-
+	//pgnEntry := r.Message.(*pgn_mgmt.AddPGNEntryRequest)
+	//if err := pgnentryhelper.ValidatePGNEntry(pgnEntry,
+	//r.FullMessage.(*ctrl.SignedPld), true); err != nil {
 	if err := pgnentryhelper.ValidatePGNEntry(pgnEntry,
-		r.FullMessage.(*ctrl.SignedPld), true); err != nil {
+		signedPld, true); err != nil {
 		log.Error("Invalid PGNEntry", "Err: ", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
 		return nil
@@ -64,7 +67,8 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	//persist the entry
 	e := pgncrypto.PGNEngine{Msgr: pgnmsgr.Msgr, IA: pgnmsgr.IA}
 	pgnEntry.CommitID = generateCommitID()
-	signedBlob, err := proto.PackRoot(r.FullMessage.(*ctrl.SignedPld))
+	//	signedBlob, err := proto.PackRoot(r.FullMessage.(*ctrl.SignedPld))
+	signedBlob, err := proto.PackRoot(signedPld)
 	if err != nil {
 		log.Error("Error packing signedPld ", "Err: ", err)
 		sendAck(proto.Ack_ErrCode_reject, err.Error())

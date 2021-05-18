@@ -20,11 +20,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/common"
 	"github.com/scionproto/scion/go/lib/ctrl"
+	"github.com/scionproto/scion/go/lib/ctrl/ms_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
+	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
@@ -176,4 +179,82 @@ func GetISDsInEntries(dbEntries []sqlite.PGNEntry) map[uint64]bool {
 		set[uint64(ia.I)] = true
 	}
 	return set
+}
+
+func CreateObjMS() (*pgn_mgmt.AddPGNEntryRequest, *ctrl.SignedPld) {
+	ctx := context.Background()
+	signer, err := registerSigner()
+	if err != nil {
+		log.Error("Error getting signer ", "Err: ", err)
+		return nil, nil
+	}
+	ts := uint64(time.Now().UnixNano())
+	asEntry := ms_mgmt.NewASMapEntry([]string{"10.71.57.0/26"}, pgnmsgr.IA.String(), ts, "add_as_entry")
+	mspld, err := ms_mgmt.NewPld(1, asEntry)
+	pld, _ := ctrl.NewPld(mspld, &ctrl.Data{ReqId: rand.Uint64()})
+	signedPld, err := pld.SignedPld(ctx, signer)
+	asEntryBytes, err := proto.PackRoot(signedPld)
+	log.Info("size of asEntry ", "size ", asEntryBytes.Len())
+	var asEntries []*ctrl.SignedPld
+	noOfASEntries := 1000
+	log.Info("No of AAAS entries ", "entriess ", noOfASEntries)
+	for i := 0; i < noOfASEntries; i++ {
+		asEntries = append(asEntries, signedPld)
+	}
+	entries := []ms_mgmt.SignedASEntry{}
+	for _, asEntry := range asEntries {
+		entry := ms_mgmt.NewSignedASEntry(asEntry.Blob, asEntry.Sign)
+		//e, _ := proto.PackRoot(entry)
+		//log.Info("sizeof signed AS entry ", "size ", e.Len())
+		entries = append(entries, *entry)
+	}
+	//create signed MS list
+	timestamp := time.Now()
+
+	signedList := ms_mgmt.NewSignedMSList(uint64(timestamp.Unix()), entries, pgnmsgr.IA.String())
+	msMgmtPld, err := ms_mgmt.NewPld(1, signedList)
+	if err != nil {
+		log.Error("Error gorming msMgmtPld ", "Err: ", err)
+		return nil, nil
+	}
+	pld, _ = ctrl.NewPld(msMgmtPld, &ctrl.Data{ReqId: rand.Uint64()})
+	log.Info("sizeof pld ", "size ", unsafe.Sizeof(pld))
+	signedEntry, err := pld.SignedPld(context.Background(), signer)
+	if err != nil {
+		log.Error("Error creating SignedPld", "Err: ", err)
+		return nil, nil
+	}
+	entry, err := proto.PackRoot(signedEntry)
+
+	if err != nil {
+		log.Error("Error packing signedEntry", "Err: ", err)
+		return nil, nil
+	}
+	//For now push full lists, with empty commitID. This will be changed in the next iteration to
+	//only push updates
+	timestampPGN := time.Now().Add(1000 * time.Hour)
+
+	req := pgn_mgmt.NewAddPGNEntryRequest(entry, "MS_LIST", "", PGNID,
+		uint64(timestampPGN.Unix()), pgnmsgr.IA.String())
+
+	pgnPld, err := pgn_mgmt.NewPld(1, req)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt payload", "Err: ", err)
+		return nil, nil
+	}
+	pld, _ = ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
+	signedPlnPLd, _ := pld.SignedPld(context.Background(), signer)
+	return req, signedPlnPLd
+}
+
+func registerSigner() (*trust.Signer, error) {
+	pgncrypt := &pgncrypto.PGNSigner{}
+	pgncrypt.Init(context.Background(), pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
+	signer, err := pgncrypt.SignerGen.Generate(context.Background())
+	if err != nil {
+		return nil, serrors.WrapStr("Unable to create signer to AddASMap", err)
+	}
+	pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPGNEntryRequest,
+		infra.PGNEntryRequest})
+	return &signer, nil
 }
