@@ -16,15 +16,18 @@ package plnmsgr
 
 import (
 	"context"
+	"math/rand"
 	"net"
 	"strconv"
 
 	"github.com/scionproto/scion/go/lib/addr"
+	"github.com/scionproto/scion/go/lib/ctrl"
+	"github.com/scionproto/scion/go/lib/ctrl/pgn_mgmt"
 	"github.com/scionproto/scion/go/lib/ctrl/pln_mgmt"
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/pln/internal/plncrypto"
-	"github.com/scionproto/scion/go/pln/internal/sqlite"
+	"github.com/scionproto/scion/go/proto"
 )
 
 var Msgr infra.Messenger
@@ -32,10 +35,10 @@ var IA addr.IA
 
 func GetPLNListAsPld(id uint64) (*pln_mgmt.Pld, error) {
 	var pld *pln_mgmt.Pld
-	plnList, err := sqlite.Db.GetPLNList(context.Background())
-	if err != nil {
-		return nil, err
-	}
+	//plnList, err := sqlite.Db.GetPLNList(context.Background())
+	// if err != nil {
+	// 	return nil, err
+	// }
 	var l []pln_mgmt.PlnListEntry
 	//added := make(map[string]bool)
 	// for _, entry := range plnList {
@@ -44,11 +47,34 @@ func GetPLNListAsPld(id uint64) (*pln_mgmt.Pld, error) {
 	// 		added[entry.PgnID] = true
 	// 	}
 	// }
-	log.Info("PLN list size: ", "list size", len(plnList))
-	entry := plnList[0]
+	//log.Info("PLN list size: ", "list size", len(plnList))
+
+	entry := pln_mgmt.NewPlnListEntry("id", uint64(IA.IAInt()), nil)
+	req := pgn_mgmt.NewAddPLNEntryRequest(*entry)
+
+	plncrypt := &plncrypto.PLNSigner{}
+	err := plncrypt.Init(context.Background(), Msgr, IA, plncrypto.CfgDir)
+	if err != nil {
+		log.Error("error getting pgncrypto", "err", err)
+	}
+	signer, err := plncrypt.SignerGen.Generate(context.Background())
+	if err != nil {
+		log.Error("error getting signer", "err", err)
+	}
+	Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPLNEntryRequest})
+
+	pgnPld, err := pgn_mgmt.NewPld(1, req)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt payload", "Err: ", err)
+	}
+	gpld, _ := ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
+
+	signedPld, _ := gpld.SignedPld(context.Background(), signer)
+	newEntry, _ := proto.PackRoot(signedPld)
+
 	log.Info("Entry IA", "ia ", addr.IAInt(entry.IA).String())
 	for i := 0; i < 1000; i++ {
-		l = append(l, *pln_mgmt.NewPlnListEntry(entry.PgnID+strconv.Itoa(i), uint64(entry.IA), entry.Raw))
+		l = append(l, *pln_mgmt.NewPlnListEntry("id"+strconv.Itoa(i), uint64(IA.IAInt()), newEntry))
 	}
 	if len(l) > 0 {
 		plnL := pln_mgmt.NewPlnList(l)
