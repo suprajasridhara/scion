@@ -35,6 +35,7 @@ type SvcListHandler struct {
 }
 
 func (a SvcListHandler) Handle(r *infra.Request) *infra.HandlerResult {
+	plnmsgr.Init() //sets the entry with 1000 pgns
 	start := time.Now()
 	log.Info("Entering: SvcListHandler.Handle")
 	ctx := r.Context()
