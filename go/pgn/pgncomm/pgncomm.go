@@ -90,7 +90,7 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		// 	l = append(l, *dbEntry.SignedBlob)
 		// }
 
-		for i := 0; i < 1000; i++ {
+		for i := 0; i < 100; i++ {
 			l = append(l, *dbEntries[0].SignedBlob)
 		}
 		log.Info("Signed blob size ", "1000 AS entries ", l[0].Len())
