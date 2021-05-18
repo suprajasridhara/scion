@@ -82,7 +82,7 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 	}
 
 	pgnRep := pgn_mgmt.NewPGNRep(*pgnEntry, uint64(time.Now().Unix()))
-	pld, err := pgn_mgmt.NewPld(1, pgnRep)
+	_, err = pgn_mgmt.NewPld(1, pgnRep)
 	if err != nil {
 		log.Error("Error getting pcn_mgmt.pld")
 		sendAck(proto.Ack_ErrCode_reject, err.Error())
@@ -100,7 +100,7 @@ func (a AddPGNEntryReqHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		t.Signer = *signer
 	}
 
-	rw.SendPGNRep(ctx, pld, infra.PGNRep)
+	//rw.SendPGNRep(ctx, pld, infra.PGNRep)
 	duration := time.Since(start)
 	log.Info("Time elapsed 4-AddPGNEntryReqHandler", "duration ", duration.String())
 
