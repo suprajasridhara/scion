@@ -145,8 +145,11 @@ func (p PGNEntryRequestHandler) Handle(r *infra.Request) *infra.HandlerResult {
 
 	dbEntries, err := sqlite.Db.GetEntriesByTypeAndSrcIA(context.Background(), "%", "%")
 	var l []common.RawBytes
-	for _, dbEntry := range dbEntries {
-		l = append(l, *dbEntry.SignedBlob)
+	// for _, dbEntry := range dbEntries {
+	// 	l = append(l, *dbEntry.SignedBlob)
+	// }
+	for i := 0; i < 1000; i++ {
+		l = append(l, *dbEntries[0].SignedBlob)
 	}
 
 	signer, err := registerSigner(infra.PGNList)

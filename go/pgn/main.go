@@ -15,7 +15,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -25,7 +24,6 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/scionproto/scion/go/cs/ifstate"
-	"github.com/scionproto/scion/go/lib/addr"
 	"github.com/scionproto/scion/go/lib/env"
 	"github.com/scionproto/scion/go/lib/fatal"
 	"github.com/scionproto/scion/go/lib/infra/infraenv"
@@ -117,12 +115,12 @@ func realMain() int {
 	// 		}
 	// 	}(context.Background(), cfg.General.ID, pgncmn.IA, pgncmn.PLNIA)
 	// }
-	go func(ctx context.Context, plnIA addr.IA) {
-		defer log.HandlePanic()
-		//pgncomm.N = int(cfg.PGN.NumPGNs)
-		pgncomm.N = int(1)
-		pgncomm.BroadcastNodeList(ctx, cfg.PGN.PropagateInterval.Duration, plnIA)
-	}(context.Background(), cfg.PGN.PLNIA)
+	// go func(ctx context.Context, plnIA addr.IA) {
+	// 	defer log.HandlePanic()
+	// 	//pgncomm.N = int(cfg.PGN.NumPGNs)
+	// 	pgncomm.N = int(1)
+	// 	pgncomm.BroadcastNodeList(ctx, cfg.PGN.PropagateInterval.Duration, plnIA)
+	// }(context.Background(), cfg.PGN.PLNIA)
 	/**********************************************/
 
 	/*Measure PGN response time to register MS list*/
@@ -134,6 +132,8 @@ func realMain() int {
 	// }
 	/**********************************************/
 
+	/**Measure processing time to send MS list***/
+	pgncomm.CallPGN()
 	// Start HTTP endpoints.
 	statusPages := service.StatusPages{
 		"info":   service.NewInfoHandler(),

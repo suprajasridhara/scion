@@ -26,11 +26,13 @@ import (
 	"github.com/scionproto/scion/go/lib/infra"
 	"github.com/scionproto/scion/go/lib/log"
 	"github.com/scionproto/scion/go/lib/serrors"
+	"github.com/scionproto/scion/go/lib/snet"
 	"github.com/scionproto/scion/go/pgn/internal/pgncrypto"
 	"github.com/scionproto/scion/go/pgn/internal/pgnentryhelper"
 	"github.com/scionproto/scion/go/pgn/internal/pgnmsgr"
 	"github.com/scionproto/scion/go/pgn/internal/sqlite"
 	"github.com/scionproto/scion/go/pgn/plncomm"
+	"github.com/scionproto/scion/go/pkg/trust"
 )
 
 //N is the number of PGNs the list is propagated to in every time interval
@@ -135,6 +137,31 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 
 	return nil
 
+}
+
+func CallPGN() {
+	registerSigner()
+	pgnEntryRequest := pgn_mgmt.NewPGNEntryRequest("MS_LIST", pgnmsgr.IA.String())
+	pgn_pld, err := pgn_mgmt.NewPld(1, pgnEntryRequest)
+	if err != nil {
+		log.Error("Error forming pgn_mgmt payload", "Err: ", err)
+	}
+	address := &snet.SVCAddr{IA: pgnmsgr.IA, SVC: addr.SvcPGN}
+
+	pgnmsgr.Msgr.SendPGNMessage(context.Background(), pgn_pld, address,
+		rand.Uint64(), infra.PGNEntryRequest)
+}
+
+func registerSigner() (*trust.Signer, error) {
+	mscrypt := &pgncrypto.PGNSigner{}
+	mscrypt.Init(context.Background(), pgnmsgr.Msgr, pgnmsgr.IA, pgncrypto.CfgDir)
+	signer, err := mscrypt.SignerGen.Generate(context.Background())
+	if err != nil {
+		return nil, serrors.WrapStr("Unable to create signer to AddASMap", err)
+	}
+	pgnmsgr.Msgr.UpdateSigner(signer, []infra.MessageType{infra.AddPGNEntryRequest,
+		infra.PGNEntryRequest})
+	return &signer, nil
 }
 
 func contains(l []int, elem int) bool {
