@@ -46,6 +46,7 @@ func GetPLNListAsPld(id uint64) (*pln_mgmt.Pld, error) {
 	// }
 	log.Info("PLN list size: ", "list size", len(plnList))
 	entry := plnList[0]
+	log.Info("Entry IA", "ia ", addr.IAInt(entry.IA).String())
 	for i := 0; i < 1000; i++ {
 		l = append(l, *pln_mgmt.NewPlnListEntry(entry.PgnID+strconv.Itoa(i), uint64(entry.IA), entry.Raw))
 	}
