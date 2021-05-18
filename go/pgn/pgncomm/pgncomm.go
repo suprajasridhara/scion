@@ -118,7 +118,7 @@ func sendPGNList(ctx context.Context, plnIA addr.IA) error {
 		}
 		pld, _ := ctrl.NewPld(pgnPld, &ctrl.Data{ReqId: rand.Uint64()})
 		signedPld, _ := pld.SignedPld(context.Background(), signer)
-		PGNEntryHandler{SignedPld: signedPld}.Handle(nil)
+		PGNEntryHandler{SignedPld: signedPld, Pld: pld}.Handle(nil)
 		// for _, i := range randIs {
 		// 	//pgn := pgns[i]
 		// 	log.Info("I ", "i ", i)

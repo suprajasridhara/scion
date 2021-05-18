@@ -35,6 +35,7 @@ import (
 
 type PGNEntryHandler struct {
 	SignedPld *ctrl.SignedPld
+	Pld       *ctrl.Pld
 }
 
 func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
@@ -57,12 +58,12 @@ func (n PGNEntryHandler) Handle(r *infra.Request) *infra.HandlerResult {
 		return nil
 	}
 
-	pldList := &ctrl.Pld{}
-	err = proto.ParseFromRaw(pldList, message.Blob)
-	if err != nil {
-		log.Error("Error decerializing control payload", "Error: ", err)
-		return nil
-	}
+	pldList := n.Pld
+	// err = proto.ParseFromRaw(pldList, message.Blob)
+	// if err != nil {
+	// 	log.Error("Error decerializing control payload", "Error: ", err)
+	// 	return nil
+	// }
 	c := make(chan int, 50)
 	for i, l := range pldList.Pgn.PGNList.L {
 		c <- i
